@@ -1,7 +1,6 @@
 package com.rezero.inandout.income.entity;
 
 
-import com.fasterxml.jackson.databind.ser.Serializers.Base;
 import com.rezero.inandout.domain.BaseEntity;
 import com.rezero.inandout.member.entity.Member;
 import java.time.LocalDate;
