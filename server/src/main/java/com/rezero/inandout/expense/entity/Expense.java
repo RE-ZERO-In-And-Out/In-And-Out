@@ -1,7 +1,6 @@
 package com.rezero.inandout.expense.entity;
 
 import com.rezero.inandout.domain.BaseEntity;
-import com.rezero.inandout.income.entity.IncomeCategory;
 import com.rezero.inandout.member.entity.Member;
 import java.time.LocalDate;
 import javax.persistence.Entity;
