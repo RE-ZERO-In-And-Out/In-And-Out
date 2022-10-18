@@ -35,7 +35,7 @@ public class IncomeServiceImpl implements IncomeService {
 
             incomes.add(
                 Income.builder()
-                    .member(input.getMember())
+                    .member(member)
                     .detailIncomeCategory(detailIncomeCategory)
                     .incomeDt(input.getIncomeDt())
                     .incomeItem(input.getIncomeItem())
