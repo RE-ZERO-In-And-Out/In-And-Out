@@ -31,5 +31,5 @@ public class DetailExpenseCategory extends BaseEntity {
     @JoinColumn(name = "expense_category_id")
     private ExpenseCategory expenseCategory;
 
-    private String detailIncomeCategoryName;
+    private String detailExpenseCategoryName;
 }
