@@ -48,6 +48,7 @@ class IncomeServiceImplTest {
             .build();
 
         IncomeInput incomeInput1 = IncomeInput.builder()
+            .member(member)
             .incomeDt(LocalDate.now().minusMonths(1))
             .incomeItem("초콜릿")
             .detailIncomeCategoryId(100L)
@@ -56,6 +57,7 @@ class IncomeServiceImplTest {
             .build();
 
         IncomeInput incomeInput2 = IncomeInput.builder()
+            .member(member)
             .incomeDt(LocalDate.now())
             .incomeItem("새우깡")
             .detailIncomeCategoryId(100L)

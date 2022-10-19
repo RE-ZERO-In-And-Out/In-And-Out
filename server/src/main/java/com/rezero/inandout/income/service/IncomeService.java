@@ -8,5 +8,4 @@ public interface IncomeService {
 
     void addIncome(String email, List<IncomeInput> incomeInputList);
 
-    void getIncome(String email);
 }

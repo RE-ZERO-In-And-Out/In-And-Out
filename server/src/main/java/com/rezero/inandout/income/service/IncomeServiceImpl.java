@@ -48,15 +48,6 @@ public class IncomeServiceImpl implements IncomeService {
         incomeRepository.saveAll(incomes);
     }
 
-    @Override
-    public void getIncome(String email) {
-        Member member = memberRepository.findByEmail(email)
-            .orElseThrow(() -> new RuntimeException("없는 맴버입니다."));
-
-
-
-    }
-
     private DetailIncomeCategory findDetailIncomeCategoryById(Long detailIncomeCategoryId) {
         return detailIncomeCategoryRepository
             .findByDetailIncomeCategoryId(detailIncomeCategoryId)
