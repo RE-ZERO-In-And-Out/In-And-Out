@@ -1,0 +1,18 @@
+package com.rezero.inandout.expense.model;
+
+import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+public class CategoryAndExpenseDto {
+    private List<ExpenseCategoryDto> expenseCategoryDtos;
+    private List<ExpenseDto> expenseDtos;
+}
