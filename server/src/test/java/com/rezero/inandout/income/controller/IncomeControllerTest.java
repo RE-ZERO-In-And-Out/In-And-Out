@@ -65,7 +65,6 @@ class IncomeControllerTest {
 
         List<IncomeInput> incomeInputList = new ArrayList<>();
         incomeInputList.add(IncomeInput.builder()
-                .member(member)
                 .detailIncomeCategoryId(99L)
                 .incomeDt(LocalDate.now())
                 .incomeItem("초콜릿")
