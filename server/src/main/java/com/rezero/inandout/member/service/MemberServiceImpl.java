@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class MemberServiceImpl implements MemberService {
 
-
     private final MemberRepository memberRepository;
 
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
@@ -102,15 +101,39 @@ public class MemberServiceImpl implements MemberService {
         memberRepository.save(member);
     }
 
-    @Override
-    public boolean update(UpdateMemberInput input) {
-
-        return false;
+    private Member findMemberByEmail(String email) {
+        Optional<Member> optionalMember = memberRepository.findByEmail(email);
+        if (!optionalMember.isPresent()) {
+            throw new RuntimeException("존재하지 않는 아이디(이메일)입니다. 이메일을 정확하게 입력해주세요");
+        }
+        return optionalMember.get();
     }
 
     @Override
-    public boolean withdraw(String email, String password) {
-
-        return false;
+    public String findEmail(String email) {
+        findMemberByEmail(email);
+        return email;
     }
+
+    @Override
+    public String findPhone(String email, String phone) {
+
+        Member optionalMember = findMemberByEmail(email);
+        if (!optionalMember.getPhone().equals(phone)) {
+            throw new RuntimeException("올바른 연락처(번호)가 아닙니다. 다시 입력해주세요");
+        }
+        return optionalMember.getPhone();
+    }
+
+    @Override
+    public void update(UpdateMemberInput input) {
+
+    }
+
+    @Override
+    public void withdraw(String email, String password) {
+
+    }
+
+
 }
