@@ -28,6 +28,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -247,5 +248,136 @@ class IncomeServiceImplTest {
                 .get(1).getDetailIncomeCategoryName(), "아르바이트");
 
         }
+    }
+
+    @Nested
+    @DisplayName("수입리스트 수정")
+    class updateIncomeList {
+
+        Member member = Member.builder()
+            .memberId(10L)
+            .build();
+
+        IncomeInput incomeInput1 = IncomeInput.builder()
+            .incomeId(1L)
+            .incomeDt(LocalDate.now().minusMonths(1))
+            .incomeItem("초콜릿")
+            .detailIncomeCategoryId(100L)
+            .incomeAmount(2000)
+            .incomeMemo("income1-memo")
+            .build();
+
+        IncomeInput incomeInput2 = IncomeInput.builder()
+            .incomeId(2L)
+            .incomeDt(LocalDate.now())
+            .incomeItem("새우깡")
+            .detailIncomeCategoryId(100L)
+            .incomeAmount(3500)
+            .incomeMemo("income2-memo")
+            .build();
+        DetailIncomeCategory detailIncomeCategory = DetailIncomeCategory.builder()
+            .detailIncomeCategoryId(100L)
+            .detailIncomeCategoryName("간식")
+            .build();
+
+        Income IncomeHistory = Income.builder()
+            .incomeId(2L)
+            .incomeDt(LocalDate.now())
+            .incomeItem("매운새우깡")
+            .detailIncomeCategory(detailIncomeCategory)
+            .incomeAmount(113500)
+            .incomeMemo("updateIncome-memo")
+            .build();
+
+        List<IncomeInput> incomes = new ArrayList<>();
+
+        @Test
+        @DisplayName("성공")
+        void updateIncome_success() {
+            incomes.add(incomeInput1);
+            incomes.add(incomeInput2);
+
+            //given
+            given(memberRepository.findByEmail(any()))
+                .willReturn(Optional.of(member));
+
+            given(incomeRepository.findIncomeByMemberAndIncomeId(any(), any()))
+                .willReturn(Optional.of(IncomeHistory));
+
+            given(detailIncomeCategoryRepository.findByDetailIncomeCategoryId(any()))
+                .willReturn(Optional.of(detailIncomeCategory));
+
+            //when
+            incomeService.updateIncome(member.getEmail(), incomes);
+            ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
+
+            //then
+            verify(incomeRepository, times(1)).saveAll(captor.capture());
+            assertEquals(captor.getValue().size(), 2);
+
+        }
+
+
+        @Test
+        @DisplayName("실패 - 유저 없음")
+        void updateIncome_fail_no_member() {
+            //given
+            given(memberRepository.findByEmail(any()))
+                .willReturn(Optional.empty());
+
+            //when
+            String email = "test@email.com";
+            RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> incomeService.updateIncome(email, incomes));
+
+            //then
+            assertEquals(exception.getMessage(), "없는 맴버입니다.");
+        }
+
+        @Test
+        @DisplayName("실패 - 지출내역 없음")
+        void updateIncome_fail_no_incomeHistory() {
+            incomes.add(incomeInput1);
+            incomes.add(incomeInput2);
+
+            //given
+            given(memberRepository.findByEmail(any()))
+                .willReturn(Optional.of(member));
+
+            given(incomeRepository.findIncomeByMemberAndIncomeId(any(), any()))
+                .willReturn(Optional.empty());
+
+            given(detailIncomeCategoryRepository.findByDetailIncomeCategoryId(any()))
+                .willReturn(Optional.of(detailIncomeCategory));
+
+            //when
+            RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> incomeService.updateIncome(member.getEmail(), incomes));
+
+            //then
+            assertEquals(exception.getMessage(), "없는 수입내역 입니다.");
+        }
+
+        @Test
+        @DisplayName("실패 - 카테고리 없음")
+        void updateIncome_fail_no_category() {
+            incomes.add(incomeInput1);
+            incomes.add(incomeInput2);
+
+            //given
+            given(memberRepository.findByEmail(any()))
+                .willReturn(Optional.of(member));
+
+            given(detailIncomeCategoryRepository.findByDetailIncomeCategoryId(any()))
+                .willReturn(Optional.empty());
+
+            //when
+            RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> incomeService.updateIncome(member.getEmail(), incomes));
+
+            //then
+            assertEquals(exception.getMessage(), "없는 카테고리 입니다.");
+        }
+
     }
 }
