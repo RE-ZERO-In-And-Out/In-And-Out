@@ -18,7 +18,7 @@ import lombok.Setter;
 public class ExpenseDto {
 
     private Long expenseId;
-    private DetailExpenseCategoryDto detailExpenseCategoryDto;
+    private Long detailExpenseCategoryId;
     private LocalDate expenseDt;
     private String expenseItem;
     private Integer expenseCash;
@@ -28,11 +28,7 @@ public class ExpenseDto {
     public static ExpenseDto toDto(Expense expense) {
         return ExpenseDto.builder()
             .expenseId(expense.getExpenseId())
-            .detailExpenseCategoryDto(
-                DetailExpenseCategoryDto.toDto(
-                    expense.getDetailExpenseCategory()
-                )
-            )
+            .detailExpenseCategoryId(expense.getDetailExpenseCategory().getDetailExpenseCategoryId())
             .expenseDt(expense.getExpenseDt())
             .expenseItem(expense.getExpenseItem())
             .expenseCash(expense.getExpenseCash())
