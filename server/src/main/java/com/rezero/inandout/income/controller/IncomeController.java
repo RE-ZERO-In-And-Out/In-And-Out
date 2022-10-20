@@ -31,7 +31,20 @@ public class IncomeController {
     @PostMapping
     public ResponseEntity<?> addIncome(Principal principal,
                                         @RequestBody @Validated List<IncomeInput> incomeInputList) {
-        incomeService.addIncome(principal.getName(), incomeInputList);
+        List<IncomeInput> addIncomeInputList = new ArrayList<>();
+        List<IncomeInput> updateIncomeInputList = new ArrayList<>();
+
+        for (IncomeInput item : incomeInputList) {
+            if(item.getIncomeId() != null) {
+                updateIncomeInputList.add(item);
+            } else {
+                addIncomeInputList.add(item);
+            }
+        }
+
+        incomeService.addIncome(principal.getName(), addIncomeInputList);
+        incomeService.updateIncome(principal.getName(), updateIncomeInputList);
+
         return ResponseEntity.ok().body("저장에 성공했습니다.");
     }
 

@@ -15,6 +15,7 @@ import lombok.Setter;
 @AllArgsConstructor
 public class IncomeInput {
 
+    private Long incomeId;
     @NotBlank
     private Long detailIncomeCategoryId;
     @NotBlank

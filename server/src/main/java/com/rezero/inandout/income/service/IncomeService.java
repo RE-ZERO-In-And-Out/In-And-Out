@@ -16,4 +16,5 @@ public interface IncomeService {
     List<IncomeDto> getIncomeList(String email, LocalDate startDt, LocalDate endDt);
     List<IncomeCategoryDto> getIncomeCategoryList();
     List<DetailIncomeCategoryDto> getDetailIncomeCategory();
+    void updateIncome(String email, List<IncomeInput> incomeInputList);
 }
