@@ -104,14 +104,15 @@ class MemberServiceImplTest {
             .password("abc!@#12")
             .build();
 
-        given(memberRepository.findByEmail(anyString())).willReturn(Optional.of(member));
+        given(memberRepository.findByEmailAndPhone(anyString(), anyString())).willReturn(
+            Optional.of(member));
 
         // when
         String email = "egg@naver.com";
         String phone = "010-2222-0000";
-        String findPhone = memberService.findPhone(email, phone);
 
         // then
-        Assertions.assertEquals(findPhone, phone);
+        memberService.findPhone(email, phone);
+
     }
 }

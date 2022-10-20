@@ -14,7 +14,7 @@ public interface MemberService extends UserDetailsService {
     /**
      * 회원 수정
      */
-    void update(UpdateMemberInput input);
+    void update(String email, UpdateMemberInput input);
 
 
     /**
@@ -32,7 +32,7 @@ public interface MemberService extends UserDetailsService {
     /**
      * 회원 아이디(email), phone 유효한지 확인 - 비밀번호 찾기
      */
-    String findPhone(String email, String phone);
+    void findPhone(String email, String phone);
 
 
 }
