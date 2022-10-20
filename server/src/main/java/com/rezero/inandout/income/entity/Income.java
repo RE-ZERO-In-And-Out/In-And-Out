@@ -2,8 +2,12 @@ package com.rezero.inandout.income.entity;
 
 
 import com.rezero.inandout.domain.BaseEntity;
+import com.rezero.inandout.income.model.DetailIncomeCategoryDto;
+import com.rezero.inandout.income.model.IncomeDto;
 import com.rezero.inandout.member.entity.Member;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -42,4 +46,26 @@ public class Income extends BaseEntity {
     private String incomeItem;
     private Integer incomeAmount;
     private String incomeMemo;
+
+    public static IncomeDto toDto(Income income) {
+
+        return IncomeDto.builder()
+            .incomeId(income.getIncomeId())
+            .detailIncomeCategoryId(income.getDetailIncomeCategory().getDetailIncomeCategoryId())
+            .incomeDt(income.getIncomeDt())
+            .incomeItem(income.getIncomeItem())
+            .incomeAmount(income.getIncomeAmount())
+            .incomeMemo(income.getIncomeMemo())
+            .build();
+    }
+
+    public static List<IncomeDto> toDtoList (List<Income> incomeList) {
+        List<IncomeDto> incomeDtoList = new ArrayList<>();
+
+        for (Income item : incomeList) {
+            incomeDtoList.add(Income.toDto(item));
+        }
+
+        return incomeDtoList;
+    }
 }

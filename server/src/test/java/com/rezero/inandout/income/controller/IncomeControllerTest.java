@@ -2,19 +2,26 @@ package com.rezero.inandout.income.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.rezero.inandout.income.model.DetailIncomeCategoryDto;
+import com.rezero.inandout.income.model.IncomeCategoryDto;
+import com.rezero.inandout.income.model.IncomeDto;
 import com.rezero.inandout.income.model.IncomeInput;
 import com.rezero.inandout.income.repository.DetailIncomeCategoryRepository;
 import com.rezero.inandout.income.repository.IncomeRepository;
 import com.rezero.inandout.income.service.IncomeServiceImpl;
 import com.rezero.inandout.member.entity.Member;
 import com.rezero.inandout.member.repository.MemberRepository;
+import com.rezero.inandout.member.service.MemberService;
+import com.rezero.inandout.member.service.MemberServiceImpl;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,6 +55,9 @@ class IncomeControllerTest {
     @MockBean
     private DetailIncomeCategoryRepository detailIncomeCategoryRepository;
 
+    @MockBean
+    private MemberService memberService;
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -55,6 +65,7 @@ class IncomeControllerTest {
     ObjectMapper objectMapper;
 
     @Test
+    @DisplayName("수입내역 추가")
     void addIncome() throws Exception {
         //given
         Member member = Member.builder()
@@ -67,7 +78,7 @@ class IncomeControllerTest {
         incomeInputList.add(IncomeInput.builder()
                 .detailIncomeCategoryId(99L)
                 .incomeDt(LocalDate.now())
-                .incomeItem("초콜릿")
+                .incomeItem("당근마켓판매")
                 .incomeAmount(2000)
                 .incomeMemo("TestMemo")
             .build());
@@ -93,4 +104,67 @@ class IncomeControllerTest {
         assertEquals(captor.getValue().get(0).getIncomeMemo(), "TestMemo");
 
     }
+
+
+    @Test
+    @DisplayName("수입내역 조회 및 카테고리내역 조회")
+    void getIncomeListAndDetailCategoryList() throws Exception {
+        Member member = Member.builder()
+            .memberId(1L)
+            .email("testMember@gmail.com")
+            .password("1234")
+            .build();
+
+        User user = new User(member.getEmail(), member.getPassword(), AuthorityUtils.createAuthorityList("ROLE_USER"));
+        TestingAuthenticationToken testingAuthenticationToken
+            = new TestingAuthenticationToken(user,null);
+
+        List<IncomeDto> incomeDtoList = new ArrayList<>();
+        incomeDtoList.add(IncomeDto.builder()
+                .incomeId(99L)
+                .incomeDt(LocalDate.now())
+                .incomeItem("당근마켓판매")
+                .incomeAmount(2000)
+                .incomeMemo("TestMemo")
+            .build());
+        incomeDtoList.add(IncomeDto.builder()
+            .incomeId(98L)
+            .incomeDt(LocalDate.now())
+            .incomeItem("중고나라판매")
+            .incomeAmount(12000)
+            .incomeMemo("TestMemo")
+            .build());
+
+        given(incomeService.getIncomeList(any(), any(), any()))
+            .willReturn(incomeDtoList);
+
+        List<DetailIncomeCategoryDto> detailIncomeCategoryDtoList = new ArrayList<>();
+        detailIncomeCategoryDtoList.add(DetailIncomeCategoryDto.builder()
+                .detailIncomeCategoryId(10L)
+                .detailIncomeCategoryName("월급")
+            .build());
+        detailIncomeCategoryDtoList.add(DetailIncomeCategoryDto.builder()
+                .detailIncomeCategoryId(11L)
+                .detailIncomeCategoryName("아르바이트")
+            .build());
+
+        List<IncomeCategoryDto> incomeCategoryDtoList = new ArrayList<>();
+        incomeCategoryDtoList.add(IncomeCategoryDto.builder()
+                .incomeCategoryId(1L)
+                .incomeCategoryName("주수입")
+                .detailIncomeCategoryDtoList(detailIncomeCategoryDtoList)
+            .build());
+
+        given(incomeService.getIncomeCategoryList())
+            .willReturn(incomeCategoryDtoList);
+
+        //when
+        mockMvc.perform(
+            get("/api/income?startDt=2022-10-01&endDt=2022-10-30")
+                .principal(testingAuthenticationToken))
+            .andDo(print());
+
+
+    }
+
 }
