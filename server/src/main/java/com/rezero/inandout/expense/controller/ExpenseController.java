@@ -5,6 +5,7 @@ import com.rezero.inandout.expense.model.ExpenseInput;
 import com.rezero.inandout.expense.service.ExpenseService;
 import java.security.Principal;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +28,21 @@ public class ExpenseController {
 
     @PostMapping
     public ResponseEntity<?> writeExpense(Principal principal, @Valid @RequestBody List<ExpenseInput> inputs) {
-        expenseService.addExpense(principal.getName(), inputs);
+
+        List<ExpenseInput> addExpenseInputs = new ArrayList<>();
+        List<ExpenseInput> updateExpenseInputs = new ArrayList<>();
+
+        for (ExpenseInput expenseInput : inputs) {
+            if (expenseInput.getExpenseId() != null) {
+                updateExpenseInputs.add(expenseInput);
+            } else {
+                addExpenseInputs.add(expenseInput);
+            }
+        }
+
+        expenseService.updateExpense(/*principal.getName()*/"hgd@gmail.com", updateExpenseInputs);
+        expenseService.addExpense(/*principal.getName()*/"hgd@gmail.com", addExpenseInputs);
+
         return ResponseEntity.ok("지출이 정상적으로 등록되었습니다.");
     }
 
@@ -38,9 +53,8 @@ public class ExpenseController {
 
         CategoryAndExpenseDto categoryAndExpenseDto = new CategoryAndExpenseDto();
         categoryAndExpenseDto.setExpenseCategoryDtos(expenseService.getExpenseCategories());
-        categoryAndExpenseDto.setExpenseDtos(expenseService.getExpenses(principal.getName(), startDt, endDt));
+        categoryAndExpenseDto.setExpenseDtos(expenseService.getExpenses(/*principal.getName()*/"hgd@gmail.com", startDt, endDt));
 
         return ResponseEntity.ok(categoryAndExpenseDto);
     }
-
 }

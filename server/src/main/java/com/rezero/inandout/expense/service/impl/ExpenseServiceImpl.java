@@ -89,6 +89,37 @@ public class ExpenseServiceImpl implements ExpenseService {
         return expenseCategoryDtos;
     }
 
+    @Override
+    @Transactional
+    public void updateExpense(String email, List<ExpenseInput> inputs) {
+        Member member = findMemberByEmail(email);
+
+        List<Expense> expenses = new ArrayList<>();
+
+        for (ExpenseInput input : inputs) {
+            Expense expense = findExpenseByExpenseIdAndMember(input.getExpenseId(), member);
+            expense.setExpenseDt(input.getExpenseDt());
+            expense.setExpenseItem(input.getExpenseItem());
+            expense.setExpenseCash(input.getExpenseCash());
+            expense.setExpenseCard(input.getExpenseCard());
+            expense.setDetailExpenseCategory(
+                findDetailExpenseCategoryById(
+                    input.getDetailExpenseCategoryId()
+                )
+            );
+            expense.setExpenseMemo(input.getExpenseMemo());
+
+            expenses.add(expense);
+        }
+
+        expenseRepository.saveAll(expenses);
+    }
+
+    private Expense findExpenseByExpenseIdAndMember(Long expenseId, Member member) {
+        return expenseRepository.findByExpenseIdAndMember(expenseId, member)
+            .orElseThrow(() -> new RuntimeException("없는 지출 내역입니다."));
+    }
+
 
     private Member findMemberByEmail(String email) {
         Member member = memberRepository.findByEmail(email)
