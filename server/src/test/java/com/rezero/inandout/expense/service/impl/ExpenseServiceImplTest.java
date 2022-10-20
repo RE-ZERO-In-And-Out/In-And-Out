@@ -182,7 +182,7 @@ class ExpenseServiceImplTest {
             assertEquals(expenseDtos.get(0).getExpenseItem(), "초코틴틴");
             assertEquals(expenseDtos.get(0).getExpenseCash(), 0);
             assertEquals(expenseDtos.get(0).getExpenseCard(), 1200);
-            assertEquals(expenseDtos.get(0).getDetailExpenseCategoryDto().getDetailExpenseCategoryName(), "간식");
+            assertEquals(expenseDtos.get(0).getDetailExpenseCategoryId(), 1L);
             assertEquals(expenseDtos.get(0).getExpenseMemo(), "냠냠");
         }
 

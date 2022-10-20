@@ -130,7 +130,7 @@ class ExpenseControllerTest {
                 .expenseItem("초코틴틴")
                 .expenseCash(0)
                 .expenseCard(1200)
-                .detailExpenseCategoryDto(detailExpenseCategoryDto)
+                .detailExpenseCategoryId(1L)
                 .expenseMemo("냠냠")
                 .build()
         );
