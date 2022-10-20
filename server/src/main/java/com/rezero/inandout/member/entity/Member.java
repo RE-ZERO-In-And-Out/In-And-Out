@@ -30,7 +30,7 @@ public class Member extends BaseEntity {
     private String nickName;
     private String phone;
     private LocalDate birth;
-    private String address;     // 다음 API 사용 시 주소 3개 필요
+    private String address;
     private String gender;
     private String memberPhotoUrl;
     private String status;

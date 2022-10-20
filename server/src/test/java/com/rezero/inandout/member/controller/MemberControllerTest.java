@@ -1,12 +1,14 @@
 package com.rezero.inandout.member.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.rezero.inandout.member.model.FindPasswordMemberInput;
 import com.rezero.inandout.member.model.JoinMemberInput;
 import com.rezero.inandout.member.repository.MemberRepository;
 import com.rezero.inandout.member.service.MemberServiceImpl;
@@ -53,7 +55,6 @@ class MemberControllerTest {
             .nickName("원빈")
             .password("1")
             .build();
-
         String memberInputJson = mapper.writeValueAsString(memberInput);
 
         //when
@@ -69,5 +70,53 @@ class MemberControllerTest {
         Mockito.verify(memberServiceImpl, times(1)).join(captor.capture());
         assertEquals(captor.getValue().getEmail(), memberInput.getEmail());
 
+    }
+
+    @Test
+    void checkEmail() throws Exception {
+
+        // given
+        FindPasswordMemberInput memberInput = FindPasswordMemberInput.builder()
+            .email("egg@naver.com")
+            .build();
+        String inputToJson = mapper.writeValueAsString(memberInput);
+
+        // when
+        mockMvc.perform(
+                post("/api/password/email")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(inputToJson))
+            .andExpect(status().isOk())
+            .andDo(print());
+
+        ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+
+        // then
+        Mockito.verify(memberServiceImpl, times(1)).findEmail(captor.capture());
+        assertEquals(captor.getValue(), memberInput.getEmail());
+    }
+
+    @Test
+    void checkPhone() throws Exception {
+
+        // given
+        FindPasswordMemberInput memberInput = FindPasswordMemberInput.builder()
+            .email("egg@naver.com")
+            .phone("010-2345-1234")
+            .build();
+        String inputToJson = mapper.writeValueAsString(memberInput);
+
+        //when
+        mockMvc.perform(
+                post("/api/password/email/phone")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(inputToJson))
+            .andExpect(status().isOk())
+            .andDo(print());
+        ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+
+        //then
+        Mockito.verify(memberServiceImpl, times(1)).findPhone(anyString(), captor.capture());
+        assertEquals(captor.getValue(), memberInput.getPhone());
     }
 }

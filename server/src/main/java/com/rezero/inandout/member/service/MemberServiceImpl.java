@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class MemberServiceImpl implements MemberService {
 
-
     private final MemberRepository memberRepository;
 
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
@@ -35,6 +34,7 @@ public class MemberServiceImpl implements MemberService {
 
     public void validateInput(JoinMemberInput input) {
         Optional<Member> existsMember = memberRepository.findByEmail(input.getEmail());
+        String message = "비밀번호는 ";
 
         // 같은 이메일로 회원 존재
         if (existsMember.isPresent()) {
@@ -56,7 +56,7 @@ public class MemberServiceImpl implements MemberService {
         // 비밀번호
         String password = input.getPassword();
         if (password.length() < 8) {
-            throw new RuntimeException("비밀번호는 8자리 이상이어야합니다.");
+            throw new RuntimeException("비밀번호는 8자리 이상이어야합니다.(영문자, 숫자, 특수문자를 각각 1글자 이상 포함)");
         }
 
         Boolean special = false, digit = false, character = false;
@@ -79,8 +79,29 @@ public class MemberServiceImpl implements MemberService {
                 break;
             }
         }
-        if (!special || !digit || !character) {
-            throw new RuntimeException("비밀번호는 특수문자, 영문자, 숫자 한 글자씩 포함해야합니다.");
+
+        if (!character || !digit || !special) {
+            if (!character) {
+                if (digit && special) {
+                    message += "문자";
+                } else {
+                    message += "문자, ";
+                }
+            }
+
+            if (!digit) {
+                if (special) {
+                    message += "숫자";
+                } else {
+                    message += "숫자, ";
+                }
+            }
+
+            if (!special) {
+                message += "특수문자";
+            }
+            message += "를 각 한 글자 이상 포함해야 합니다.";
+            throw new RuntimeException(message);
         }
     }
 
@@ -102,15 +123,33 @@ public class MemberServiceImpl implements MemberService {
         memberRepository.save(member);
     }
 
-    @Override
-    public boolean update(UpdateMemberInput input) {
 
-        return false;
+    @Override
+    public String findEmail(String email) {
+
+        Optional<Member> optionalMember = memberRepository.findByEmail(email);
+        if (!optionalMember.isPresent()) {
+            throw new RuntimeException("존재하지 않는 아이디(이메일)입니다. 정확하게 입력해주세요.");
+        }
+        return email;
     }
 
     @Override
-    public boolean withdraw(String email, String password) {
+    public void findPhone(String email, String phone) {
 
-        return false;
+        Member optionalMember = memberRepository
+            .findByEmailAndPhone(email, phone)
+            .orElseThrow(() -> new RuntimeException("존재하는 연락처가 아닙니다. 정확하게 입력해주세요."));
     }
+
+    @Override
+    public void update(String email, UpdateMemberInput input) {
+    }
+
+    @Override
+    public void withdraw(String email, String password) {
+
+    }
+
+
 }

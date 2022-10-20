@@ -14,13 +14,25 @@ public interface MemberService extends UserDetailsService {
     /**
      * 회원 수정
      */
-    boolean update(UpdateMemberInput input);
+    void update(String email, UpdateMemberInput input);
 
 
     /**
      * 회원 탈퇴
      */
-    boolean withdraw(String email, String password);
+    void withdraw(String email, String password);
+
+
+    /**
+     * 회원 아이디(email) 존재하는지 확인 - 아이디 찾기
+     */
+    String findEmail(String email);
+
+
+    /**
+     * 회원 아이디(email), phone 유효한지 확인 - 비밀번호 찾기
+     */
+    void findPhone(String email, String phone);
 
 
 }
