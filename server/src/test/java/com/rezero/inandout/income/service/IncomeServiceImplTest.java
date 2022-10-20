@@ -1,5 +1,6 @@
 package com.rezero.inandout.income.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -7,13 +8,20 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.rezero.inandout.income.entity.DetailIncomeCategory;
+import com.rezero.inandout.income.entity.Income;
+import com.rezero.inandout.income.entity.IncomeCategory;
+import com.rezero.inandout.income.model.DetailIncomeCategoryDto;
+import com.rezero.inandout.income.model.IncomeCategoryDto;
+import com.rezero.inandout.income.model.IncomeDto;
 import com.rezero.inandout.income.model.IncomeInput;
 import com.rezero.inandout.income.repository.DetailIncomeCategoryRepository;
+import com.rezero.inandout.income.repository.IncomeCategoryRepository;
 import com.rezero.inandout.income.repository.IncomeRepository;
 import com.rezero.inandout.member.entity.Member;
 import com.rezero.inandout.member.repository.MemberRepository;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
@@ -32,6 +40,9 @@ class IncomeServiceImplTest {
 
     @Mock
     private IncomeRepository incomeRepository;
+
+    @Mock
+    private IncomeCategoryRepository incomeCategoryRepository;
 
     @Mock
     private DetailIncomeCategoryRepository detailIncomeCategoryRepository;
@@ -122,4 +133,119 @@ class IncomeServiceImplTest {
 
     }
 
+
+    @Nested
+    @DisplayName("수입리스트 가져오기")
+    class getIncomeList {
+        Member member = Member.builder()
+            .memberId(10L)
+            .build();
+
+        DetailIncomeCategory detailIncomeCategory = DetailIncomeCategory.builder()
+            .detailIncomeCategoryId(1000L)
+            .detailIncomeCategoryName("testDetailIncomeCategoryName")
+            .build();
+        List<Income> incomeList = Arrays.asList(
+            Income.builder()
+                .incomeId(99L)
+                .detailIncomeCategory(detailIncomeCategory)
+                .incomeDt(LocalDate.now())
+                .incomeItem("당근마켓판매")
+                .incomeAmount(2000)
+                .incomeMemo("TestMemo")
+                .build(),
+            Income.builder()
+                .incomeId(98L)
+                .detailIncomeCategory(detailIncomeCategory)
+                .incomeDt(LocalDate.now())
+                .incomeItem("중고나라판매")
+                .incomeAmount(12000)
+                .incomeMemo("TestMemo")
+                .build()
+        );
+
+        @Test
+        @DisplayName("성공")
+        void getIncomeList_success() {
+            //given
+            given(memberRepository.findByEmail(any()))
+                .willReturn(Optional.of(member));
+
+            given(incomeRepository.findAllByMemberAndIncomeDtBetween(any(), any(), any()))
+                .willReturn(incomeList);
+
+            //when
+            List<IncomeDto> incomeDtoList = incomeService.getIncomeList(
+                "test",
+                LocalDate.of(2020, 10, 1),
+                LocalDate.of(2020, 10, 1)
+            );
+
+            //then
+            assertEquals(incomeDtoList.size(), 2);
+            assertEquals(incomeDtoList.get(0).getIncomeAmount(), 2000);
+            assertEquals(incomeDtoList.get(1).getIncomeItem(), "중고나라판매");
+        }
+
+        @Test
+        @DisplayName("실패 - member 없음")
+        void getIncomeList_fail_no_member() {
+            //given
+            given(memberRepository.findByEmail(any()))
+                .willReturn(Optional.empty());
+
+            //when
+
+            //then
+            assertThrows(RuntimeException.class, () -> incomeService.getIncomeList(
+                "test",
+                LocalDate.of(2020, 10, 1),
+                LocalDate.of(2020, 10, 1)
+            ));
+        }
+    }
+
+
+    @Nested
+    @DisplayName("수입카테고리리스트 가져오기")
+    class getIncomeCategoryList {
+
+        List<DetailIncomeCategory> detailIncomeCategoryList = Arrays.asList(
+            DetailIncomeCategory.builder()
+                .detailIncomeCategoryId(1L)
+                .detailIncomeCategoryName("월급")
+                .build(),
+            DetailIncomeCategory.builder()
+                .detailIncomeCategoryId(2L)
+                .detailIncomeCategoryName("아르바이트")
+                .build()
+        );
+
+        List<IncomeCategory> incomeCategoryList = Arrays.asList(
+                IncomeCategory.builder()
+                    .incomeCategoryId(1L)
+                    .incomeCategoryName("주수입")
+                .build()
+            );
+
+        @Test
+        @DisplayName("성공")
+        void getIncomeCategoryList_success() {
+            //given
+            given(incomeCategoryRepository.findAll())
+                .willReturn(incomeCategoryList);
+
+            given(detailIncomeCategoryRepository.findAllByIncomeCategory(any()))
+                .willReturn(detailIncomeCategoryList);
+
+            //when
+            List<IncomeCategoryDto> incomeCategoryDtoList = incomeService.getIncomeCategoryList();
+
+            //then
+            assertEquals(incomeCategoryDtoList.get(0).getIncomeCategoryName(), "주수입");
+            assertEquals(incomeCategoryDtoList.get(0).getDetailIncomeCategoryDtoList()
+                .get(1).getDetailIncomeCategoryName(), "아르바이트");
+
+        }
+    }
 }
