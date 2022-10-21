@@ -151,7 +151,35 @@ public class MemberServiceImpl implements MemberService {
     @Override
     public void updateInfo(String email, UpdateMemberInput input) {
 
+        Member member = memberRepository.findByEmail(email).get();
+        if (input.getNickName().contains(" ") ||
+            input.getPhone().contains(" ") ||
+            input.getAddress().contains(" ") ||
+            input.getMemberPhotoUrl().contains(" ") ||
+            input.getGender().contains(" ")) {
+            throw new RuntimeException("회원 정보는 공백을 포함할 수 없습니다.");
+        }
+
+        String previousUsedPhone = member.getPhone();
+        String previousUsedNickname = member.getNickName();
+
+        if (previousUsedPhone.equals(input.getPhone())) {
+            throw new RuntimeException("기존 연락처와 동일합니다.");
+        }
+        if (previousUsedNickname.equals(input.getNickName())) {
+            throw new RuntimeException("기존 닉네임과 동일합니다.");
+        }
+
+        member.setNickName(input.getNickName());
+        member.setPhone(input.getPhone());
+        member.setBirth(input.getBirth());
+        member.setAddress(input.getAddress());
+        member.setGender(input.getGender());
+        member.setMemberPhotoUrl(input.getMemberPhotoUrl());
+        memberRepository.save(member);
+
     }
+
 
     @Override
     public void withdraw(String email, String password) {
