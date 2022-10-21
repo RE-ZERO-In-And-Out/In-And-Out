@@ -24,10 +24,10 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -84,6 +84,7 @@ class ExpenseServiceImplTest {
             .build();
 
         @Test
+        @DisplayName("지출내역 추가 - 성공")
         void addExpense_success() {
             //given
             given(memberRepository.findByEmail(anyString()))
@@ -100,6 +101,7 @@ class ExpenseServiceImplTest {
         }
 
         @Test
+        @DisplayName("지출내역 추가 - 실패 : 계정 없음")
         void addExpense_fail_notFoundMember() {
             //given
             given(memberRepository.findByEmail(anyString()))
@@ -115,6 +117,7 @@ class ExpenseServiceImplTest {
         }
 
         @Test
+        @DisplayName("지출내역 추가 - 실패 : 카테고리 없음")
         void addExpense_fail_notFoundCategory() {
             //given
             given(memberRepository.findByEmail(anyString()))
@@ -142,6 +145,7 @@ class ExpenseServiceImplTest {
             .build();
 
         @Test
+        @DisplayName("지출내역 조회 - 성공")
         void getExpenses_success() {
             //given
             given(memberRepository.findByEmail(anyString()))
@@ -187,6 +191,7 @@ class ExpenseServiceImplTest {
         }
 
         @Test
+        @DisplayName("지출내역 조회 - 실패 : 계정 없음")
         void getExpenses_fail_notFoundMember() {
             //given
             given(memberRepository.findByEmail(anyString()))
@@ -204,6 +209,7 @@ class ExpenseServiceImplTest {
     }
 
     @Test
+    @DisplayName("카테고리 조회 - 성공")
     void getExpenseCategories_success() {
         //given
         ExpenseCategory expenseCategory =
@@ -242,4 +248,111 @@ class ExpenseServiceImplTest {
         assertEquals(expenseCategoryDtos.get(0)
             .getDetailExpenseCategoryDtos().get(0).getDetailExpenseCategoryName(), "간식");
     }
+
+    @Nested
+    class updateExpenseMethod {
+        Member member = Member.builder()
+            .memberId(1L)
+            .email("hgd@gmail.com")
+            .password("1234")
+            .build();
+
+        ExpenseInput input = ExpenseInput.builder()
+            .detailExpenseCategoryId(1L)
+            .expenseDt(LocalDate.now())
+            .expenseItem("롤케익")
+            .expenseCash(3000)
+            .expenseCard(0)
+            .expenseMemo("냠냠")
+            .build();
+
+        DetailExpenseCategory detailExpenseCategory =
+            DetailExpenseCategory.builder()
+                .detailExpenseCategoryId(1L)
+                .detailExpenseCategoryName("간식")
+                .expenseCategory(new ExpenseCategory())
+                .build();
+
+        Expense expense = Expense.builder()
+            .expenseId(1L)
+            .member(member)
+            .detailExpenseCategory(detailExpenseCategory)
+            .expenseDt(input.getExpenseDt())
+            .expenseCash(input.getExpenseCash())
+            .expenseCard(input.getExpenseCard())
+            .expenseMemo(input.getExpenseMemo())
+            .build();
+
+        @Test
+        @DisplayName("지출내역 수정 - 성공")
+        void updateExpense_success() {
+            //given
+            given(memberRepository.findByEmail(anyString()))
+                .willReturn(Optional.of(member));
+
+            given(expenseRepository.findByExpenseIdAndMember(any(), any()))
+                .willReturn(Optional.of(expense));
+
+            given(detailExpenseCategoryRepository.findByDetailExpenseCategoryId(any()))
+                .willReturn(Optional.of(detailExpenseCategory));
+
+            //when
+            expenseServiceImpl.updateExpense("hgd@gmail.com", Arrays.asList(input));
+
+            //then
+            verify(expenseRepository, times(1)).saveAll(any());
+        }
+
+        @Test
+        @DisplayName("지출내역 수정 - 실패 : 계정 없음")
+        void updateExpense_fail_notFoundMember() {
+            //given
+            given(memberRepository.findByEmail(anyString()))
+                .willReturn(Optional.empty());
+            //when
+            RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> expenseServiceImpl.updateExpense("hgd@gmail.com", Arrays.asList(input)));
+            //then
+            assertEquals(exception.getMessage(), "계정을 찾을 수 없습니다.");
+        }
+
+        @Test
+        @DisplayName("지출내역 수정 - 실패 : 지출내역 없음")
+        void updateExpense_fail_notFoundExpense() {
+            //given
+            given(memberRepository.findByEmail(anyString()))
+                .willReturn(Optional.of(member));
+
+            given(expenseRepository.findByExpenseIdAndMember(any(), any()))
+                .willReturn(Optional.empty());
+
+            //when
+            RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> expenseServiceImpl.updateExpense("hgd@gmail.com", Arrays.asList(input)));
+            //then
+            assertEquals(exception.getMessage(), "없는 지출 내역입니다.");
+        }
+
+        @Test
+        @DisplayName("지출내역 수정 - 실패 : 카테고리 없음")
+        void updateExpense_fail_notFoundCategory() {
+            //given
+            given(memberRepository.findByEmail(anyString()))
+                .willReturn(Optional.of(member));
+
+            given(expenseRepository.findByExpenseIdAndMember(any(), any()))
+                .willReturn(Optional.of(expense));
+
+            given(detailExpenseCategoryRepository.findByDetailExpenseCategoryId(any()))
+                .willReturn(Optional.empty());
+
+            //when
+            RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> expenseServiceImpl.updateExpense("hgd@gmail.com", Arrays.asList(input)));
+            //then
+            assertEquals(exception.getMessage(), "없는 카테고리 입니다.");
+        }
+    }
+
+
 }

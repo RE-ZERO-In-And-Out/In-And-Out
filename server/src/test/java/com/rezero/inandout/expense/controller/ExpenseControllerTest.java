@@ -22,9 +22,9 @@ import com.rezero.inandout.expense.service.ExpenseService;
 import com.rezero.inandout.member.entity.Member;
 import com.rezero.inandout.member.service.MemberService;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,6 +54,7 @@ class ExpenseControllerTest {
     ObjectMapper objectMapper;
 
     @Test
+    @DisplayName("지출내역 추가 및 수정")
     void writeExpenseTest() throws Exception {
         //given
         Member member = Member.builder()
@@ -62,12 +63,24 @@ class ExpenseControllerTest {
             .password("1234")
             .build();
 
-        List<ExpenseInput> list = new ArrayList<>();
-        list.add(
-            new ExpenseInput(
-            LocalDate.now(), "쌀과자", 1000,
-            0, 1L, "냠냠"
-            )
+        List<ExpenseInput> list = Arrays.asList(
+            ExpenseInput.builder()
+                .expenseDt(LocalDate.now())
+                .expenseItem("쌀과자")
+                .expenseCash(1000)
+                .expenseCard(0)
+                .detailExpenseCategoryId(1L)
+                .expenseMemo("냠냠")
+                .build(),
+            ExpenseInput.builder()
+                .expenseId(1L)
+                .expenseDt(LocalDate.now())
+                .expenseItem("만두")
+                .expenseCash(5000)
+                .expenseCard(0)
+                .detailExpenseCategoryId(1L)
+                .expenseMemo("만두만두")
+                .build()
         );
 
         User user = new User(member.getEmail(), member.getPassword(), AuthorityUtils.NO_AUTHORITIES);
@@ -81,14 +94,18 @@ class ExpenseControllerTest {
                 .content(objectMapper.writeValueAsString(list))
             ).andExpect(status().isOk())
             .andDo(print());
+
         ArgumentCaptor<List<ExpenseInput>> captor = ArgumentCaptor.forClass(List.class);
 
         //then
+        verify(expenseService, times(1)).updateExpense(any(), captor.capture());
+        assertEquals(captor.getValue().get(0).getExpenseItem(), "만두");
         verify(expenseService, times(1)).addExpense(any(), captor.capture());
-        assertEquals(captor.getValue().get(0).getExpenseMemo(), "냠냠");
+        assertEquals(captor.getValue().get(0).getExpenseItem(), "쌀과자");
     }
 
     @Test
+    @DisplayName("지출내역 조회")
     void getExpenseTest() throws Exception {
         //given
         Member member = Member.builder()

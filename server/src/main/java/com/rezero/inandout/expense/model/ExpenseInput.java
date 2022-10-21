@@ -15,6 +15,7 @@ import lombok.Setter;
 @Builder
 public class ExpenseInput {
 
+    private Long expenseId;
     @NotBlank
     private LocalDate expenseDt;
     @NotBlank
@@ -24,5 +25,4 @@ public class ExpenseInput {
     @NotBlank
     private Long detailExpenseCategoryId;
     private String expenseMemo;
-
 }
