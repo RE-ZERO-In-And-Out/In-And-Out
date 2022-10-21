@@ -121,16 +121,22 @@ public class ExpenseServiceImpl implements ExpenseService {
         List<Long> expenseIds = new ArrayList<>();
 
         for (DeleteExpenseInput input : inputs) {
-            Expense expense = findExpenseByExpenseIdAndMember(input.getExpenseId(), member);
-            expenseIds.add(expense.getExpenseId());
+            findExpenseByExpenseId(input.getExpenseId());
+            findExpenseByExpenseIdAndMember(input.getExpenseId(), member);
+            expenseIds.add(input.getExpenseId());
         }
 
         expenseRepository.deleteAllByExpenseIdInBatch(expenseIds);
     }
 
+    private void findExpenseByExpenseId(Long expenseId) {
+        expenseRepository.findByExpenseId(expenseId)
+                .orElseThrow(() -> new RuntimeException("존재하지 않은 지출 내역입니다."));
+    }
+
     private Expense findExpenseByExpenseIdAndMember(Long expenseId, Member member) {
         return expenseRepository.findByExpenseIdAndMember(expenseId, member)
-            .orElseThrow(() -> new RuntimeException("없는 지출 내역입니다."));
+            .orElseThrow(() -> new RuntimeException("회원과 일치하지 않은 지출 내역입니다."));
     }
 
 

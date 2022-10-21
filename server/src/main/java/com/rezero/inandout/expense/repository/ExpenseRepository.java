@@ -14,4 +14,6 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
     Optional<Expense> findByExpenseIdAndMember(Long expenseId, Member member);
 
     void deleteAllByExpenseIdInBatch(List<Long> expenseIds);
+
+    Optional<Expense> findByExpenseId(Long expenseId);
 }

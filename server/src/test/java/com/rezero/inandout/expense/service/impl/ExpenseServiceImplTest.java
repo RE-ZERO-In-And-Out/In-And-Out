@@ -366,12 +366,28 @@ class ExpenseServiceImplTest {
                 new DeleteExpenseInput(1L)
         );
 
+        Expense expense = Expense.builder()
+                .member(member)
+                .detailExpenseCategory(new DetailExpenseCategory())
+                .expenseDt(LocalDate.now())
+                .expenseItem("만두")
+                .expenseCash(1000)
+                .expenseCard(0)
+                .expenseMemo("ㅋ")
+                .build();
+
         @Test
         @DisplayName("지출내역 삭제 - 성공")
         void updateExpense_success() {
             //given
             given(memberRepository.findByEmail(any()))
                     .willReturn(Optional.of(member));
+
+            given(expenseRepository.findByExpenseId(any()))
+                    .willReturn(Optional.of(expense));
+
+            given(expenseRepository.findByExpenseIdAndMember(any(), any()))
+                    .willReturn(Optional.of(expense));
 
             //when
             expenseServiceImpl.deleteExpense("hgd@gmail.com", list);
@@ -393,6 +409,45 @@ class ExpenseServiceImplTest {
 
             //then
             assertEquals("계정을 찾을 수 없습니다.", exception.getMessage());
+        }
+
+        @Test
+        @DisplayName("지출내역 삭제 - 실패 : 없는 지출 Id")
+        void updateExpense_fail_notFoundExpenseId() {
+            //given
+            given(memberRepository.findByEmail(any()))
+                    .willReturn(Optional.of(member));
+
+            given(expenseRepository.findByExpenseId(any()))
+                    .willReturn(Optional.empty());
+
+            //when
+            RuntimeException exception = assertThrows(RuntimeException.class,
+                    () -> expenseServiceImpl.deleteExpense("hgd@gmail.com", list));
+
+            //then
+            assertEquals("존재하지 않은 지출 내역입니다.", exception.getMessage());
+        }
+
+        @Test
+        @DisplayName("지출내역 삭제 - 실패 : 회원과 일치하지 않은 지출Id")
+        void updateExpense_fail_notMatchMemberAndExpense() {
+            //given
+            given(memberRepository.findByEmail(any()))
+                    .willReturn(Optional.of(member));
+
+            given(expenseRepository.findByExpenseId(any()))
+                    .willReturn(Optional.of(expense));
+
+            given(expenseRepository.findByExpenseIdAndMember(any(), any()))
+                    .willReturn(Optional.empty());
+
+            //when
+            RuntimeException exception = assertThrows(RuntimeException.class,
+                    () -> expenseServiceImpl.deleteExpense("hgd@gmail.com", list));
+
+            //then
+            assertEquals("회원과 일치하지 않은 지출 내역입니다.", exception.getMessage());
         }
     }
 }
