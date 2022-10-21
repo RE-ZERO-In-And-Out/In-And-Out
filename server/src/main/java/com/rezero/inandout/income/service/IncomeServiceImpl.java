@@ -3,6 +3,7 @@ package com.rezero.inandout.income.service;
 import com.rezero.inandout.income.entity.DetailIncomeCategory;
 import com.rezero.inandout.income.entity.Income;
 import com.rezero.inandout.income.entity.IncomeCategory;
+import com.rezero.inandout.income.model.DeleteIncomeInput;
 import com.rezero.inandout.income.model.DetailIncomeCategoryDto;
 import com.rezero.inandout.income.model.IncomeCategoryDto;
 import com.rezero.inandout.income.model.IncomeDto;
@@ -120,11 +121,16 @@ public class IncomeServiceImpl implements IncomeService {
     }
 
     @Override
-    public void deleteIncome(String email, List<Long> deleteIdList) {
+    public void deleteIncome(String email, List<DeleteIncomeInput> deleteIncomeInputList) {
         memberRepository.findByEmail(email)
             .orElseThrow(() -> new RuntimeException("없는 맴버입니다."));
 
-        incomeRepository.deleteAllByIdInBatch(deleteIdList);
+        List<Long> deleteIncomeIdList = new ArrayList<>();
+        for (DeleteIncomeInput item : deleteIncomeInputList) {
+            deleteIncomeIdList.add(item.getIncomeId());
+        }
+
+        incomeRepository.deleteAllByIdInBatch(deleteIncomeIdList);
     }
 
     private Income findIncomeByMemberAndIncomeId(Member member, Long incomeId) {

@@ -1,6 +1,7 @@
 package com.rezero.inandout.income.controller;
 
 import com.rezero.inandout.income.model.CategoryAndIncomeDto;
+import com.rezero.inandout.income.model.DeleteIncomeInput;
 import com.rezero.inandout.income.model.DetailIncomeCategoryDto;
 import com.rezero.inandout.income.model.IncomeCategoryDto;
 import com.rezero.inandout.income.model.IncomeDto;
@@ -65,9 +66,9 @@ public class IncomeController {
 
     @DeleteMapping
     public ResponseEntity<?> deleteIncome(Principal principal,
-                             @RequestBody List<Long> deleteIdList) {
+                             @RequestBody List<DeleteIncomeInput> deleteIncomeInputList) {
 
-        incomeService.deleteIncome(principal.getName(), deleteIdList);
+        incomeService.deleteIncome(principal.getName(), deleteIncomeInputList);
 
         return ResponseEntity.ok().body("삭제에 성공했습니다.");
     }

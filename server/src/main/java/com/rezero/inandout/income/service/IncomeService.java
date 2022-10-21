@@ -3,6 +3,7 @@ package com.rezero.inandout.income.service;
 
 import com.rezero.inandout.income.entity.DetailIncomeCategory;
 import com.rezero.inandout.income.entity.Income;
+import com.rezero.inandout.income.model.DeleteIncomeInput;
 import com.rezero.inandout.income.model.DetailIncomeCategoryDto;
 import com.rezero.inandout.income.model.IncomeCategoryDto;
 import com.rezero.inandout.income.model.IncomeDto;
@@ -17,6 +18,6 @@ public interface IncomeService {
     List<IncomeCategoryDto> getIncomeCategoryList();
     List<DetailIncomeCategoryDto> getDetailIncomeCategory();
     void updateIncome(String email, List<IncomeInput> incomeInputList);
-    void deleteIncome(String email, List<Long> deleteIdList);
+    void deleteIncome(String email, List<DeleteIncomeInput> deleteIncomeInputList);
 
 }
