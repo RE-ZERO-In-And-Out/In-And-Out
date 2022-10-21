@@ -12,6 +12,6 @@ import org.springframework.stereotype.Repository;
 public interface IncomeRepository extends JpaRepository<Income, Long> {
     List<Income> findAllByMemberAndIncomeDtBetween(Member member, LocalDate startDt, LocalDate endDt);
 
-    Optional<Income> findIncomeByMemberAndIncomeId(Member member, Long incomeId);
+    Optional<Income> findByMemberAndIncomeId(Member member, Long incomeId);
 
 }
