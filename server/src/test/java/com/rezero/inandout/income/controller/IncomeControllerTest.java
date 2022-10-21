@@ -65,7 +65,7 @@ class IncomeControllerTest {
     ObjectMapper objectMapper;
 
     @Test
-    @DisplayName("수입내역 추가")
+    @DisplayName("수입내역 추가 및 수정")
     void addIncome() throws Exception {
         //given
         Member member = Member.builder()
@@ -82,6 +82,14 @@ class IncomeControllerTest {
                 .incomeAmount(2000)
                 .incomeMemo("TestMemo")
             .build());
+        incomeInputList.add(IncomeInput.builder()
+                .incomeId(1L)
+                .detailIncomeCategoryId(99L)
+                .incomeDt(LocalDate.now())
+                .incomeItem("중고나라판매")
+                .incomeAmount(13000)
+                .incomeMemo("TestMemo2")
+            .build());
 
         String incomeInputListJson = objectMapper.writeValueAsString(incomeInputList);
 
@@ -97,11 +105,14 @@ class IncomeControllerTest {
                 .content(incomeInputListJson))
             .andExpect(status().isOk())
             .andDo(print());
-        ArgumentCaptor<List<IncomeInput>> captor = ArgumentCaptor.forClass(List.class);
+        ArgumentCaptor<List<IncomeInput>> captor1 = ArgumentCaptor.forClass(List.class);
+        ArgumentCaptor<List<IncomeInput>> captor2 = ArgumentCaptor.forClass(List.class);
 
         //then
-        verify(incomeService, times(1)).addIncome(any(), captor.capture());
-        assertEquals(captor.getValue().get(0).getIncomeMemo(), "TestMemo");
+        verify(incomeService, times(1)).addIncome(any(), captor1.capture());
+        verify(incomeService, times(1)).updateIncome(any(), captor2.capture());
+        assertEquals(captor1.getValue().get(0).getIncomeItem(), "당근마켓판매");
+        assertEquals(captor2.getValue().get(0).getIncomeItem(), "중고나라판매");
 
     }
 
@@ -166,5 +177,6 @@ class IncomeControllerTest {
 
 
     }
+
 
 }

@@ -15,6 +15,7 @@ import com.rezero.inandout.member.repository.MemberRepository;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -91,6 +92,36 @@ public class IncomeServiceImpl implements IncomeService {
             = detailIncomeCategoryRepository.findAll();
 
         return DetailIncomeCategory.toDtoList(detailIncomeCategoryList);
+    }
+
+    @Override
+    public void updateIncome(String email, List<IncomeInput> incomeInputList) {
+        Member member = findMemberByEmail(email);
+
+        List<Income> incomeList = new ArrayList<>();
+
+        for (IncomeInput item : incomeInputList) {
+            DetailIncomeCategory detailIncomeCategory = findDetailIncomeCategoryById(
+                item.getDetailIncomeCategoryId());
+
+            Income income = findIncomeByMemberAndIncomeId(member, item.getIncomeId());
+
+            income.setDetailIncomeCategory(detailIncomeCategory);
+            income.setIncomeDt(item.getIncomeDt());
+            income.setIncomeItem(item.getIncomeItem());
+            income.setIncomeAmount(item.getIncomeAmount());
+            income.setIncomeMemo(item.getIncomeMemo());
+
+            incomeList.add(income);
+        }
+
+        incomeRepository.saveAll(incomeList);
+
+    }
+
+    private Income findIncomeByMemberAndIncomeId(Member member, Long incomeId) {
+        return incomeRepository.findIncomeByMemberAndIncomeId(member, incomeId)
+            .orElseThrow(() -> new RuntimeException("없는 수입내역 입니다."));
     }
 
     private DetailIncomeCategory findDetailIncomeCategoryById(Long detailIncomeCategoryId) {
