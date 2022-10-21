@@ -7,6 +7,7 @@ import static org.mockito.Mockito.verify;
 
 import com.rezero.inandout.member.entity.Member;
 import com.rezero.inandout.member.model.JoinMemberInput;
+import com.rezero.inandout.member.model.MemberDto;
 import com.rezero.inandout.member.repository.MemberRepository;
 import java.time.LocalDate;
 import java.util.Optional;
@@ -82,10 +83,9 @@ class MemberServiceImplTest {
 
         // when
         String email = "egg@naver.com";
-        String findEmail = memberService.findEmail(email);
 
         // then
-        Assertions.assertEquals(email, findEmail);
+        memberService.validateEmail(email);
 
     }
 
@@ -103,7 +103,6 @@ class MemberServiceImplTest {
             .nickName("강동원")
             .password("abc!@#12")
             .build();
-
         given(memberRepository.findByEmailAndPhone(anyString(), anyString())).willReturn(
             Optional.of(member));
 
@@ -112,7 +111,35 @@ class MemberServiceImplTest {
         String phone = "010-2222-0000";
 
         // then
-        memberService.findPhone(email, phone);
+        memberService.validatePhone(email, phone);
 
     }
+
+    @Test
+    @DisplayName("회원 정보 조회")
+    void getInfo() {
+
+        // given
+        Member member = Member.builder()
+            .email("egg@naver.com")
+            .address("서울특별시")
+            .phone("010-2222-0000")
+            .birth(LocalDate.from(LocalDate.of(2000, 9, 30)))
+            .gender("남")
+            .nickName("강동원")
+            .password("abc!@#12")
+            .build();
+        given(memberRepository.findByEmail(anyString())).willReturn(
+            Optional.of(member)
+        );
+
+        // when
+        MemberDto memberDto = memberService.getInfo(member.getEmail());
+
+        // then
+        Assertions.assertEquals("강동원", memberDto.getNickName());
+
+    }
+
+
 }

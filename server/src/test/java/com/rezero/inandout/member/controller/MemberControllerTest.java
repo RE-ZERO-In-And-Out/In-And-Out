@@ -3,11 +3,13 @@ package com.rezero.inandout.member.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.rezero.inandout.member.entity.Member;
 import com.rezero.inandout.member.model.FindPasswordMemberInput;
 import com.rezero.inandout.member.model.JoinMemberInput;
 import com.rezero.inandout.member.repository.MemberRepository;
@@ -43,6 +45,7 @@ class MemberControllerTest {
     private MemberRepository memberRepository;
 
     @Test
+    @DisplayName("회원가입")
     void signUp() throws Exception {
 
         // given
@@ -73,6 +76,7 @@ class MemberControllerTest {
     }
 
     @Test
+    @DisplayName("아이디(이메일) 찾기 - 존재 여부 확인")
     void checkEmail() throws Exception {
 
         // given
@@ -92,11 +96,12 @@ class MemberControllerTest {
         ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
 
         // then
-        Mockito.verify(memberServiceImpl, times(1)).findEmail(captor.capture());
+        Mockito.verify(memberServiceImpl, times(1)).validateEmail(captor.capture());
         assertEquals(captor.getValue(), memberInput.getEmail());
     }
 
     @Test
+    @DisplayName("비밀번호 찾기(이메일, 폰번호 확인) - 성공")
     void checkPhone() throws Exception {
 
         // given
@@ -116,7 +121,40 @@ class MemberControllerTest {
         ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
 
         //then
-        Mockito.verify(memberServiceImpl, times(1)).findPhone(anyString(), captor.capture());
+        Mockito.verify(memberServiceImpl, times(1)).validatePhone(anyString(), captor.capture());
         assertEquals(captor.getValue(), memberInput.getPhone());
     }
+
+    @Test
+    @DisplayName("회원 정보 조회 - 성공")
+    void getInfo() throws Exception {
+
+        // given
+        Member member = Member
+            .builder()
+            .email("egg@naver.com")
+            .address("서울특별시")
+            .phone("010-2222-0000")
+            .birth(LocalDate.from(LocalDate.of(2000, 9, 30)))
+            .gender("남")
+            .nickName("원빈")
+            .password("1")
+            .build();
+        String inputToJson = mapper.writeValueAsString(member);
+
+        // when
+        mockMvc.perform(
+                get("/api/member/info")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(inputToJson))
+            .andExpect(status().isOk())
+            .andDo(print());
+        ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+
+        // then
+        Mockito.verify(memberServiceImpl, times(1)).getInfo(captor.capture());
+        assertEquals(captor.getValue(), member.getEmail());
+    }
+
+
 }
