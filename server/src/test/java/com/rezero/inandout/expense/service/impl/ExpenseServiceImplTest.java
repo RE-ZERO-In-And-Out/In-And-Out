@@ -377,7 +377,7 @@ class ExpenseServiceImplTest {
             expenseServiceImpl.deleteExpense("hgd@gmail.com", list);
 
             //then
-            verify(expenseRepository, times(1)).deleteByExpenseIdAndMember(any(), any());
+            verify(expenseRepository, times(1)).deleteAllByExpenseIdInBatch(any());
         }
 
         @Test

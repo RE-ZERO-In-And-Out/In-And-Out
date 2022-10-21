@@ -118,9 +118,14 @@ public class ExpenseServiceImpl implements ExpenseService {
     public void deleteExpense(String email, List<DeleteExpenseInput> inputs) {
         Member member = findMemberByEmail(email);
 
+        List<Long> expenseIds = new ArrayList<>();
+
         for (DeleteExpenseInput input : inputs) {
-            expenseRepository.deleteByExpenseIdAndMember(input.getExpenseId(), member);
+            Expense expense = findExpenseByExpenseIdAndMember(input.getExpenseId(), member);
+            expenseIds.add(expense.getExpenseId());
         }
+
+        expenseRepository.deleteAllByExpenseIdInBatch(expenseIds);
     }
 
     private Expense findExpenseByExpenseIdAndMember(Long expenseId, Member member) {
