@@ -1,17 +1,9 @@
 package com.rezero.inandout.expense.service.impl;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-
 import com.rezero.inandout.expense.entity.DetailExpenseCategory;
 import com.rezero.inandout.expense.entity.Expense;
 import com.rezero.inandout.expense.entity.ExpenseCategory;
+import com.rezero.inandout.expense.model.DeleteExpenseInput;
 import com.rezero.inandout.expense.model.ExpenseCategoryDto;
 import com.rezero.inandout.expense.model.ExpenseDto;
 import com.rezero.inandout.expense.model.ExpenseInput;
@@ -20,10 +12,6 @@ import com.rezero.inandout.expense.repository.ExpenseCategoryRepository;
 import com.rezero.inandout.expense.repository.ExpenseRepository;
 import com.rezero.inandout.member.entity.Member;
 import com.rezero.inandout.member.repository.MemberRepository;
-import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -31,6 +19,18 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class ExpenseServiceImplTest {
@@ -354,5 +354,45 @@ class ExpenseServiceImplTest {
         }
     }
 
+    @Nested
+    class deleteExpenseMethod {
+        Member member = Member.builder()
+                .memberId(1L)
+                .email("hgd@gmail.com")
+                .password("1234")
+                .build();
 
+        List<DeleteExpenseInput> list = Arrays.asList(
+                new DeleteExpenseInput(1L)
+        );
+
+        @Test
+        @DisplayName("지출내역 삭제 - 성공")
+        void updateExpense_success() {
+            //given
+            given(memberRepository.findByEmail(any()))
+                    .willReturn(Optional.of(member));
+
+            //when
+            expenseServiceImpl.deleteExpense("hgd@gmail.com", list);
+
+            //then
+            verify(expenseRepository, times(1)).deleteByExpenseIdAndMember(any(), any());
+        }
+
+        @Test
+        @DisplayName("지출내역 삭제 - 실패 : 계정 없음")
+        void updateExpense_fail_notFoundUser() {
+            //given
+            given(memberRepository.findByEmail(any()))
+                    .willReturn(Optional.empty());
+
+            //when
+            RuntimeException exception = assertThrows(RuntimeException.class,
+                    () -> expenseServiceImpl.deleteExpense("hgd@gmail.com", list));
+
+            //then
+            assertEquals("계정을 찾을 수 없습니다.", exception.getMessage());
+        }
+    }
 }
