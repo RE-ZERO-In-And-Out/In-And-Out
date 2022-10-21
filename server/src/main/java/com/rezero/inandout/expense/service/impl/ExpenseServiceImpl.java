@@ -3,22 +3,20 @@ package com.rezero.inandout.expense.service.impl;
 import com.rezero.inandout.expense.entity.DetailExpenseCategory;
 import com.rezero.inandout.expense.entity.Expense;
 import com.rezero.inandout.expense.entity.ExpenseCategory;
-import com.rezero.inandout.expense.model.DetailExpenseCategoryDto;
-import com.rezero.inandout.expense.model.ExpenseCategoryDto;
-import com.rezero.inandout.expense.model.ExpenseDto;
-import com.rezero.inandout.expense.model.ExpenseInput;
+import com.rezero.inandout.expense.model.*;
 import com.rezero.inandout.expense.repository.DetailExpenseCategoryRepository;
 import com.rezero.inandout.expense.repository.ExpenseCategoryRepository;
 import com.rezero.inandout.expense.repository.ExpenseRepository;
 import com.rezero.inandout.expense.service.ExpenseService;
 import com.rezero.inandout.member.entity.Member;
 import com.rezero.inandout.member.repository.MemberRepository;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -113,6 +111,16 @@ public class ExpenseServiceImpl implements ExpenseService {
         }
 
         expenseRepository.saveAll(expenses);
+    }
+
+    @Override
+    @Transactional
+    public void deleteExpense(String email, List<DeleteExpenseInput> inputs) {
+        Member member = findMemberByEmail(email);
+
+        for (DeleteExpenseInput input : inputs) {
+            expenseRepository.deleteByExpenseIdAndMember(input.getExpenseId(), member);
+        }
     }
 
     private Expense findExpenseByExpenseIdAndMember(Long expenseId, Member member) {
