@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -59,6 +60,16 @@ public class IncomeController {
             .build();
 
         return ResponseEntity.ok(categoryAndIncomeDto);
+    }
+
+
+    @DeleteMapping
+    public ResponseEntity<?> deleteIncome(Principal principal,
+                             @RequestBody List<Long> deleteIdList) {
+
+        incomeService.deleteIncome(principal.getName(), deleteIdList);
+
+        return ResponseEntity.ok().body("삭제에 성공했습니다.");
     }
 
 }

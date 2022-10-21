@@ -119,6 +119,14 @@ public class IncomeServiceImpl implements IncomeService {
 
     }
 
+    @Override
+    public void deleteIncome(String email, List<Long> deleteIdList) {
+        memberRepository.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("없는 맴버입니다."));
+
+        incomeRepository.deleteAllByIdInBatch(deleteIdList);
+    }
+
     private Income findIncomeByMemberAndIncomeId(Member member, Long incomeId) {
         return incomeRepository.findIncomeByMemberAndIncomeId(member, incomeId)
             .orElseThrow(() -> new RuntimeException("없는 수입내역 입니다."));

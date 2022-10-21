@@ -17,4 +17,6 @@ public interface IncomeService {
     List<IncomeCategoryDto> getIncomeCategoryList();
     List<DetailIncomeCategoryDto> getDetailIncomeCategory();
     void updateIncome(String email, List<IncomeInput> incomeInputList);
+    void deleteIncome(String email, List<Long> deleteIdList);
+
 }
