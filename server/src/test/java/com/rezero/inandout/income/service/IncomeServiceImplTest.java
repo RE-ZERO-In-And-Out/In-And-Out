@@ -10,7 +10,6 @@ import static org.mockito.Mockito.verify;
 import com.rezero.inandout.income.entity.DetailIncomeCategory;
 import com.rezero.inandout.income.entity.Income;
 import com.rezero.inandout.income.entity.IncomeCategory;
-import com.rezero.inandout.income.model.DetailIncomeCategoryDto;
 import com.rezero.inandout.income.model.IncomeCategoryDto;
 import com.rezero.inandout.income.model.IncomeDto;
 import com.rezero.inandout.income.model.IncomeInput;
@@ -83,7 +82,7 @@ class IncomeServiceImplTest {
 
 
         @Test
-        @DisplayName("수입내역 추가 - 성공")
+        @DisplayName("성공")
         void addIncome_success() {
             //given
             given(memberRepository.findByEmail(any()))
@@ -105,7 +104,7 @@ class IncomeServiceImplTest {
         }
 
         @Test
-        @DisplayName("수입내역 추가 실패 - member 없음")
+        @DisplayName("실패 - member 없음")
         void addIncome_fail_no_member() {
             //given
             given(memberRepository.findByEmail(any()))
@@ -119,7 +118,7 @@ class IncomeServiceImplTest {
         }
 
         @Test
-        @DisplayName("수입내역 추가 실패 - category 없음")
+        @DisplayName("실패 - category 없음")
         void addIncome_fail_no_category() {
             //given
             given(memberRepository.findByEmail(any()))
@@ -377,6 +376,76 @@ class IncomeServiceImplTest {
 
             //then
             assertEquals(exception.getMessage(), "없는 카테고리 입니다.");
+        }
+
+    }
+
+
+    @Nested
+    @DisplayName("수입리스트 삭제")
+    class deleteIncomeMethod {
+
+        Member member = Member.builder()
+            .memberId(10L)
+            .build();
+
+        Income income1 = Income.builder()
+            .incomeId(1L)
+            .incomeDt(LocalDate.now().minusMonths(1))
+            .incomeItem("월급")
+            .incomeAmount(5000000)
+            .incomeMemo("income1-memo")
+            .build();
+
+        Income income2 = Income.builder()
+            .incomeId(2L)
+            .incomeDt(LocalDate.now())
+            .incomeItem("서브프로젝트")
+            .incomeAmount(350000)
+            .incomeMemo("income2-memo")
+            .build();
+
+        List<Income> incomeList = new ArrayList<>();
+        List<Long> deleteIdList = new ArrayList<>();
+        @Test
+        @DisplayName("성공")
+        void deleteIncome() {
+            //given
+            incomeList.add(income1);
+            incomeList.add(income2);
+            deleteIdList.add(2L);
+
+            given(memberRepository.findByEmail(any()))
+                .willReturn(Optional.of(member));
+
+            //when
+            incomeService.deleteIncome(member.getEmail(), deleteIdList);
+            ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
+
+            //then
+            verify(incomeRepository, times(1)).deleteAllByIdInBatch(captor.capture());
+            assertEquals(captor.getValue().size(), 1);
+
+        }
+
+        @Test
+        @DisplayName("실패 - 유저 없음")
+        void deleteIncome_fail_no_member() {
+            //given
+            incomeList.add(income1);
+            incomeList.add(income2);
+            deleteIdList.add(2L);
+
+            given(memberRepository.findByEmail(any()))
+                .willReturn(Optional.empty());
+
+            //when
+            RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> incomeService.deleteIncome(any(), deleteIdList));
+
+            //then
+            assertEquals(exception.getMessage(), "없는 맴버입니다.");
+
         }
 
     }

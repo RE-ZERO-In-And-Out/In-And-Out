@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -21,7 +22,6 @@ import com.rezero.inandout.income.service.IncomeServiceImpl;
 import com.rezero.inandout.member.entity.Member;
 import com.rezero.inandout.member.repository.MemberRepository;
 import com.rezero.inandout.member.service.MemberService;
-import com.rezero.inandout.member.service.MemberServiceImpl;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -178,5 +178,40 @@ class IncomeControllerTest {
 
     }
 
+
+    @Test
+    @DisplayName("수입내역 삭제")
+    void deleteIncome() throws Exception {
+        //given
+        Member member = Member.builder()
+            .memberId(1L)
+            .email("testMember@gmail.com")
+            .password("1234")
+            .build();
+
+        List<Long> deleteIdList = new ArrayList<>();
+
+        deleteIdList.add(2L);
+
+        String deleteIdListJson = objectMapper.writeValueAsString(deleteIdList);
+
+        User user = new User(member.getEmail(), member.getPassword(), AuthorityUtils.createAuthorityList("ROLE_USER"));
+        TestingAuthenticationToken testingAuthenticationToken
+            = new TestingAuthenticationToken(user,null);
+
+        //when
+        mockMvc.perform(
+                delete("/api/income")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(deleteIdListJson)
+                    .principal(testingAuthenticationToken))
+            .andExpect(status().isOk())
+            .andDo(print());
+        ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
+
+        //then
+        verify(incomeService, times(1)).deleteIncome(any(), captor.capture());
+        assertEquals(captor.getValue().size(), 1);
+    }
 
 }
