@@ -12,6 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.rezero.inandout.income.model.DeleteIncomeInput;
 import com.rezero.inandout.income.model.DetailIncomeCategoryDto;
 import com.rezero.inandout.income.model.IncomeCategoryDto;
 import com.rezero.inandout.income.model.IncomeDto;
@@ -189,11 +190,15 @@ class IncomeControllerTest {
             .password("1234")
             .build();
 
-        List<Long> deleteIdList = new ArrayList<>();
+        DeleteIncomeInput deleteIncomeInput = DeleteIncomeInput.builder()
+            .IncomeId(2L)
+            .build();
 
-        deleteIdList.add(2L);
+        List<DeleteIncomeInput> deleteIncomeInputList = new ArrayList<>();
 
-        String deleteIdListJson = objectMapper.writeValueAsString(deleteIdList);
+        deleteIncomeInputList.add(deleteIncomeInput);
+
+        String deleteIdListJson = objectMapper.writeValueAsString(deleteIncomeInputList);
 
         User user = new User(member.getEmail(), member.getPassword(), AuthorityUtils.createAuthorityList("ROLE_USER"));
         TestingAuthenticationToken testingAuthenticationToken

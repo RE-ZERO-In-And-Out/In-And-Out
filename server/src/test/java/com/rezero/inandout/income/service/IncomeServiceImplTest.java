@@ -10,6 +10,7 @@ import static org.mockito.Mockito.verify;
 import com.rezero.inandout.income.entity.DetailIncomeCategory;
 import com.rezero.inandout.income.entity.Income;
 import com.rezero.inandout.income.entity.IncomeCategory;
+import com.rezero.inandout.income.model.DeleteIncomeInput;
 import com.rezero.inandout.income.model.IncomeCategoryDto;
 import com.rezero.inandout.income.model.IncomeDto;
 import com.rezero.inandout.income.model.IncomeInput;
@@ -23,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import org.hibernate.sql.Delete;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -405,21 +407,25 @@ class IncomeServiceImplTest {
             .incomeMemo("income2-memo")
             .build();
 
+        DeleteIncomeInput deleteIncomeInput = DeleteIncomeInput.builder()
+            .IncomeId(2L)
+            .build();
+
         List<Income> incomeList = new ArrayList<>();
-        List<Long> deleteIdList = new ArrayList<>();
+        List<DeleteIncomeInput> deleteIncomeInputList = new ArrayList<>();
         @Test
         @DisplayName("성공")
         void deleteIncome() {
             //given
             incomeList.add(income1);
             incomeList.add(income2);
-            deleteIdList.add(2L);
+            deleteIncomeInputList.add(deleteIncomeInput);
 
             given(memberRepository.findByEmail(any()))
                 .willReturn(Optional.of(member));
 
             //when
-            incomeService.deleteIncome(member.getEmail(), deleteIdList);
+            incomeService.deleteIncome(member.getEmail(), deleteIncomeInputList);
             ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
 
             //then
@@ -434,14 +440,14 @@ class IncomeServiceImplTest {
             //given
             incomeList.add(income1);
             incomeList.add(income2);
-            deleteIdList.add(2L);
+            deleteIncomeInputList.add(deleteIncomeInput);
 
             given(memberRepository.findByEmail(any()))
                 .willReturn(Optional.empty());
 
             //when
             RuntimeException exception = assertThrows(RuntimeException.class,
-                () -> incomeService.deleteIncome(any(), deleteIdList));
+                () -> incomeService.deleteIncome(any(), deleteIncomeInputList));
 
             //then
             assertEquals(exception.getMessage(), "없는 맴버입니다.");
