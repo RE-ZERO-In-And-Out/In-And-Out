@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -12,6 +13,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rezero.inandout.member.entity.Member;
 import com.rezero.inandout.member.model.FindPasswordMemberInput;
 import com.rezero.inandout.member.model.JoinMemberInput;
+import com.rezero.inandout.member.model.UpdateMemberInput;
 import com.rezero.inandout.member.repository.MemberRepository;
 import com.rezero.inandout.member.service.MemberServiceImpl;
 import java.time.LocalDate;
@@ -156,5 +158,37 @@ class MemberControllerTest {
         assertEquals(captor.getValue(), member.getEmail());
     }
 
+
+    @Test
+    @DisplayName("회원 정보 수정 - 성공")
+    void updateInfo() throws Exception {
+
+        // given
+        UpdateMemberInput input = UpdateMemberInput.builder().address("강원도")
+            .nickName("치킨")
+            .phone("010-1111-2313")
+            .birth(LocalDate.now())
+            .memberPhotoUrl("c:")
+            .gender("여")
+            .address("강원도")
+            .build();
+        String inputToJson = mapper.writeValueAsString(input);
+
+        // when
+        mockMvc.perform(
+                put("/api/member/info")
+                    .contentType(MediaType.APPLICATION_JSON)
+
+                    .content(inputToJson))
+            .andExpect(status().isOk())
+            .andDo(print());
+        ArgumentCaptor<UpdateMemberInput> captor = ArgumentCaptor.forClass(UpdateMemberInput.class);
+
+        // then
+        Mockito.verify(memberServiceImpl, times(1)).updateInfo(anyString(), captor.capture());
+        assertEquals(captor.getValue().getPhone(), input.getPhone()); //
+
+
+    }
 
 }
