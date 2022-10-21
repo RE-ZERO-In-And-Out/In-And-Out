@@ -2,6 +2,7 @@ package com.rezero.inandout.member.service;
 
 import com.rezero.inandout.member.entity.Member;
 import com.rezero.inandout.member.model.JoinMemberInput;
+import com.rezero.inandout.member.model.MemberDto;
 import com.rezero.inandout.member.model.UpdateMemberInput;
 import com.rezero.inandout.member.repository.MemberRepository;
 import java.util.Optional;
@@ -123,27 +124,33 @@ public class MemberServiceImpl implements MemberService {
         memberRepository.save(member);
     }
 
-
     @Override
-    public String findEmail(String email) {
+    public void validateEmail(String email) {
 
         Optional<Member> optionalMember = memberRepository.findByEmail(email);
         if (!optionalMember.isPresent()) {
             throw new RuntimeException("존재하지 않는 아이디(이메일)입니다. 정확하게 입력해주세요.");
         }
-        return email;
+
     }
 
     @Override
-    public void findPhone(String email, String phone) {
-
-        Member optionalMember = memberRepository
-            .findByEmailAndPhone(email, phone)
+    public void validatePhone(String email, String phone) {
+        memberRepository.findByEmailAndPhone(email, phone)
             .orElseThrow(() -> new RuntimeException("존재하는 연락처가 아닙니다. 정확하게 입력해주세요."));
     }
 
+
     @Override
-    public void update(String email, UpdateMemberInput input) {
+    public MemberDto getInfo(String email) {
+        Member member = memberRepository.findByEmail(email).get();
+        return MemberDto.toDto(member);
+    }
+
+
+    @Override
+    public void updateInfo(String email, UpdateMemberInput input) {
+
     }
 
     @Override

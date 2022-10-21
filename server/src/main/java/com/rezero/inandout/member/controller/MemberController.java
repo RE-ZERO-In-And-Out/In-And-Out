@@ -2,10 +2,12 @@ package com.rezero.inandout.member.controller;
 
 import com.rezero.inandout.member.model.FindPasswordMemberInput;
 import com.rezero.inandout.member.model.JoinMemberInput;
+import com.rezero.inandout.member.model.MemberDto;
 import com.rezero.inandout.member.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,18 +32,28 @@ public class MemberController {
     @PostMapping("/password/email")
     public ResponseEntity<?> checkEmail(
         @RequestBody FindPasswordMemberInput findPasswordMemberInput) {
-        String findEmail = memberService.findEmail(findPasswordMemberInput.getEmail());
-        return new ResponseEntity(findEmail, HttpStatus.OK);
+        memberService.validateEmail(findPasswordMemberInput.getEmail());
+        return new ResponseEntity(findPasswordMemberInput.getEmail(), HttpStatus.OK);
     }
 
 
     @PostMapping("/password/email/phone")
     public ResponseEntity<?> checkPhone(
         @RequestBody FindPasswordMemberInput findPasswordMemberInput) {
-        String findPhone = memberService.findPhone(findPasswordMemberInput.getEmail(),
+        memberService.validatePhone(findPasswordMemberInput.getEmail(),
             findPasswordMemberInput.getPhone());
         String message = "비밀번호 찾기 완료";
         return new ResponseEntity(message, HttpStatus.OK);
     }
+
+
+    @GetMapping("/member/info")
+    public ResponseEntity<?> getInfo(/*Principal principal*/) {
+//        String email = Principal.getName();
+        String email = "egg@naver.com";
+        MemberDto memberDto = memberService.getInfo(email);
+        return new ResponseEntity<>(memberDto, HttpStatus.OK);
+    }
+
 
 }
