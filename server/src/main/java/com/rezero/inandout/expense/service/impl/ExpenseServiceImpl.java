@@ -128,7 +128,7 @@ public class ExpenseServiceImpl implements ExpenseService {
             expenseIds.add(input.getExpenseId());
         }
 
-        expenseRepository.deleteAllByExpenseIdInBatch(expenseIds);
+        expenseRepository.deleteAllByIdInBatch(expenseIds);
     }
 
     private Expense findExpenseByExpenseId(Long expenseId) {
