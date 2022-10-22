@@ -12,5 +12,5 @@ import lombok.Setter;
 @NoArgsConstructor
 @Builder
 public class DeleteIncomeInput {
-    private Long IncomeId;
+    private Long incomeId;
 }
