@@ -1,5 +1,9 @@
 package com.rezero.inandout.income.service;
 
+import static com.rezero.inandout.exception.errorcode.IncomeErrorCode.NOT_MATCH_MEMBER_AND_INCOME;
+import static com.rezero.inandout.exception.errorcode.IncomeErrorCode.NO_CATEGORY;
+import static com.rezero.inandout.exception.errorcode.IncomeErrorCode.NO_INCOME;
+import static com.rezero.inandout.exception.errorcode.IncomeErrorCode.NO_MEMBER;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -7,6 +11,8 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import com.rezero.inandout.exception.IncomeException;
+import com.rezero.inandout.exception.errorcode.IncomeErrorCode;
 import com.rezero.inandout.income.entity.DetailIncomeCategory;
 import com.rezero.inandout.income.entity.Income;
 import com.rezero.inandout.income.entity.IncomeCategory;
@@ -24,7 +30,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import org.hibernate.sql.Delete;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -114,23 +119,31 @@ class IncomeServiceImplTest {
 
             //when
             String email = "test@email.com";
+            IncomeException exception = assertThrows(IncomeException.class,
+                () -> incomeService.addIncome(email, incomes));
 
             //then
-            assertThrows(RuntimeException.class, () -> incomeService.addIncome(email, incomes));
+            assertEquals(exception.getErrorCode(), NO_MEMBER);
         }
 
         @Test
         @DisplayName("실패 - category 없음")
         void addIncome_fail_no_category() {
             //given
+            incomes = new ArrayList<>();
+            incomes.add(incomeInput1);
+            incomes.add(incomeInput2);
+
             given(memberRepository.findByEmail(any()))
                 .willReturn(Optional.of(member));
 
             //when
             String email = "test@email.com";
+            IncomeException exception = assertThrows(IncomeException.class,
+                () -> incomeService.addIncome(email, incomes));
 
             //then
-            assertThrows(RuntimeException.class, () -> incomeService.addIncome(email, incomes));
+            assertEquals(exception.getErrorCode(), IncomeErrorCode.NO_CATEGORY);
         }
 
     }
@@ -197,13 +210,14 @@ class IncomeServiceImplTest {
                 .willReturn(Optional.empty());
 
             //when
-
-            //then
-            assertThrows(RuntimeException.class, () -> incomeService.getIncomeList(
-                "test",
+            IncomeException exception = assertThrows(IncomeException.class,
+                () -> incomeService.getIncomeList("test",
                 LocalDate.of(2020, 10, 1),
                 LocalDate.of(2020, 10, 1)
             ));
+
+            //then
+            assertEquals(exception.getErrorCode(), NO_MEMBER);
         }
     }
 
@@ -329,11 +343,11 @@ class IncomeServiceImplTest {
 
             //when
             String email = "test@email.com";
-            RuntimeException exception = assertThrows(RuntimeException.class,
+            IncomeException exception = assertThrows(IncomeException.class,
                 () -> incomeService.updateIncome(email, incomes));
 
             //then
-            assertEquals(exception.getMessage(), "없는 맴버입니다.");
+            assertEquals(exception.getErrorCode(), NO_MEMBER);
         }
 
         @Test
@@ -353,11 +367,11 @@ class IncomeServiceImplTest {
                 .willReturn(Optional.of(detailIncomeCategory));
 
             //when
-            RuntimeException exception = assertThrows(RuntimeException.class,
+            IncomeException exception = assertThrows(IncomeException.class,
                 () -> incomeService.updateIncome(member.getEmail(), incomes));
 
             //then
-            assertEquals(exception.getMessage(), "없는 수입내역 입니다.");
+            assertEquals(exception.getErrorCode(), NO_INCOME);
         }
 
 
@@ -375,11 +389,11 @@ class IncomeServiceImplTest {
                 .willReturn(Optional.empty());
 
             //when
-            RuntimeException exception = assertThrows(RuntimeException.class,
+            IncomeException exception = assertThrows(IncomeException.class,
                 () -> incomeService.updateIncome(member.getEmail(), incomes));
 
             //then
-            assertEquals(exception.getMessage(), "없는 카테고리 입니다.");
+            assertEquals(exception.getErrorCode(), NO_CATEGORY);
         }
 
         @Test
@@ -401,11 +415,11 @@ class IncomeServiceImplTest {
                 .willReturn(Optional.of(detailIncomeCategory));
 
             //when
-            RuntimeException exception = assertThrows(RuntimeException.class,
+            IncomeException exception = assertThrows(IncomeException.class,
                 () -> incomeService.updateIncome(member.getEmail(), incomes));
 
             //then
-            assertEquals(exception.getMessage(), "수입내역의 주인이 아닙니다. 잘못된 요청입니다.");
+            assertEquals(exception.getErrorCode(), NOT_MATCH_MEMBER_AND_INCOME);
         }
 
     }
@@ -451,7 +465,7 @@ class IncomeServiceImplTest {
             .build();
 
         DeleteIncomeInput deleteIncomeInput = DeleteIncomeInput.builder()
-            .IncomeId(2L)
+            .incomeId(2L)
             .build();
 
         List<Income> incomeList = new ArrayList<>();
@@ -492,11 +506,11 @@ class IncomeServiceImplTest {
                 .willReturn(Optional.empty());
 
             //when
-            RuntimeException exception = assertThrows(RuntimeException.class,
+            IncomeException exception = assertThrows(IncomeException.class,
                 () -> incomeService.deleteIncome(any(), deleteIncomeInputList));
 
             //then
-            assertEquals(exception.getMessage(), "없는 맴버입니다.");
+            assertEquals(exception.getErrorCode(), NO_MEMBER);
 
         }
 
@@ -508,19 +522,22 @@ class IncomeServiceImplTest {
             incomeList.add(income2);
             deleteIncomeInputList.add(
                 DeleteIncomeInput.builder()
-                .IncomeId(10L)
+                .incomeId(10L)
                 .build()
             );
 
             given(memberRepository.findByEmail(any()))
                 .willReturn(Optional.of(member));
 
+            given(incomeRepository.findById(any()))
+                .willReturn(Optional.empty());
+
             //when
-            RuntimeException exception = assertThrows(RuntimeException.class,
+            IncomeException exception = assertThrows(IncomeException.class,
                 () -> incomeService.deleteIncome(any(), deleteIncomeInputList));
 
             //then
-            assertEquals(exception.getMessage(), "없는 수입내역 입니다.");
+            assertEquals(exception.getErrorCode(), NO_INCOME);
         }
 
         @Test
@@ -530,7 +547,7 @@ class IncomeServiceImplTest {
             incomeList.add(income3);
             deleteIncomeInputList.add(
                 DeleteIncomeInput.builder()
-                    .IncomeId(3L)
+                    .incomeId(3L)
                     .build()
             );
 
@@ -541,11 +558,11 @@ class IncomeServiceImplTest {
                 .willReturn(Optional.of(income3));
 
             //when
-            RuntimeException exception = assertThrows(RuntimeException.class,
+            IncomeException exception = assertThrows(IncomeException.class,
                 () -> incomeService.deleteIncome(any(), deleteIncomeInputList));
 
             //then
-            assertEquals(exception.getMessage(), "수입내역의 주인이 아닙니다. 잘못된 요청입니다.");
+            assertEquals(exception.getErrorCode(), NOT_MATCH_MEMBER_AND_INCOME);
         }
     }
 }
