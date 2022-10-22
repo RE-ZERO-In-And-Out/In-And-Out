@@ -94,7 +94,6 @@ class MemberControllerTest {
                     .content(inputToJson))
             .andExpect(status().isOk())
             .andDo(print());
-
         ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
 
         // then
