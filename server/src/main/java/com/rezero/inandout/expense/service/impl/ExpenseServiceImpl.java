@@ -95,7 +95,9 @@ public class ExpenseServiceImpl implements ExpenseService {
         List<Expense> expenses = new ArrayList<>();
 
         for (ExpenseInput input : inputs) {
-            Expense expense = findExpenseByExpenseIdAndMember(input.getExpenseId(), member);
+            Expense expense = findExpenseByExpenseId(input.getExpenseId());
+            validateMatchingMemberAndExpense(expense.getExpenseId(), member);
+
             expense.setExpenseDt(input.getExpenseDt());
             expense.setExpenseItem(input.getExpenseItem());
             expense.setExpenseCash(input.getExpenseCash());
@@ -121,22 +123,26 @@ public class ExpenseServiceImpl implements ExpenseService {
         List<Long> expenseIds = new ArrayList<>();
 
         for (DeleteExpenseInput input : inputs) {
-            findExpenseByExpenseId(input.getExpenseId());
-            findExpenseByExpenseIdAndMember(input.getExpenseId(), member);
+            Expense expense = findExpenseByExpenseId(input.getExpenseId());
+            validateMatchingMemberAndExpense(expense.getExpenseId(), member);
             expenseIds.add(input.getExpenseId());
         }
 
         expenseRepository.deleteAllByExpenseIdInBatch(expenseIds);
     }
 
-    private void findExpenseByExpenseId(Long expenseId) {
-        expenseRepository.findByExpenseId(expenseId)
-                .orElseThrow(() -> new RuntimeException("존재하지 않은 지출 내역입니다."));
+    private Expense findExpenseByExpenseId(Long expenseId) {
+        return expenseRepository.findByExpenseId(expenseId)
+                .orElseThrow(() -> new RuntimeException("없는 지출 내역입니다."));
     }
 
-    private Expense findExpenseByExpenseIdAndMember(Long expenseId, Member member) {
-        return expenseRepository.findByExpenseIdAndMember(expenseId, member)
-            .orElseThrow(() -> new RuntimeException("회원과 일치하지 않은 지출 내역입니다."));
+    private void validateMatchingMemberAndExpense(Long expenseId, Member member) {
+        Expense expense = findExpenseByExpenseId(expenseId);
+        Long expenseMemberId = expense.getMember().getMemberId();
+
+        if (!expenseMemberId.equals(member.getMemberId())) {
+            throw new RuntimeException("지출내역의 주인이 아닙니다. 잘못된 요청입니다.");
+        }
     }
 
 
