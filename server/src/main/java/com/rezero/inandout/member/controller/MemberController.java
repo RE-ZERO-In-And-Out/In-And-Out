@@ -3,12 +3,14 @@ package com.rezero.inandout.member.controller;
 import com.rezero.inandout.member.model.FindPasswordMemberInput;
 import com.rezero.inandout.member.model.JoinMemberInput;
 import com.rezero.inandout.member.model.MemberDto;
+import com.rezero.inandout.member.model.UpdateMemberInput;
 import com.rezero.inandout.member.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -53,6 +55,16 @@ public class MemberController {
         String email = "egg@naver.com";
         MemberDto memberDto = memberService.getInfo(email);
         return new ResponseEntity<>(memberDto, HttpStatus.OK);
+    }
+
+    @PutMapping("/member/info")
+    public ResponseEntity<?> updateInfo(/*Principal principal*/
+        @RequestBody UpdateMemberInput input) {
+//        String email = principal.getName();
+        String email = "egg@naver.com";
+        memberService.updateInfo(email, input);
+        String message = "회원 정보를 변경했습니다.";
+        return new ResponseEntity<>(message, HttpStatus.OK);
     }
 
 
