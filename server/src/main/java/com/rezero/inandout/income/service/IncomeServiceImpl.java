@@ -3,6 +3,7 @@ package com.rezero.inandout.income.service;
 import com.rezero.inandout.income.entity.DetailIncomeCategory;
 import com.rezero.inandout.income.entity.Income;
 import com.rezero.inandout.income.entity.IncomeCategory;
+import com.rezero.inandout.income.model.DeleteIncomeInput;
 import com.rezero.inandout.income.model.DetailIncomeCategoryDto;
 import com.rezero.inandout.income.model.IncomeCategoryDto;
 import com.rezero.inandout.income.model.IncomeDto;
@@ -15,7 +16,7 @@ import com.rezero.inandout.member.repository.MemberRepository;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -104,7 +105,8 @@ public class IncomeServiceImpl implements IncomeService {
             DetailIncomeCategory detailIncomeCategory = findDetailIncomeCategoryById(
                 item.getDetailIncomeCategoryId());
 
-            Income income = findIncomeByMemberAndIncomeId(member, item.getIncomeId());
+            Income income = findByIncomeId(item.getIncomeId());
+            validateMatchingMemberAndIncome(member, income.getIncomeId());
 
             income.setDetailIncomeCategory(detailIncomeCategory);
             income.setIncomeDt(item.getIncomeDt());
@@ -119,18 +121,44 @@ public class IncomeServiceImpl implements IncomeService {
 
     }
 
-    private Income findIncomeByMemberAndIncomeId(Member member, Long incomeId) {
-        return incomeRepository.findIncomeByMemberAndIncomeId(member, incomeId)
-            .orElseThrow(() -> new RuntimeException("없는 수입내역 입니다."));
+    @Override
+    public void deleteIncome(String email, List<DeleteIncomeInput> deleteIncomeInputList) {
+        Member member = findMemberByEmail(email);
+
+        List<Long> deleteIncomeIdList = new ArrayList<>();
+        for (DeleteIncomeInput item : deleteIncomeInputList) {
+            findByIncomeId(item.getIncomeId());
+            validateMatchingMemberAndIncome(member, item.getIncomeId());
+            deleteIncomeIdList.add(item.getIncomeId());
+        }
+
+        incomeRepository.deleteAllByIdInBatch(deleteIncomeIdList);
     }
+
 
     private DetailIncomeCategory findDetailIncomeCategoryById(Long detailIncomeCategoryId) {
         return detailIncomeCategoryRepository
             .findByDetailIncomeCategoryId(detailIncomeCategoryId)
             .orElseThrow(() -> new RuntimeException("없는 카테고리 입니다."));
     }
+
     private Member findMemberByEmail(String email) {
         return memberRepository.findByEmail(email)
             .orElseThrow(() -> new RuntimeException("없는 맴버입니다."));
     }
+
+    private Income findByIncomeId(Long incomeId) {
+        return incomeRepository.findById(incomeId)
+            .orElseThrow(() -> new RuntimeException("없는 수입내역 입니다."));
+    }
+
+    private void validateMatchingMemberAndIncome(Member loginMember, Long incomeId) {
+        Income income = incomeRepository.findById(incomeId)
+            .orElseThrow(() -> new RuntimeException("없는 수입내역 입니다."));
+        Long memberId = income.getMember().getMemberId();
+        if(!Objects.equals(loginMember.getMemberId(), memberId)) {
+            throw new RuntimeException("수입내역의 주인이 아닙니다. 잘못된 요청입니다.");
+        }
+    }
+
 }

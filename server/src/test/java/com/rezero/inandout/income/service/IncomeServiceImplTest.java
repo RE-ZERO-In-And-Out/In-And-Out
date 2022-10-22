@@ -10,7 +10,7 @@ import static org.mockito.Mockito.verify;
 import com.rezero.inandout.income.entity.DetailIncomeCategory;
 import com.rezero.inandout.income.entity.Income;
 import com.rezero.inandout.income.entity.IncomeCategory;
-import com.rezero.inandout.income.model.DetailIncomeCategoryDto;
+import com.rezero.inandout.income.model.DeleteIncomeInput;
 import com.rezero.inandout.income.model.IncomeCategoryDto;
 import com.rezero.inandout.income.model.IncomeDto;
 import com.rezero.inandout.income.model.IncomeInput;
@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import org.hibernate.sql.Delete;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -83,7 +84,7 @@ class IncomeServiceImplTest {
 
 
         @Test
-        @DisplayName("수입내역 추가 - 성공")
+        @DisplayName("성공")
         void addIncome_success() {
             //given
             given(memberRepository.findByEmail(any()))
@@ -105,7 +106,7 @@ class IncomeServiceImplTest {
         }
 
         @Test
-        @DisplayName("수입내역 추가 실패 - member 없음")
+        @DisplayName("실패 - member 없음")
         void addIncome_fail_no_member() {
             //given
             given(memberRepository.findByEmail(any()))
@@ -119,7 +120,7 @@ class IncomeServiceImplTest {
         }
 
         @Test
-        @DisplayName("수입내역 추가 실패 - category 없음")
+        @DisplayName("실패 - category 없음")
         void addIncome_fail_no_category() {
             //given
             given(memberRepository.findByEmail(any()))
@@ -282,6 +283,7 @@ class IncomeServiceImplTest {
 
         Income IncomeHistory = Income.builder()
             .incomeId(2L)
+            .member(member)
             .incomeDt(LocalDate.now())
             .incomeItem("매운새우깡")
             .detailIncomeCategory(detailIncomeCategory)
@@ -301,7 +303,7 @@ class IncomeServiceImplTest {
             given(memberRepository.findByEmail(any()))
                 .willReturn(Optional.of(member));
 
-            given(incomeRepository.findIncomeByMemberAndIncomeId(any(), any()))
+            given(incomeRepository.findById(any()))
                 .willReturn(Optional.of(IncomeHistory));
 
             given(detailIncomeCategoryRepository.findByDetailIncomeCategoryId(any()))
@@ -344,7 +346,7 @@ class IncomeServiceImplTest {
             given(memberRepository.findByEmail(any()))
                 .willReturn(Optional.of(member));
 
-            given(incomeRepository.findIncomeByMemberAndIncomeId(any(), any()))
+            given(incomeRepository.findById(any()))
                 .willReturn(Optional.empty());
 
             given(detailIncomeCategoryRepository.findByDetailIncomeCategoryId(any()))
@@ -357,6 +359,7 @@ class IncomeServiceImplTest {
             //then
             assertEquals(exception.getMessage(), "없는 수입내역 입니다.");
         }
+
 
         @Test
         @DisplayName("실패 - 카테고리 없음")
@@ -379,5 +382,170 @@ class IncomeServiceImplTest {
             assertEquals(exception.getMessage(), "없는 카테고리 입니다.");
         }
 
+        @Test
+        @DisplayName("실패 - 해당 수입내역의 유저가 아님")
+        void updateIncome_fail_not_match_member_and_income() {
+            incomes.add(incomeInput1);
+            incomes.add(incomeInput2);
+
+            //given
+            given(memberRepository.findByEmail(any()))
+                .willReturn(Optional.of(Member.builder()
+                    .memberId(11L)
+                    .build()));
+
+            given(incomeRepository.findById(any()))
+                .willReturn(Optional.of(IncomeHistory));
+
+            given(detailIncomeCategoryRepository.findByDetailIncomeCategoryId(any()))
+                .willReturn(Optional.of(detailIncomeCategory));
+
+            //when
+            RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> incomeService.updateIncome(member.getEmail(), incomes));
+
+            //then
+            assertEquals(exception.getMessage(), "수입내역의 주인이 아닙니다. 잘못된 요청입니다.");
+        }
+
+    }
+
+
+    @Nested
+    @DisplayName("수입리스트 삭제")
+    class deleteIncomeMethod {
+
+        Member member = Member.builder()
+            .memberId(10L)
+            .build();
+
+        Member member2 = Member.builder()
+            .memberId(11L)
+            .build();
+
+        Income income1 = Income.builder()
+            .incomeId(1L)
+            .member(member)
+            .incomeDt(LocalDate.now().minusMonths(1))
+            .incomeItem("월급")
+            .incomeAmount(5000000)
+            .incomeMemo("income1-memo")
+            .build();
+
+        Income income2 = Income.builder()
+            .incomeId(2L)
+            .member(member)
+            .incomeDt(LocalDate.now())
+            .incomeItem("서브프로젝트")
+            .incomeAmount(350000)
+            .incomeMemo("income2-memo")
+            .build();
+
+        Income income3 = Income.builder()
+            .incomeId(3L)
+            .member(member2)
+            .incomeDt(LocalDate.now())
+            .incomeItem("서브서브프로젝트")
+            .incomeAmount(30000)
+            .incomeMemo("income2-memo")
+            .build();
+
+        DeleteIncomeInput deleteIncomeInput = DeleteIncomeInput.builder()
+            .IncomeId(2L)
+            .build();
+
+        List<Income> incomeList = new ArrayList<>();
+        List<DeleteIncomeInput> deleteIncomeInputList = new ArrayList<>();
+        @Test
+        @DisplayName("성공")
+        void deleteIncome() {
+            //given
+            incomeList.add(income1);
+            incomeList.add(income2);
+            deleteIncomeInputList.add(deleteIncomeInput);
+
+            given(memberRepository.findByEmail(any()))
+                .willReturn(Optional.of(member));
+
+            given(incomeRepository.findById(any()))
+                .willReturn(Optional.of(income1));
+
+            //when
+            incomeService.deleteIncome(member.getEmail(), deleteIncomeInputList);
+            ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
+
+            //then
+            verify(incomeRepository, times(1)).deleteAllByIdInBatch(captor.capture());
+            assertEquals(captor.getValue().size(), 1);
+
+        }
+
+        @Test
+        @DisplayName("실패 - 유저 없음")
+        void deleteIncome_fail_no_member() {
+            //given
+            incomeList.add(income1);
+            incomeList.add(income2);
+            deleteIncomeInputList.add(deleteIncomeInput);
+
+            given(memberRepository.findByEmail(any()))
+                .willReturn(Optional.empty());
+
+            //when
+            RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> incomeService.deleteIncome(any(), deleteIncomeInputList));
+
+            //then
+            assertEquals(exception.getMessage(), "없는 맴버입니다.");
+
+        }
+
+        @Test
+        @DisplayName("실패 - 수입내역 없음")
+        void deleteIncome_fail_no_income() {
+            //given
+            incomeList.add(income1);
+            incomeList.add(income2);
+            deleteIncomeInputList.add(
+                DeleteIncomeInput.builder()
+                .IncomeId(10L)
+                .build()
+            );
+
+            given(memberRepository.findByEmail(any()))
+                .willReturn(Optional.of(member));
+
+            //when
+            RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> incomeService.deleteIncome(any(), deleteIncomeInputList));
+
+            //then
+            assertEquals(exception.getMessage(), "없는 수입내역 입니다.");
+        }
+
+        @Test
+        @DisplayName("실패 - 해당 수입내역의 유저가 아님")
+        void deleteIncome_fail_not_match_member_and_income() {
+            //given
+            incomeList.add(income3);
+            deleteIncomeInputList.add(
+                DeleteIncomeInput.builder()
+                    .IncomeId(3L)
+                    .build()
+            );
+
+            given(memberRepository.findByEmail(any()))
+                .willReturn(Optional.of(member));
+
+            given(incomeRepository.findById(any()))
+                .willReturn(Optional.of(income3));
+
+            //when
+            RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> incomeService.deleteIncome(any(), deleteIncomeInputList));
+
+            //then
+            assertEquals(exception.getMessage(), "수입내역의 주인이 아닙니다. 잘못된 요청입니다.");
+        }
     }
 }

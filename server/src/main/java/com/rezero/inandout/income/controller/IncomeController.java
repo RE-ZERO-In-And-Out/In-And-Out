@@ -1,6 +1,7 @@
 package com.rezero.inandout.income.controller;
 
 import com.rezero.inandout.income.model.CategoryAndIncomeDto;
+import com.rezero.inandout.income.model.DeleteIncomeInput;
 import com.rezero.inandout.income.model.DetailIncomeCategoryDto;
 import com.rezero.inandout.income.model.IncomeCategoryDto;
 import com.rezero.inandout.income.model.IncomeDto;
@@ -14,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -59,6 +61,16 @@ public class IncomeController {
             .build();
 
         return ResponseEntity.ok(categoryAndIncomeDto);
+    }
+
+
+    @DeleteMapping
+    public ResponseEntity<?> deleteIncome(Principal principal,
+                             @RequestBody List<DeleteIncomeInput> deleteIncomeInputList) {
+
+        incomeService.deleteIncome(principal.getName(), deleteIncomeInputList);
+
+        return ResponseEntity.ok().body("삭제에 성공했습니다.");
     }
 
 }
