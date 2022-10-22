@@ -1,29 +1,10 @@
 package com.rezero.inandout.expense.controller;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rezero.inandout.expense.model.CategoryAndExpenseDto;
-import com.rezero.inandout.expense.model.DetailExpenseCategoryDto;
-import com.rezero.inandout.expense.model.ExpenseCategoryDto;
-import com.rezero.inandout.expense.model.ExpenseDto;
-import com.rezero.inandout.expense.model.ExpenseInput;
+import com.rezero.inandout.expense.model.*;
 import com.rezero.inandout.expense.service.ExpenseService;
 import com.rezero.inandout.member.entity.Member;
 import com.rezero.inandout.member.service.MemberService;
-import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -36,6 +17,21 @@ import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(ExpenseController.class)
 @AutoConfigureMockMvc(addFilters = false)
@@ -169,5 +165,37 @@ class ExpenseControllerTest {
             .andExpect(jsonPath("$.expenseCategoryDtos[0].expenseCategoryName").value("식비"))
             .andExpect(jsonPath("$.expenseCategoryDtos[0].detailExpenseCategoryDtos[0].detailExpenseCategoryName").value("간식"))
             .andExpect(jsonPath("$.expenseDtos[0].expenseItem").value("초코틴틴"));
+    }
+
+    @Test
+    @DisplayName("지출내역 삭제")
+    void deleteExpenseTest() throws Exception {
+        //given
+        Member member = Member.builder()
+                .memberId(1L)
+                .email("hgd@gmail.com")
+                .password("1234")
+                .build();
+
+        User user = new User(member.getEmail(), member.getPassword(), AuthorityUtils.NO_AUTHORITIES);
+        TestingAuthenticationToken testingAuthenticationToken = new TestingAuthenticationToken(user,null);
+
+        List<DeleteExpenseInput> list = Arrays.asList(
+                new DeleteExpenseInput(1L)
+        );
+
+        //when
+        mockMvc.perform(delete("/api/expense")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .principal(testingAuthenticationToken)
+                        .content(objectMapper.writeValueAsString(list))
+                ).andExpect(status().isOk())
+                .andDo(print());
+
+        ArgumentCaptor<List<DeleteExpenseInput>> captor = ArgumentCaptor.forClass(List.class);
+        //then
+        verify(expenseService, times(1)).deleteExpense(any(), captor.capture());
+        assertEquals(1L, captor.getValue().get(0).getExpenseId());
+
     }
 }

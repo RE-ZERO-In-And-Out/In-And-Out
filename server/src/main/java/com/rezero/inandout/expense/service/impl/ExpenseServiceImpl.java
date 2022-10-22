@@ -3,22 +3,20 @@ package com.rezero.inandout.expense.service.impl;
 import com.rezero.inandout.expense.entity.DetailExpenseCategory;
 import com.rezero.inandout.expense.entity.Expense;
 import com.rezero.inandout.expense.entity.ExpenseCategory;
-import com.rezero.inandout.expense.model.DetailExpenseCategoryDto;
-import com.rezero.inandout.expense.model.ExpenseCategoryDto;
-import com.rezero.inandout.expense.model.ExpenseDto;
-import com.rezero.inandout.expense.model.ExpenseInput;
+import com.rezero.inandout.expense.model.*;
 import com.rezero.inandout.expense.repository.DetailExpenseCategoryRepository;
 import com.rezero.inandout.expense.repository.ExpenseCategoryRepository;
 import com.rezero.inandout.expense.repository.ExpenseRepository;
 import com.rezero.inandout.expense.service.ExpenseService;
 import com.rezero.inandout.member.entity.Member;
 import com.rezero.inandout.member.repository.MemberRepository;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -97,7 +95,9 @@ public class ExpenseServiceImpl implements ExpenseService {
         List<Expense> expenses = new ArrayList<>();
 
         for (ExpenseInput input : inputs) {
-            Expense expense = findExpenseByExpenseIdAndMember(input.getExpenseId(), member);
+            Expense expense = findExpenseByExpenseId(input.getExpenseId());
+            validateMatchingMemberAndExpense(expense.getExpenseId(), member);
+
             expense.setExpenseDt(input.getExpenseDt());
             expense.setExpenseItem(input.getExpenseItem());
             expense.setExpenseCash(input.getExpenseCash());
@@ -115,9 +115,34 @@ public class ExpenseServiceImpl implements ExpenseService {
         expenseRepository.saveAll(expenses);
     }
 
-    private Expense findExpenseByExpenseIdAndMember(Long expenseId, Member member) {
-        return expenseRepository.findByExpenseIdAndMember(expenseId, member)
-            .orElseThrow(() -> new RuntimeException("없는 지출 내역입니다."));
+    @Override
+    @Transactional
+    public void deleteExpense(String email, List<DeleteExpenseInput> inputs) {
+        Member member = findMemberByEmail(email);
+
+        List<Long> expenseIds = new ArrayList<>();
+
+        for (DeleteExpenseInput input : inputs) {
+            Expense expense = findExpenseByExpenseId(input.getExpenseId());
+            validateMatchingMemberAndExpense(expense.getExpenseId(), member);
+            expenseIds.add(input.getExpenseId());
+        }
+
+        expenseRepository.deleteAllByExpenseIdInBatch(expenseIds);
+    }
+
+    private Expense findExpenseByExpenseId(Long expenseId) {
+        return expenseRepository.findByExpenseId(expenseId)
+                .orElseThrow(() -> new RuntimeException("없는 지출 내역입니다."));
+    }
+
+    private void validateMatchingMemberAndExpense(Long expenseId, Member member) {
+        Expense expense = findExpenseByExpenseId(expenseId);
+        Long expenseMemberId = expense.getMember().getMemberId();
+
+        if (!expenseMemberId.equals(member.getMemberId())) {
+            throw new RuntimeException("지출내역의 주인이 아닙니다. 잘못된 요청입니다.");
+        }
     }
 
 
