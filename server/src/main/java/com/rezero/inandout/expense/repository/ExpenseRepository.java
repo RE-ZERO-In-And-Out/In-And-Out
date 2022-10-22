@@ -11,9 +11,5 @@ import java.util.Optional;
 public interface ExpenseRepository extends JpaRepository<Expense, Long> {
     List<Expense> findAllByMemberAndExpenseDtBetween(Member member, LocalDate startDt, LocalDate endDt);
 
-    Optional<Expense> findByExpenseIdAndMember(Long expenseId, Member member);
-
-    void deleteAllByExpenseIdInBatch(List<Long> expenseIds);
-
     Optional<Expense> findByExpenseId(Long expenseId);
 }
