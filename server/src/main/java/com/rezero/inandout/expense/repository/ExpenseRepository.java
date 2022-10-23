@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ExpenseRepository extends JpaRepository<Expense, Long> {
-    List<Expense> findAllByMemberAndExpenseDtBetween(Member member, LocalDate startDt, LocalDate endDt);
+    List<Expense> findAllByMemberAndExpenseDtBetweenOrderByExpenseDt(Member member, LocalDate startDt, LocalDate endDt);
 
     Optional<Expense> findByExpenseId(Long expenseId);
 }

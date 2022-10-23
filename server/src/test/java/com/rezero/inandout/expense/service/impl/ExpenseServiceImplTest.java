@@ -175,7 +175,7 @@ class ExpenseServiceImplTest {
                         .build()
                 );
 
-            given(expenseRepository.findAllByMemberAndExpenseDtBetween(any(), any(), any()))
+            given(expenseRepository.findAllByMemberAndExpenseDtBetweenOrderByExpenseDt(any(), any(), any()))
                 .willReturn(expenses);
 
             //when
