@@ -1,5 +1,6 @@
 package com.rezero.inandout.expense.service.impl;
 
+import com.rezero.inandout.exception.ExpenseException;
 import com.rezero.inandout.expense.entity.DetailExpenseCategory;
 import com.rezero.inandout.expense.entity.Expense;
 import com.rezero.inandout.expense.entity.ExpenseCategory;
@@ -33,6 +34,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
+@DisplayName("ExpenseServiceImpl 테스트")
 class ExpenseServiceImplTest {
 
     @Mock
@@ -51,6 +53,7 @@ class ExpenseServiceImplTest {
     private ExpenseServiceImpl expenseServiceImpl;
 
     @Nested
+    @DisplayName("지출내역 추가")
     class addExpenseMethod {
         Member member = Member.builder()
             .memberId(1L)
@@ -108,11 +111,11 @@ class ExpenseServiceImplTest {
                 .willReturn(Optional.empty());
 
             //when
-            RuntimeException exception = assertThrows(RuntimeException.class,
+            ExpenseException exception = assertThrows(ExpenseException.class,
                 () -> expenseServiceImpl.addExpense("hgd@gmail.com", Arrays.asList(input)));
 
             //then
-            assertEquals("계정을 찾을 수 없습니다.", exception.getMessage());
+            assertEquals("없는 멤버입니다.", exception.getErrorCode().getDescription());
 
         }
 
@@ -127,15 +130,16 @@ class ExpenseServiceImplTest {
                 .willReturn(Optional.empty());
 
             //when
-            RuntimeException exception = assertThrows(RuntimeException.class,
+            ExpenseException exception = assertThrows(ExpenseException.class,
                 () -> expenseServiceImpl.addExpense("hgd@gmail.com", Arrays.asList(input)));
 
             //then
-            assertEquals("없는 카테고리 입니다.", exception.getMessage());
+            assertEquals("없는 카테고리 입니다.", exception.getErrorCode().getDescription());
         }
     }
 
     @Nested
+    @DisplayName("지출내역 조회")
     class getExpensesMethod {
 
         Member member = Member.builder()
@@ -198,13 +202,13 @@ class ExpenseServiceImplTest {
                 .willReturn(Optional.empty());
 
             //when
-            RuntimeException exception = assertThrows(RuntimeException.class,
+            ExpenseException exception = assertThrows(ExpenseException.class,
                 () -> expenseServiceImpl.getExpenses(anyString(),
                     LocalDate.of(2020, 10, 1),
                     LocalDate.of(2020, 10, 31)));
 
             //then
-            assertEquals(exception.getMessage(), "계정을 찾을 수 없습니다.");
+            assertEquals(exception.getErrorCode().getDescription(), "없는 멤버입니다.");
         }
     }
 
@@ -250,6 +254,7 @@ class ExpenseServiceImplTest {
     }
 
     @Nested
+    @DisplayName("지출내역 수정")
     class updateExpenseMethod {
         Member member = Member.builder()
             .memberId(1L)
@@ -310,10 +315,10 @@ class ExpenseServiceImplTest {
             given(memberRepository.findByEmail(anyString()))
                 .willReturn(Optional.empty());
             //when
-            RuntimeException exception = assertThrows(RuntimeException.class,
+            ExpenseException exception = assertThrows(ExpenseException.class,
                 () -> expenseServiceImpl.updateExpense("hgd@gmail.com", Arrays.asList(input)));
             //then
-            assertEquals(exception.getMessage(), "계정을 찾을 수 없습니다.");
+            assertEquals(exception.getErrorCode().getDescription(), "없는 멤버입니다.");
         }
 
         @Test
@@ -327,10 +332,10 @@ class ExpenseServiceImplTest {
                 .willReturn(Optional.empty());
 
             //when
-            RuntimeException exception = assertThrows(RuntimeException.class,
+            ExpenseException exception = assertThrows(ExpenseException.class,
                 () -> expenseServiceImpl.updateExpense("hgd@gmail.com", Arrays.asList(input)));
             //then
-            assertEquals(exception.getMessage(), "없는 지출 내역입니다.");
+            assertEquals(exception.getErrorCode().getDescription(), "없는 지출내역입니다.");
         }
 
         @Test
@@ -347,10 +352,10 @@ class ExpenseServiceImplTest {
                     .willReturn(Optional.empty());
 
             //when
-            RuntimeException exception = assertThrows(RuntimeException.class,
+            ExpenseException exception = assertThrows(ExpenseException.class,
                     () -> expenseServiceImpl.updateExpense("hgd@gmail.com", Arrays.asList(input)));
             //then
-            assertEquals(exception.getMessage(), "없는 카테고리 입니다.");
+            assertEquals(exception.getErrorCode().getDescription(), "없는 카테고리 입니다.");
         }
 
         @Test
@@ -374,14 +379,15 @@ class ExpenseServiceImplTest {
                 .willReturn(Optional.of(wrongExpense));
 
             //when
-            RuntimeException exception = assertThrows(RuntimeException.class,
+            ExpenseException exception = assertThrows(ExpenseException.class,
                 () -> expenseServiceImpl.updateExpense("hgd@gmail.com", Arrays.asList(input)));
             //then
-            assertEquals(exception.getMessage(), "지출내역의 주인이 아닙니다. 잘못된 요청입니다.");
+            assertEquals(exception.getErrorCode().getDescription(), "지출내역의 주인이 아닙니다. 잘못된 요청입니다.");
         }
     }
 
     @Nested
+    @DisplayName("지출내역 삭제")
     class deleteExpenseMethod {
         Member member = Member.builder()
                 .memberId(1L)
@@ -428,11 +434,11 @@ class ExpenseServiceImplTest {
                     .willReturn(Optional.empty());
 
             //when
-            RuntimeException exception = assertThrows(RuntimeException.class,
+            ExpenseException exception = assertThrows(ExpenseException.class,
                     () -> expenseServiceImpl.deleteExpense("hgd@gmail.com", list));
 
             //then
-            assertEquals("계정을 찾을 수 없습니다.", exception.getMessage());
+            assertEquals("없는 멤버입니다.", exception.getErrorCode().getDescription());
         }
 
         @Test
@@ -446,11 +452,11 @@ class ExpenseServiceImplTest {
                     .willReturn(Optional.empty());
 
             //when
-            RuntimeException exception = assertThrows(RuntimeException.class,
+            ExpenseException exception = assertThrows(ExpenseException.class,
                     () -> expenseServiceImpl.deleteExpense("hgd@gmail.com", list));
 
             //then
-            assertEquals("없는 지출 내역입니다.", exception.getMessage());
+            assertEquals("없는 지출내역입니다.", exception.getErrorCode().getDescription());
         }
 
         @Test
@@ -474,11 +480,11 @@ class ExpenseServiceImplTest {
                     .willReturn(Optional.of(wrongExpense));
 
             //when
-            RuntimeException exception = assertThrows(RuntimeException.class,
+            ExpenseException exception = assertThrows(ExpenseException.class,
                     () -> expenseServiceImpl.deleteExpense("hgd@gmail.com", list));
 
             //then
-            assertEquals("지출내역의 주인이 아닙니다. 잘못된 요청입니다.", exception.getMessage());
+            assertEquals("지출내역의 주인이 아닙니다. 잘못된 요청입니다.", exception.getErrorCode().getDescription());
         }
     }
 }

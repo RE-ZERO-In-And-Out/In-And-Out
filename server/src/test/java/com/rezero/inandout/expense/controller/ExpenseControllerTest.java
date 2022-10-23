@@ -35,6 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(ExpenseController.class)
 @AutoConfigureMockMvc(addFilters = false)
+@DisplayName("ExpenseController 테스트")
 class ExpenseControllerTest {
 
     @MockBean

@@ -1,5 +1,7 @@
 package com.rezero.inandout.expense.service.impl;
 
+import com.rezero.inandout.exception.ExpenseException;
+import com.rezero.inandout.exception.errorcode.ExpenseErrorCode;
 import com.rezero.inandout.expense.entity.DetailExpenseCategory;
 import com.rezero.inandout.expense.entity.Expense;
 import com.rezero.inandout.expense.entity.ExpenseCategory;
@@ -133,7 +135,7 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     private Expense findExpenseByExpenseId(Long expenseId) {
         return expenseRepository.findByExpenseId(expenseId)
-                .orElseThrow(() -> new RuntimeException("없는 지출 내역입니다."));
+                .orElseThrow(() -> new ExpenseException(ExpenseErrorCode.NO_EXPENSE));
     }
 
     private void validateMatchingMemberAndExpense(Long expenseId, Member member) {
@@ -141,14 +143,14 @@ public class ExpenseServiceImpl implements ExpenseService {
         Long expenseMemberId = expense.getMember().getMemberId();
 
         if (!expenseMemberId.equals(member.getMemberId())) {
-            throw new RuntimeException("지출내역의 주인이 아닙니다. 잘못된 요청입니다.");
+            throw new ExpenseException(ExpenseErrorCode.NOT_MATCH_MEMBER_AND_EXPENSE);
         }
     }
 
 
     private Member findMemberByEmail(String email) {
         Member member = memberRepository.findByEmail(email)
-            .orElseThrow(() -> new RuntimeException("계정을 찾을 수 없습니다."));
+            .orElseThrow(() -> new ExpenseException(ExpenseErrorCode.NO_MEMBER));
 
         return member;
     }
@@ -156,6 +158,6 @@ public class ExpenseServiceImpl implements ExpenseService {
     private DetailExpenseCategory findDetailExpenseCategoryById(Long detailExpenseCategoryId) {
         return detailExpenseCategoryRepository
             .findByDetailExpenseCategoryId(detailExpenseCategoryId)
-            .orElseThrow(() -> new RuntimeException("없는 카테고리 입니다."));
+            .orElseThrow(() -> new ExpenseException(ExpenseErrorCode.NO_CATEGORY));
     }
 }
