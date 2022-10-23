@@ -191,7 +191,7 @@ class IncomeControllerTest {
             .build();
 
         DeleteIncomeInput deleteIncomeInput = DeleteIncomeInput.builder()
-            .IncomeId(2L)
+            .incomeId(2L)
             .build();
 
         List<DeleteIncomeInput> deleteIncomeInputList = new ArrayList<>();

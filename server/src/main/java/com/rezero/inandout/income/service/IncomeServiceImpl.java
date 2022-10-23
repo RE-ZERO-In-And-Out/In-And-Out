@@ -1,5 +1,11 @@
 package com.rezero.inandout.income.service;
 
+import static com.rezero.inandout.exception.errorcode.IncomeErrorCode.NOT_MATCH_MEMBER_AND_INCOME;
+import static com.rezero.inandout.exception.errorcode.IncomeErrorCode.NO_CATEGORY;
+import static com.rezero.inandout.exception.errorcode.IncomeErrorCode.NO_INCOME;
+import static com.rezero.inandout.exception.errorcode.IncomeErrorCode.NO_MEMBER;
+
+import com.rezero.inandout.exception.IncomeException;
 import com.rezero.inandout.income.entity.DetailIncomeCategory;
 import com.rezero.inandout.income.entity.Income;
 import com.rezero.inandout.income.entity.IncomeCategory;
@@ -139,25 +145,25 @@ public class IncomeServiceImpl implements IncomeService {
     private DetailIncomeCategory findDetailIncomeCategoryById(Long detailIncomeCategoryId) {
         return detailIncomeCategoryRepository
             .findByDetailIncomeCategoryId(detailIncomeCategoryId)
-            .orElseThrow(() -> new RuntimeException("없는 카테고리 입니다."));
+            .orElseThrow(() -> new IncomeException(NO_CATEGORY));
     }
 
     private Member findMemberByEmail(String email) {
         return memberRepository.findByEmail(email)
-            .orElseThrow(() -> new RuntimeException("없는 맴버입니다."));
+            .orElseThrow(() -> new IncomeException(NO_MEMBER));
     }
 
     private Income findByIncomeId(Long incomeId) {
         return incomeRepository.findById(incomeId)
-            .orElseThrow(() -> new RuntimeException("없는 수입내역 입니다."));
+            .orElseThrow(() -> new IncomeException(NO_INCOME));
     }
 
     private void validateMatchingMemberAndIncome(Member loginMember, Long incomeId) {
         Income income = incomeRepository.findById(incomeId)
-            .orElseThrow(() -> new RuntimeException("없는 수입내역 입니다."));
+            .orElseThrow(() -> new IncomeException(NO_INCOME));
         Long memberId = income.getMember().getMemberId();
         if(!Objects.equals(loginMember.getMemberId(), memberId)) {
-            throw new RuntimeException("수입내역의 주인이 아닙니다. 잘못된 요청입니다.");
+            throw new IncomeException(NOT_MATCH_MEMBER_AND_INCOME);
         }
     }
 
