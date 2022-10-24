@@ -9,16 +9,14 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rezero.inandout.income.model.DeleteIncomeInput;
-import com.rezero.inandout.income.model.DetailIncomeCategoryDto;
-import com.rezero.inandout.income.model.IncomeCategoryDto;
-import com.rezero.inandout.income.model.IncomeDto;
-import com.rezero.inandout.income.model.IncomeInput;
+import com.rezero.inandout.income.model.*;
 import com.rezero.inandout.income.repository.DetailIncomeCategoryRepository;
 import com.rezero.inandout.income.repository.IncomeRepository;
+import com.rezero.inandout.income.service.IncomeGraphService;
 import com.rezero.inandout.income.service.IncomeServiceImpl;
 import com.rezero.inandout.member.entity.Member;
 import com.rezero.inandout.member.repository.MemberRepository;
@@ -29,6 +27,7 @@ import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -46,6 +45,9 @@ class IncomeControllerTest {
 
     @MockBean
     private IncomeServiceImpl incomeService;
+
+    @MockBean
+    private IncomeGraphService incomeGraphService;
 
     @MockBean
     private MemberRepository memberRepository;
@@ -106,14 +108,12 @@ class IncomeControllerTest {
                 .content(incomeInputListJson))
             .andExpect(status().isOk())
             .andDo(print());
-        ArgumentCaptor<List<IncomeInput>> captor1 = ArgumentCaptor.forClass(List.class);
-        ArgumentCaptor<List<IncomeInput>> captor2 = ArgumentCaptor.forClass(List.class);
+        ArgumentCaptor<List<IncomeInput>> captor = ArgumentCaptor.forClass(List.class);
 
         //then
-        verify(incomeService, times(1)).addIncome(any(), captor1.capture());
-        verify(incomeService, times(1)).updateIncome(any(), captor2.capture());
-        assertEquals(captor1.getValue().get(0).getIncomeItem(), "당근마켓판매");
-        assertEquals(captor2.getValue().get(0).getIncomeItem(), "중고나라판매");
+        verify(incomeGraphService, times(1)).addAndUpdateIncome(any(), captor.capture());
+        assertEquals(captor.getValue().get(0).getIncomeItem(), "당근마켓판매");
+        assertEquals(captor.getValue().get(1).getIncomeItem(), "중고나라판매");
 
     }
 
@@ -147,9 +147,6 @@ class IncomeControllerTest {
             .incomeMemo("TestMemo")
             .build());
 
-        given(incomeService.getIncomeList(any(), any(), any()))
-            .willReturn(incomeDtoList);
-
         List<DetailIncomeCategoryDto> detailIncomeCategoryDtoList = new ArrayList<>();
         detailIncomeCategoryDtoList.add(DetailIncomeCategoryDto.builder()
                 .detailIncomeCategoryId(10L)
@@ -167,14 +164,22 @@ class IncomeControllerTest {
                 .detailIncomeCategoryDtoList(detailIncomeCategoryDtoList)
             .build());
 
-        given(incomeService.getIncomeCategoryList())
-            .willReturn(incomeCategoryDtoList);
+        CategoryAndIncomeDto categoryAndIncomeDto = CategoryAndIncomeDto.builder()
+                .incomeCategoryDtoList(incomeCategoryDtoList)
+                .incomeDtoList(incomeDtoList)
+                .build();
+
+        given(incomeGraphService.getCategoryAndIncomeDto(any(), any(), any()))
+            .willReturn(categoryAndIncomeDto);
 
         //when
         mockMvc.perform(
             get("/api/income?startDt=2022-10-01&endDt=2022-10-30")
                 .principal(testingAuthenticationToken))
-            .andDo(print());
+            .andDo(print())
+                .andExpect(jsonPath("$.incomeCategoryDtoList[0].incomeCategoryName").value("주수입"))
+                .andExpect(jsonPath("$.incomeCategoryDtoList[0].detailIncomeCategoryDtoList[0].detailIncomeCategoryName").value("월급"))
+                .andExpect(jsonPath("$.incomeDtoList[0].incomeItem").value("당근마켓판매"));
 
 
     }
