@@ -1,5 +1,6 @@
 package com.rezero.inandout.member.service;
 
+import com.rezero.inandout.member.model.ChangePasswordInput;
 import com.rezero.inandout.member.model.JoinMemberInput;
 import com.rezero.inandout.member.model.MemberDto;
 import com.rezero.inandout.member.model.UpdateMemberInput;
@@ -38,9 +39,13 @@ public interface MemberService extends UserDetailsService {
 
 
     /**
-     * 회원 수정
+     * 회원 정보 수정
      */
     void updateInfo(String email, UpdateMemberInput input);
 
+    /**
+     * 회원 비밀번호 수정
+     */
+    void changePassword(String email, ChangePasswordInput input);
 
 }
