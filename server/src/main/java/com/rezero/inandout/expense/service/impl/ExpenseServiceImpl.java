@@ -62,7 +62,7 @@ public class ExpenseServiceImpl implements ExpenseService {
     public List<ExpenseDto> getExpenses(String email, LocalDate startDt, LocalDate endDt) {
         Member member = findMemberByEmail(email);
 
-        List<Expense> expenses = expenseRepository.findAllByMemberAndExpenseDtBetween(member, startDt, endDt);
+        List<Expense> expenses = expenseRepository.findAllByMemberAndExpenseDtBetweenOrderByExpenseDt(member, startDt, endDt);
 
         List<ExpenseDto> expenseDtos = ExpenseDto.toDtos(expenses);
 
