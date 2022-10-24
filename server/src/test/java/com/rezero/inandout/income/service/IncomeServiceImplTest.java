@@ -186,7 +186,8 @@ class IncomeServiceImplTest {
             given(memberRepository.findByEmail(any()))
                 .willReturn(Optional.of(member));
 
-            given(incomeRepository.findAllByMemberAndIncomeDtBetween(any(), any(), any()))
+            given(incomeRepository.findAllByMemberAndIncomeDtBetweenOrderByIncomeDt
+                (any(), any(), any()))
                 .willReturn(incomeList);
 
             //when

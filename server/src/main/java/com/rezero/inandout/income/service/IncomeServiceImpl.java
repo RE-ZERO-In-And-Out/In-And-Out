@@ -66,7 +66,7 @@ public class IncomeServiceImpl implements IncomeService {
     public List<IncomeDto> getIncomeList(String email, LocalDate startDt, LocalDate endDt) {
         Member member = findMemberByEmail(email);
 
-        List<Income> incomeList = incomeRepository.findAllByMemberAndIncomeDtBetween(
+        List<Income> incomeList = incomeRepository.findAllByMemberAndIncomeDtBetweenOrderByIncomeDt(
             member, startDt, endDt);
 
         return Income.toDtoList(incomeList);
