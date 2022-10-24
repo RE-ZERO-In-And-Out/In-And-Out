@@ -74,10 +74,9 @@ public class MemberController {
         @RequestBody ChangePasswordInput input) {
 //        String email = principal.getName();
         String email = "egg@nave.com";
-        String message = "비밀 번호가 변경되었습니다.";
         memberService.changePassword(email, input);
+        String message = "비밀 번호가 변경되었습니다.";
         return new ResponseEntity<>(message, HttpStatus.OK);
 
     }
-
 }
