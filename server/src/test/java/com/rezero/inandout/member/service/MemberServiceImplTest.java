@@ -11,6 +11,7 @@ import static org.mockito.Mockito.verify;
 import com.rezero.inandout.member.entity.Member;
 import com.rezero.inandout.member.model.ChangePasswordInput;
 import com.rezero.inandout.member.model.JoinMemberInput;
+import com.rezero.inandout.member.model.LoginMemberInput;
 import com.rezero.inandout.member.model.MemberDto;
 import com.rezero.inandout.member.model.UpdateMemberInput;
 import com.rezero.inandout.member.repository.MemberRepository;
@@ -358,4 +359,61 @@ class MemberServiceImplTest {
     }
 
 
+    @Test
+    @DisplayName("로그인－성공")
+    void login() {
+
+        // given
+        Member member = Member.builder().email("egg@naver.com").build();
+
+        String encPassword = bCryptPasswordEncoder.encode("abc!@#12");
+        member.setPassword(encPassword);
+        given(memberRepository.findByEmail(member.getEmail())).willReturn(Optional.of(member));
+
+        // when
+        LoginMemberInput input = LoginMemberInput.builder().email("egg@naver.com")
+            .password("abc!@#12").build();
+
+        // then
+        memberService.login(input);
+    }
+
+
+    @Test
+    @DisplayName("로그인(아이디 오류)　－　실패")
+    void login_fail_id() {
+
+        // given
+        LoginMemberInput input = LoginMemberInput.builder().email("egg@naver.com")
+            .password("abc!@#12").build();
+
+        // when
+        given(memberRepository.findByEmail(anyString())).willReturn(Optional.empty());
+
+        // then
+        RuntimeException error = assertThrows(RuntimeException.class,
+            () -> memberService.login(input));
+        assertEquals(error.getMessage(), "회원 정보가 존재하지 않습니다.");
+    }
+
+
+    @Test
+    @DisplayName("로그인(비밀번호 오류)　－　실패")
+    void login_fail_pwd() {
+
+        // given
+        Member member = Member.builder().email("egg@naver.com").build();
+        String encPassword = bCryptPasswordEncoder.encode("abc!@#12");
+        member.setPassword(encPassword);
+        given(memberRepository.findByEmail(member.getEmail())).willReturn(Optional.of(member));
+
+        // when
+        LoginMemberInput input = LoginMemberInput.builder().email("egg@naver.com")
+            .password("abc!@#1200").build();
+
+        // then
+        RuntimeException exception = assertThrows(RuntimeException.class,
+            () -> memberService.login(input));
+        assertEquals(exception.getMessage(), "회원 비밀번호를 잘못 입력했습니다.");
+    }
 }

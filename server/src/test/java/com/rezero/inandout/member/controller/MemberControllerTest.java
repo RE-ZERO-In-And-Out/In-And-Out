@@ -15,6 +15,7 @@ import com.rezero.inandout.member.entity.Member;
 import com.rezero.inandout.member.model.ChangePasswordInput;
 import com.rezero.inandout.member.model.FindPasswordMemberInput;
 import com.rezero.inandout.member.model.JoinMemberInput;
+import com.rezero.inandout.member.model.LoginMemberInput;
 import com.rezero.inandout.member.model.UpdateMemberInput;
 import com.rezero.inandout.member.repository.MemberRepository;
 import com.rezero.inandout.member.service.MemberServiceImpl;
@@ -214,6 +215,29 @@ class MemberControllerTest {
         // then
         Mockito.verify(memberServiceImpl, times(1)).changePassword(anyString(), captor.capture());
         assertEquals(captor.getValue().getNewPassword(), input.getNewPassword());
+
+    }
+
+
+    @Test
+    @DisplayName("로그인 - 성공")
+    void signin() throws Exception {
+
+        // given
+        LoginMemberInput input = LoginMemberInput.builder().email("egg@naver.com")
+            .password("abc123~!").build();
+        String inputToJson = mapper.writeValueAsString(input);
+
+        // when
+        mockMvc.perform(
+                post("/api/signin").contentType(MediaType.APPLICATION_JSON).content(inputToJson))
+            .andExpect(status().isOk()).andDo(print());
+
+        ArgumentCaptor<LoginMemberInput> captor = ArgumentCaptor.forClass(LoginMemberInput.class);
+
+        // then
+        Mockito.verify(memberServiceImpl, times(1)).login(captor.capture());
+        assertEquals(captor.getValue().getPassword(), input.getPassword());
 
     }
 }
