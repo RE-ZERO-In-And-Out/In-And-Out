@@ -29,6 +29,9 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.TestingAuthenticationToken;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.test.web.servlet.MockMvc;
 
 
@@ -54,24 +57,16 @@ class MemberControllerTest {
     void signUp() throws Exception {
 
         // given
-        JoinMemberInput memberInput = JoinMemberInput.builder()
-            .email("egg@naver.com")
-            .address("서울특별시")
-            .phone("010-2222-0000")
-            .birth(LocalDate.from(LocalDate.of(2000, 9, 30)))
-            .gender("남")
-            .nickName("원빈")
-            .password("1")
-            .build();
+        JoinMemberInput memberInput = JoinMemberInput.builder().email("egg@naver.com")
+            .address("서울특별시").phone("010-2222-0000")
+            .birth(LocalDate.from(LocalDate.of(2000, 9, 30))).gender("남").nickName("원빈")
+            .password("1").build();
         String memberInputJson = mapper.writeValueAsString(memberInput);
 
         //when
         mockMvc.perform(
-                post("/api/signup")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(memberInputJson))
-            .andExpect(status().isOk())
-            .andDo(print());
+                post("/api/signup").contentType(MediaType.APPLICATION_JSON).content(memberInputJson))
+            .andExpect(status().isOk()).andDo(print());
         ArgumentCaptor<JoinMemberInput> captor = ArgumentCaptor.forClass(JoinMemberInput.class);
 
         //then
@@ -86,17 +81,12 @@ class MemberControllerTest {
 
         // given
         FindPasswordMemberInput memberInput = FindPasswordMemberInput.builder()
-            .email("egg@naver.com")
-            .build();
+            .email("egg@naver.com").build();
         String inputToJson = mapper.writeValueAsString(memberInput);
 
         // when
-        mockMvc.perform(
-                post("/api/password/email")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(inputToJson))
-            .andExpect(status().isOk())
-            .andDo(print());
+        mockMvc.perform(post("/api/password/email").contentType(MediaType.APPLICATION_JSON)
+            .content(inputToJson)).andExpect(status().isOk()).andDo(print());
         ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
 
         // then
@@ -110,18 +100,12 @@ class MemberControllerTest {
 
         // given
         FindPasswordMemberInput memberInput = FindPasswordMemberInput.builder()
-            .email("egg@naver.com")
-            .phone("010-2345-1234")
-            .build();
+            .email("egg@naver.com").phone("010-2345-1234").build();
         String inputToJson = mapper.writeValueAsString(memberInput);
 
         //when
-        mockMvc.perform(
-                post("/api/password/email/phone")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(inputToJson))
-            .andExpect(status().isOk())
-            .andDo(print());
+        mockMvc.perform(post("/api/password/email/phone").contentType(MediaType.APPLICATION_JSON)
+            .content(inputToJson)).andExpect(status().isOk()).andDo(print());
         ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
 
         //then
@@ -134,24 +118,19 @@ class MemberControllerTest {
     void getInfo() throws Exception {
 
         // given
-        Member member = Member
-            .builder()
-            .email("egg@naver.com")
-            .address("서울특별시")
-            .phone("010-2222-0000")
-            .birth(LocalDate.from(LocalDate.of(2000, 9, 30)))
-            .gender("남")
-            .nickName("원빈")
-            .password("1")
-            .build();
+        Member member = Member.builder().email("egg@naver.com").address("서울특별시")
+            .phone("010-2222-0000").birth(LocalDate.from(LocalDate.of(2000, 9, 30))).gender("남")
+            .nickName("원빈").password("1").build();
         String inputToJson = mapper.writeValueAsString(member);
 
+        User user = new User(member.getEmail(), member.getPassword(),
+            AuthorityUtils.NO_AUTHORITIES);
+        TestingAuthenticationToken testingAuthenticationToken = new TestingAuthenticationToken(user,
+            null);
+
         // when
-        mockMvc.perform(
-                get("/api/member/info")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(inputToJson))
-            .andExpect(status().isOk())
+        mockMvc.perform(get("/api/member/info").contentType(MediaType.APPLICATION_JSON)
+                .principal(testingAuthenticationToken).content(inputToJson)).andExpect(status().isOk())
             .andDo(print());
         ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
 
@@ -166,22 +145,21 @@ class MemberControllerTest {
     void updateInfo() throws Exception {
 
         // given
-        UpdateMemberInput input = UpdateMemberInput.builder().address("강원도")
-            .nickName("치킨")
-            .phone("010-1111-2313")
-            .birth(LocalDate.now())
-            .memberPhotoUrl("c:")
-            .gender("여")
-            .address("강원도")
-            .build();
+        UpdateMemberInput input = UpdateMemberInput.builder().address("강원도").nickName("치킨")
+            .phone("010-1111-2313").birth(LocalDate.now()).memberPhotoUrl("c:").gender("여")
+            .address("강원도").build();
         String inputToJson = mapper.writeValueAsString(input);
 
+        String email = "egg@naver.com";
+        String pwd = "123abc?!";
+
+        User user = new User(email, pwd, AuthorityUtils.NO_AUTHORITIES);
+        TestingAuthenticationToken testingAuthenticationToken = new TestingAuthenticationToken(user,
+            null);
+
         // when
-        mockMvc.perform(
-                put("/api/member/info")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(inputToJson))
-            .andExpect(status().isOk())
+        mockMvc.perform(put("/api/member/info").contentType(MediaType.APPLICATION_JSON)
+                .principal(testingAuthenticationToken).content(inputToJson)).andExpect(status().isOk())
             .andDo(print());
         ArgumentCaptor<UpdateMemberInput> captor = ArgumentCaptor.forClass(UpdateMemberInput.class);
 
@@ -196,18 +174,20 @@ class MemberControllerTest {
     void updatePassword() throws Exception {
 
         // given
-        ChangePasswordInput input = ChangePasswordInput.builder()
-            .password("abc123!@")
-            .newPassword("xyz098?!")
-            .build();
+        ChangePasswordInput input = ChangePasswordInput.builder().password("abc123!@")
+            .newPassword("xyz098?!").build();
         String inputToJson = mapper.writeValueAsString(input);
 
+        String email = "egg@naver.com";
+        String pwd = "123abc?!";
+
+        User user = new User(email, pwd, AuthorityUtils.NO_AUTHORITIES);
+        TestingAuthenticationToken testingAuthenticationToken = new TestingAuthenticationToken(user,
+            null);
+
         //when
-        mockMvc.perform(
-                patch("/api/member/password")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(inputToJson))
-            .andExpect(status().isOk())
+        mockMvc.perform(patch("/api/member/password").contentType(MediaType.APPLICATION_JSON)
+                .principal(testingAuthenticationToken).content(inputToJson)).andExpect(status().isOk())
             .andDo(print());
         ArgumentCaptor<ChangePasswordInput> captor = ArgumentCaptor.forClass(
             ChangePasswordInput.class);

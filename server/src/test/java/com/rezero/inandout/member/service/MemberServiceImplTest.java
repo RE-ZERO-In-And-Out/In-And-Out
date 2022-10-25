@@ -1,5 +1,6 @@
 package com.rezero.inandout.member.service;
 
+import static com.rezero.inandout.exception.errorcode.MemberErrorCode.NOT_EXIST_MEMBER;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -8,6 +9,8 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import com.rezero.inandout.exception.MemberException;
+import com.rezero.inandout.exception.errorcode.MemberErrorCode;
 import com.rezero.inandout.member.entity.Member;
 import com.rezero.inandout.member.model.ChangePasswordInput;
 import com.rezero.inandout.member.model.JoinMemberInput;
@@ -46,23 +49,15 @@ class MemberServiceImplTest {
 
         // given
         given(memberRepository.findByEmail(anyString())).willReturn(Optional.empty());
-        Member member = Member.builder()
-            .email("egg@naver.com")
-            .phone("010-2222-0000")
-            .password(bCryptPasswordEncoder.encode("abc!@#12"))
-            .build();
+        Member member = Member.builder().email("egg@naver.com").phone("010-2222-0000")
+            .password(bCryptPasswordEncoder.encode("abc!@#12")).build();
         memberRepository.save(member);
 
         // when
-        JoinMemberInput memberInput = JoinMemberInput.builder()
-            .email("egg@naver.com")
-            .address("서울특별시")
-            .phone("010-2222-0000")
-            .birth(LocalDate.from(LocalDate.of(2000, 9, 30)))
-            .gender("남")
-            .nickName("원빈")
-            .password("abc!@#12")
-            .build();
+        JoinMemberInput memberInput = JoinMemberInput.builder().email("egg@naver.com")
+            .address("서울특별시").phone("010-2222-0000")
+            .birth(LocalDate.from(LocalDate.of(2000, 9, 30))).gender("남").nickName("원빈")
+            .password("abc!@#12").build();
         memberService.join(memberInput);
 
         // then
@@ -75,15 +70,9 @@ class MemberServiceImplTest {
     void findEmail() {
 
         // given
-        Member member = Member.builder()
-            .email("egg@naver.com")
-            .address("서울특별시")
-            .phone("010-2222-0000")
-            .birth(LocalDate.from(LocalDate.of(2000, 9, 30)))
-            .gender("남")
-            .nickName("원빈")
-            .password("abc!@#12")
-            .build();
+        Member member = Member.builder().email("egg@naver.com").address("서울특별시")
+            .phone("010-2222-0000").birth(LocalDate.from(LocalDate.of(2000, 9, 30))).gender("남")
+            .nickName("원빈").password("abc!@#12").build();
 
         given(memberRepository.findByEmail(anyString())).willReturn(Optional.of(member));
 
@@ -100,15 +89,9 @@ class MemberServiceImplTest {
     void findPhone() {
 
         // given
-        Member member = Member.builder()
-            .email("egg@naver.com")
-            .address("서울특별시")
-            .phone("010-2222-0000")
-            .birth(LocalDate.from(LocalDate.of(2000, 9, 30)))
-            .gender("남")
-            .nickName("강동원")
-            .password("abc!@#12")
-            .build();
+        Member member = Member.builder().email("egg@naver.com").address("서울특별시")
+            .phone("010-2222-0000").birth(LocalDate.from(LocalDate.of(2000, 9, 30))).gender("남")
+            .nickName("강동원").password("abc!@#12").build();
         given(memberRepository.findByEmailAndPhone(anyString(), anyString())).willReturn(
             Optional.of(member));
 
@@ -126,18 +109,10 @@ class MemberServiceImplTest {
     void getInfo() {
 
         // given
-        Member member = Member.builder()
-            .email("egg@naver.com")
-            .address("서울특별시")
-            .phone("010-2222-0000")
-            .birth(LocalDate.from(LocalDate.of(2000, 9, 30)))
-            .gender("남")
-            .nickName("강동원")
-            .password("abc!@#12")
-            .build();
-        given(memberRepository.findByEmail(anyString())).willReturn(
-            Optional.of(member)
-        );
+        Member member = Member.builder().email("egg@naver.com").address("서울특별시")
+            .phone("010-2222-0000").birth(LocalDate.from(LocalDate.of(2000, 9, 30))).gender("남")
+            .nickName("강동원").password("abc!@#12").build();
+        given(memberRepository.findByEmail(anyString())).willReturn(Optional.of(member));
 
         // when
         MemberDto memberDto = memberService.getInfo(member.getEmail());
@@ -153,28 +128,15 @@ class MemberServiceImplTest {
     void updateInfo() {
 
         // given
-        Member member = Member.builder()
-            .email("egg@naver.com")
-            .address("서울특별시")
-            .phone("010-2222-0000")
-            .birth(LocalDate.from(LocalDate.of(2000, 9, 30)))
-            .gender("남")
-            .nickName("강동원")
-            .password("abc!@#12")
-            .build();
-        given(memberRepository.findByEmail(anyString())).willReturn(
-            Optional.of(member)
-        );
+        Member member = Member.builder().email("egg@naver.com").address("서울특별시")
+            .phone("010-2222-0000").birth(LocalDate.from(LocalDate.of(2000, 9, 30))).gender("남")
+            .nickName("강동원").password("abc!@#12").build();
+        given(memberRepository.findByEmail(anyString())).willReturn(Optional.of(member));
 
         // when
-        UpdateMemberInput input = UpdateMemberInput.builder().address("강원도")
-            .nickName("치킨")
-            .phone("010-1111-2313")
-            .birth(LocalDate.now())
-            .memberPhotoUrl("c:")
-            .gender("여")
-            .address("강원도")
-            .build();
+        UpdateMemberInput input = UpdateMemberInput.builder().address("강원도").nickName("치킨")
+            .phone("010-1111-2313").birth(LocalDate.now()).memberPhotoUrl("c:").gender("여")
+            .address("강원도").build();
 
         // then
         memberService.updateInfo("egg@naver.com", input);
@@ -187,106 +149,82 @@ class MemberServiceImplTest {
     void updateInfo_fail_blank() {
 
         // given
-        Member member = Member.builder()
-            .email("egg@naver.com")
-            .address("서울특별시")
-            .phone("010-2222-0000")
-            .birth(LocalDate.from(LocalDate.of(2000, 9, 30)))
-            .gender("남")
-            .nickName("강동원")
-            .password("abc!@#12")
-            .build();
-        given(memberRepository.findByEmail(anyString())).willReturn(
-            Optional.of(member)
-        );
-        UpdateMemberInput input = UpdateMemberInput.builder().address("강원도")
-            .nickName("치킨")
-            .phone("010-11 11-2313")
-            .birth(LocalDate.now())
-            .memberPhotoUrl("c:")
-            .gender("여")
-            .address("강원도")
-            .build();
+        Member member = Member.builder().email("egg@naver.com").address("서울특별시")
+            .phone("010-2222-0000").birth(LocalDate.from(LocalDate.of(2000, 9, 30))).gender("남")
+            .nickName("강동원").password("abc!@#12").build();
+        given(memberRepository.findByEmail(anyString())).willReturn(Optional.of(member));
+        UpdateMemberInput input = UpdateMemberInput.builder().address("강원도").nickName("치킨")
+            .phone("010-11 11-2313").birth(LocalDate.now()).memberPhotoUrl("c:").gender("여")
+            .address("강원도").build();
 
         // when
-        Exception exception = assertThrows(RuntimeException.class,
+        MemberException exception = assertThrows(MemberException.class,
             () -> memberService.updateInfo(member.getEmail(), input));
 
         // then
-        assertEquals(exception.getMessage(), "회원 정보는 공백을 포함할 수 없습니다.");
+        assertEquals(MemberErrorCode.CONTAINS_BLANK.getDescription(),
+            exception.getErrorCode().getDescription());
 
     }
 
 
     @Test
-    @DisplayName("회원 정보 수정(이전의 닉네임과 동일) - 실패 (2)")
+    @DisplayName("회원 정보 수정(같은 폰번호가 존재하는 경우) - 실패 (2)")
     void updateInfo_fail_sameNickName() {
 
         // given
-        Member member = Member.builder()
-            .email("egg@naver.com")
-            .address("서울특별시")
-            .phone("010-2222-0000")
-            .birth(LocalDate.from(LocalDate.of(2000, 9, 30)))
-            .gender("남")
-            .nickName("강동원")
-            .password("abc!@#12")
-            .build();
-        given(memberRepository.findByEmail("egg@naver.com")).willReturn(
-            Optional.of(member)
-        );
+        Member memberA = Member.builder().email("egg@naver.com").address("서울특별시")
+            .phone("010-2222-0000").birth(LocalDate.from(LocalDate.of(2000, 9, 30))).gender("남")
+            .nickName("강동원").password("abc!@#12").build();
 
-        UpdateMemberInput input = UpdateMemberInput.builder().address("강원도")
-            .nickName("강동원")
-            .phone("010-1111-2313")
-            .birth(LocalDate.now())
-            .memberPhotoUrl("c:")
-            .gender("여")
-            .address("강원도")
-            .build();
+        given(memberRepository.findByEmail(any())).willReturn(Optional.of(memberA));
+
+        Member memberB = Member.builder().email("ogh@naver.com").address("인천광역시")
+            .phone("010-9999-0000").birth(LocalDate.from(LocalDate.of(1998, 9, 30))).gender("남")
+            .nickName("소지섭").password("abc!@#12").build();
+
+        given(memberRepository.findByPhone(any())).willReturn(Optional.of(memberB));
+
+        UpdateMemberInput input = UpdateMemberInput.builder().address("강원도").nickName("강동원")
+            .phone("010-9999-0000").birth(LocalDate.now()).memberPhotoUrl("c:").gender("여")
+            .address("강원도").build();
 
         // when
-        Exception exception = assertThrows(RuntimeException.class,
-            () -> memberService.updateInfo(member.getEmail(), input));
+        MemberException exception = assertThrows(MemberException.class,
+            () -> memberService.updateInfo(memberB.getEmail(), input));
 
         // then
-        assertEquals(exception.getMessage(), "기존 닉네임과 동일합니다.");
-
+        assertEquals(MemberErrorCode.EXIST_PHONE.getDescription(),
+            exception.getErrorCode().getDescription());
     }
 
-
     @Test
-    @DisplayName("회원 정보 수정(이전의 폰번호와 동일) - 실패(3)")
+    @DisplayName("회원 정보 수정(같은 닉네임이 존재하는 경우) - 실패(3)")
     void updateInfo_fail_samePhoneNumber() {
 
         // given
-        Member member = Member.builder()
-            .email("egg@naver.com")
-            .address("서울특별시")
-            .phone("010-2222-0000")
-            .birth(LocalDate.from(LocalDate.of(2000, 9, 30)))
-            .gender("남")
-            .nickName("강동원")
-            .password("abc!@#12")
-            .build();
-        given(memberRepository.findByEmail(any())).willReturn(
-            Optional.of(member)
-        );
-        // when
-        UpdateMemberInput input = UpdateMemberInput.builder().address("강원도")
-            .nickName("동원참치")
-            .phone("010-2222-0000")
-            .birth(LocalDate.now())
-            .memberPhotoUrl("c:")
-            .gender("여")
-            .address("강원도")
-            .build();
+        Member memberA = Member.builder().email("egg@naver.com").address("서울특별시")
+            .phone("010-2222-0000").birth(LocalDate.from(LocalDate.of(2000, 9, 30))).gender("남")
+            .nickName("강동원").password("abc!@#12").build();
+        given(memberRepository.findByEmail(any())).willReturn(Optional.of(memberA));
 
-        RuntimeException exception = assertThrows(RuntimeException.class,
-            () -> memberService.updateInfo(member.getEmail(), input));
+        Member memberB = Member.builder().email("ogh@naver.com").address("인천광역시")
+            .phone("010-9999-0000").birth(LocalDate.from(LocalDate.of(1998, 9, 30))).gender("남")
+            .nickName("소지섭").password("abc!@#12").build();
+
+        given(memberRepository.findByNickName(any())).willReturn(Optional.of(memberB));
+
+        UpdateMemberInput input = UpdateMemberInput.builder().address("강원도").nickName("소지섭")
+            .phone("010-2222-0000").birth(LocalDate.now()).memberPhotoUrl("c:").gender("여")
+            .address("강원도").build();
+
+        // when
+        MemberException exception = assertThrows(MemberException.class,
+            () -> memberService.updateInfo(memberA.getEmail(), input));
 
         // then
-        assertEquals(exception.getMessage(), "기존 연락처와 동일합니다.");
+        assertEquals(MemberErrorCode.EXIST_NICKNAME.getDescription(),
+            exception.getErrorCode().getDescription());
 
 
     }
@@ -297,26 +235,17 @@ class MemberServiceImplTest {
     void updatePassword() {
 
         // given
-        Member member = Member.builder()
-            .email("egg@naver.com")
-            .address("서울특별시")
-            .phone("010-2222-0000")
-            .birth(LocalDate.from(LocalDate.of(2000, 9, 30)))
-            .gender("남")
-            .nickName("강동원")
-            .build();
+        Member member = Member.builder().email("egg@naver.com").address("서울특별시")
+            .phone("010-2222-0000").birth(LocalDate.from(LocalDate.of(2000, 9, 30))).gender("남")
+            .nickName("강동원").build();
         String encPassword = bCryptPasswordEncoder.encode("abc!@#12");
         member.setPassword(encPassword);
-        given(memberRepository.findByEmail("egg@naver.com")).willReturn(
-            Optional.of(member)
-        );
+        given(memberRepository.findByEmail("egg@naver.com")).willReturn(Optional.of(member));
 
         // when
         String email = "egg@naver.com";
-        ChangePasswordInput input = ChangePasswordInput.builder()
-            .password("abc!@#12")
-            .newPassword("xyz@#123")
-            .build();
+        ChangePasswordInput input = ChangePasswordInput.builder().password("abc!@#12")
+            .newPassword("xyz@#123").build();
 
         // then
         memberService.changePassword(email, input);
@@ -330,32 +259,25 @@ class MemberServiceImplTest {
     void updatePassword_fail() {
 
         // given
-        Member member = Member.builder()
-            .email("egg@naver.com")
-            .address("서울특별시")
-            .phone("010-2222-0000")
-            .birth(LocalDate.from(LocalDate.of(2000, 9, 30)))
-            .gender("남")
-            .nickName("강동원")
-            .build();
+        Member member = Member.builder().email("egg@naver.com").address("서울특별시")
+            .phone("010-2222-0000").birth(LocalDate.from(LocalDate.of(2000, 9, 30))).gender("남")
+            .nickName("강동원").build();
         String encPassword = bCryptPasswordEncoder.encode("abc!@#12");
         member.setPassword(encPassword);
-        given(memberRepository.findByEmail(anyString())).willReturn(
-            Optional.of(member)
-        );
+        given(memberRepository.findByEmail(anyString())).willReturn(Optional.of(member));
 
         // when
 
         String email = "egg@naver.com";
-        ChangePasswordInput input = ChangePasswordInput.builder()
-            .password("abc!@#12")
-            .newPassword("xyz")
-            .build();
+        ChangePasswordInput input = ChangePasswordInput.builder().password("abc!@#12")
+            .newPassword("xyz").build();
 
         // then
-        RuntimeException exception = assertThrows(RuntimeException.class,
+        MemberException exception = assertThrows(MemberException.class,
             () -> memberService.changePassword(email, input));
-        assertEquals(exception.getMessage(), "비밀번호는 8자리 이상이어야합니다.(영문자, 숫자, 특수문자를 각각 1글자 이상 포함)");
+        assertEquals(MemberErrorCode.PASSWORD_LENGTH_MORE_THAN_8.getDescription(),
+            exception.getErrorCode().getDescription());
+
     }
 
 
@@ -391,9 +313,10 @@ class MemberServiceImplTest {
         given(memberRepository.findByEmail(anyString())).willReturn(Optional.empty());
 
         // then
-        RuntimeException error = assertThrows(RuntimeException.class,
+        MemberException error = assertThrows(MemberException.class,
             () -> memberService.login(input));
-        assertEquals(error.getMessage(), "회원 정보가 존재하지 않습니다.");
+        assertEquals(NOT_EXIST_MEMBER.getDescription(), error.getErrorCode().getDescription());
+
     }
 
 
@@ -412,8 +335,9 @@ class MemberServiceImplTest {
             .password("abc!@#1200").build();
 
         // then
-        RuntimeException exception = assertThrows(RuntimeException.class,
+        MemberException exception = assertThrows(MemberException.class,
             () -> memberService.login(input));
-        assertEquals(exception.getMessage(), "회원 비밀번호를 잘못 입력했습니다.");
+        assertEquals(MemberErrorCode.NOT_MATCH_PASSWORD.getDescription(),
+            exception.getErrorCode().getDescription());
     }
 }
