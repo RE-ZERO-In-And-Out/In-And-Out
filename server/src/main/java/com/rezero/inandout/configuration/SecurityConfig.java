@@ -14,7 +14,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
 @EnableWebSecurity
@@ -42,24 +41,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.authorizeRequests()
             .antMatchers("/api/signup", "/api/signin", "/api/password/**")
             .permitAll();
-
-        http.formLogin()
-//            .loginPage("/api/signin")
-//            .loginProcessingUrl("/login")
-            .defaultSuccessUrl(
-                "/api/calendar?start_dt=" + start + "&end_dt=" + end);
-
-        http.logout()
-            .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
-            .logoutSuccessUrl("/api/calendar?start_dt=" + start + "&end_dt=" + end)
-            .invalidateHttpSession(true);
-
     }
+
 
     @Override
     public void configure(WebSecurity web) throws Exception {
         web.ignoring().antMatchers("/h2-console/**");
     }
+
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
