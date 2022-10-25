@@ -2,7 +2,8 @@ package com.rezero.inandout.expense.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rezero.inandout.expense.model.*;
-import com.rezero.inandout.expense.service.ExpenseService;
+import com.rezero.inandout.expense.service.table.ExpenseTableService;
+import com.rezero.inandout.expense.service.base.ExpenseService;
 import com.rezero.inandout.member.entity.Member;
 import com.rezero.inandout.member.service.MemberService;
 import org.junit.jupiter.api.DisplayName;
@@ -40,6 +41,8 @@ class ExpenseControllerTest {
 
     @MockBean
     private ExpenseService expenseService;
+    @MockBean
+    private ExpenseTableService expenseTableService;
 
     @MockBean
     private MemberService memberService;
@@ -95,10 +98,9 @@ class ExpenseControllerTest {
         ArgumentCaptor<List<ExpenseInput>> captor = ArgumentCaptor.forClass(List.class);
 
         //then
-        verify(expenseService, times(1)).updateExpense(any(), captor.capture());
-        assertEquals(captor.getValue().get(0).getExpenseItem(), "만두");
-        verify(expenseService, times(1)).addExpense(any(), captor.capture());
+        verify(expenseTableService, times(1)).addAndUpdateExpense(any(), captor.capture());
         assertEquals(captor.getValue().get(0).getExpenseItem(), "쌀과자");
+        assertEquals(captor.getValue().get(1).getExpenseItem(), "만두");
     }
 
     @Test
@@ -134,9 +136,6 @@ class ExpenseControllerTest {
                     .build()
             );
 
-        given(expenseService.getExpenseCategories())
-            .willReturn(expenseCategoryDtos);
-
         List<ExpenseDto> expenseDtos = Arrays.asList(
             ExpenseDto.builder()
                 .expenseId(1L)
@@ -149,12 +148,13 @@ class ExpenseControllerTest {
                 .build()
         );
 
-        given(expenseService.getExpenses(anyString(), any(), any()))
-            .willReturn(expenseDtos);
+        CategoryAndExpenseDto categoryAndExpenseDto = CategoryAndExpenseDto.builder()
+                .expenseCategoryDtos(expenseCategoryDtos)
+                .expenseDtos(expenseDtos)
+                .build();
 
-        CategoryAndExpenseDto categoryAndExpenseDto = new CategoryAndExpenseDto();
-        categoryAndExpenseDto.setExpenseCategoryDtos(expenseCategoryDtos);
-        categoryAndExpenseDto.setExpenseDtos(expenseDtos);
+        given(expenseTableService.getCategoryAndExpenseDto(anyString(), any(), any()))
+            .willReturn(categoryAndExpenseDto);
 
         //when
         //then

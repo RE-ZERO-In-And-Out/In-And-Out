@@ -1,4 +1,4 @@
-package com.rezero.inandout.income.service;
+package com.rezero.inandout.income.service.base;
 
 
 import com.rezero.inandout.income.entity.DetailIncomeCategory;

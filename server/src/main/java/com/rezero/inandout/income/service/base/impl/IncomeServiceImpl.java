@@ -1,4 +1,4 @@
-package com.rezero.inandout.income.service;
+package com.rezero.inandout.income.service.base.impl;
 
 import static com.rezero.inandout.exception.errorcode.IncomeErrorCode.NOT_MATCH_MEMBER_AND_INCOME;
 import static com.rezero.inandout.exception.errorcode.IncomeErrorCode.NO_CATEGORY;
@@ -17,6 +17,7 @@ import com.rezero.inandout.income.model.IncomeInput;
 import com.rezero.inandout.income.repository.DetailIncomeCategoryRepository;
 import com.rezero.inandout.income.repository.IncomeCategoryRepository;
 import com.rezero.inandout.income.repository.IncomeRepository;
+import com.rezero.inandout.income.service.base.IncomeService;
 import com.rezero.inandout.member.entity.Member;
 import com.rezero.inandout.member.repository.MemberRepository;
 import java.time.LocalDate;

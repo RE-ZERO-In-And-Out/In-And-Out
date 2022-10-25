@@ -3,7 +3,8 @@ package com.rezero.inandout.expense.controller;
 import com.rezero.inandout.expense.model.CategoryAndExpenseDto;
 import com.rezero.inandout.expense.model.DeleteExpenseInput;
 import com.rezero.inandout.expense.model.ExpenseInput;
-import com.rezero.inandout.expense.service.ExpenseService;
+import com.rezero.inandout.expense.service.table.ExpenseTableService;
+import com.rezero.inandout.expense.service.base.ExpenseService;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +16,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.security.Principal;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -24,6 +24,7 @@ import java.util.List;
 public class ExpenseController {
 
     private final ExpenseService expenseService;
+    private final ExpenseTableService expenseTableService;
 
     @PostMapping
     @ApiOperation(value = "지출내역 저장(수정) API",
@@ -32,19 +33,7 @@ public class ExpenseController {
             @ApiParam(value = "지출내역 목록 (저장은 expenseId 빼고 하면 됨)")
             @Valid @RequestBody List<ExpenseInput> inputs) {
 
-        List<ExpenseInput> addExpenseInputs = new ArrayList<>();
-        List<ExpenseInput> updateExpenseInputs = new ArrayList<>();
-
-        for (ExpenseInput expenseInput : inputs) {
-            if (expenseInput.getExpenseId() != null) {
-                updateExpenseInputs.add(expenseInput);
-            } else {
-                addExpenseInputs.add(expenseInput);
-            }
-        }
-
-        expenseService.updateExpense(/*principal.getName()*/"hgd@gmail.com", updateExpenseInputs);
-        expenseService.addExpense(/*principal.getName()*/"hgd@gmail.com", addExpenseInputs);
+        expenseTableService.addAndUpdateExpense(/*principal.getName()*/"hgd@gmail.com", inputs);
 
         return ResponseEntity.ok("지출이 정상적으로 등록되었습니다.");
     }
@@ -58,9 +47,9 @@ public class ExpenseController {
         @ApiParam(value = "조회 끝 날짜", example = "2022-01-01")
         @RequestParam @DateTimeFormat(iso = ISO.DATE) LocalDate endDt) {
 
-        CategoryAndExpenseDto categoryAndExpenseDto = new CategoryAndExpenseDto();
-        categoryAndExpenseDto.setExpenseCategoryDtos(expenseService.getExpenseCategories());
-        categoryAndExpenseDto.setExpenseDtos(expenseService.getExpenses(/*principal.getName()*/"hgd@gmail.com", startDt, endDt));
+        CategoryAndExpenseDto categoryAndExpenseDto =
+                expenseTableService.getCategoryAndExpenseDto(
+                        /*principal.getName()*/"hgd@gmail.com", startDt, endDt);
 
         return ResponseEntity.ok(categoryAndExpenseDto);
     }

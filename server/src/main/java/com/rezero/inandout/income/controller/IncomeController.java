@@ -2,16 +2,13 @@ package com.rezero.inandout.income.controller;
 
 import com.rezero.inandout.income.model.CategoryAndIncomeDto;
 import com.rezero.inandout.income.model.DeleteIncomeInput;
-import com.rezero.inandout.income.model.DetailIncomeCategoryDto;
-import com.rezero.inandout.income.model.IncomeCategoryDto;
-import com.rezero.inandout.income.model.IncomeDto;
 import com.rezero.inandout.income.model.IncomeInput;
-import com.rezero.inandout.income.service.IncomeServiceImpl;
+import com.rezero.inandout.income.service.table.IncomeTableService;
+import com.rezero.inandout.income.service.base.impl.IncomeServiceImpl;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import java.security.Principal;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -31,24 +28,14 @@ import org.springframework.web.bind.annotation.RestController;
 public class IncomeController {
 
     private final IncomeServiceImpl incomeService;
+    private final IncomeTableService incomeTableService;
 
     @ApiOperation(value = "수입 등록 API", notes = "수입내용을 입력하면 저장됩니다.")
     @PostMapping
     public ResponseEntity<?> addIncome(Principal principal,
                                         @RequestBody @Validated List<IncomeInput> incomeInputList) {
-        List<IncomeInput> addIncomeInputList = new ArrayList<>();
-        List<IncomeInput> updateIncomeInputList = new ArrayList<>();
 
-        for (IncomeInput item : incomeInputList) {
-            if(item.getIncomeId() != null) {
-                updateIncomeInputList.add(item);
-            } else {
-                addIncomeInputList.add(item);
-            }
-        }
-
-        incomeService.addIncome(principal.getName(), addIncomeInputList);
-        incomeService.updateIncome(principal.getName(), updateIncomeInputList);
+        incomeTableService.addAndUpdateIncome(principal.getName(), incomeInputList);
 
         return ResponseEntity.ok().body("저장에 성공했습니다.");
     }
@@ -61,10 +48,7 @@ public class IncomeController {
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
             @ApiParam(value = "조회할 기간의 마지막일", example = "2022-10-31") LocalDate endDt) {
 
-        CategoryAndIncomeDto categoryAndIncomeDto = CategoryAndIncomeDto.builder()
-            .incomeDtoList(incomeService.getIncomeList(principal.getName(), startDt, endDt))
-            .incomeCategoryDtoList(incomeService.getIncomeCategoryList())
-            .build();
+        CategoryAndIncomeDto categoryAndIncomeDto = incomeTableService.getCategoryAndIncomeDto(principal.getName(), startDt, endDt);
 
         return ResponseEntity.ok(categoryAndIncomeDto);
     }
