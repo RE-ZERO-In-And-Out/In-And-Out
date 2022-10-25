@@ -1,6 +1,7 @@
 package com.rezero.inandout.member.service;
 
 import com.rezero.inandout.member.entity.Member;
+import com.rezero.inandout.member.model.ChangePasswordInput;
 import com.rezero.inandout.member.model.JoinMemberInput;
 import com.rezero.inandout.member.model.MemberDto;
 import com.rezero.inandout.member.model.UpdateMemberInput;
@@ -54,8 +55,13 @@ public class MemberServiceImpl implements MemberService {
             throw new RuntimeException("이미 존재하는 닉네임입니다.");
         }
 
+        validatePassword(input.getPassword());
+    }
+
+    public void validatePassword(String password) {
+
         // 비밀번호
-        String password = input.getPassword();
+        String message = "비밀번호는 ";
         if (password.length() < 8) {
             throw new RuntimeException("비밀번호는 8자리 이상이어야합니다.(영문자, 숫자, 특수문자를 각각 1글자 이상 포함)");
         }
@@ -182,9 +188,28 @@ public class MemberServiceImpl implements MemberService {
 
 
     @Override
-    public void withdraw(String email, String password) {
+    public void changePassword(String email, ChangePasswordInput input) {
+
+        Optional<Member> optionalMember = memberRepository.findByEmail(email);
+        if (!optionalMember.isPresent()) {
+            throw new RuntimeException("존재하는 아이디(이메일)이 아닙니다.");
+        }
+
+        Member member = optionalMember.get();
+        if (!bCryptPasswordEncoder.matches(input.getPassword(), member.getPassword())) {
+            throw new RuntimeException("기존 비밀번호를 잘못 입력하셨습니다. 영문자, 숫자, 특수문자를 하나씩 포함하여 다시 입력해주세요.");
+        }
+
+        validatePassword(input.getNewPassword());
+        member.setPassword(bCryptPasswordEncoder.encode(input.getNewPassword()));
+        memberRepository.save(member);
 
     }
 
+
+    @Override
+    public void withdraw(String email, String password) {
+
+    }
 
 }

@@ -9,6 +9,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.rezero.inandout.member.entity.Member;
+import com.rezero.inandout.member.model.ChangePasswordInput;
 import com.rezero.inandout.member.model.JoinMemberInput;
 import com.rezero.inandout.member.model.MemberDto;
 import com.rezero.inandout.member.model.UpdateMemberInput;
@@ -20,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
@@ -31,7 +33,7 @@ class MemberServiceImplTest {
     @Mock
     private MemberRepository memberRepository;
 
-    @Mock
+    @Spy
     private BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @InjectMocks
@@ -286,6 +288,73 @@ class MemberServiceImplTest {
         assertEquals(exception.getMessage(), "기존 연락처와 동일합니다.");
 
 
+    }
+
+
+    @Test
+    @DisplayName("비밀번호 변경 - 성공")
+    void updatePassword() {
+
+        // given
+        Member member = Member.builder()
+            .email("egg@naver.com")
+            .address("서울특별시")
+            .phone("010-2222-0000")
+            .birth(LocalDate.from(LocalDate.of(2000, 9, 30)))
+            .gender("남")
+            .nickName("강동원")
+            .build();
+        String encPassword = bCryptPasswordEncoder.encode("abc!@#12");
+        member.setPassword(encPassword);
+        given(memberRepository.findByEmail("egg@naver.com")).willReturn(
+            Optional.of(member)
+        );
+
+        // when
+        String email = "egg@naver.com";
+        ChangePasswordInput input = ChangePasswordInput.builder()
+            .password("abc!@#12")
+            .newPassword("xyz@#123")
+            .build();
+
+        // then
+        memberService.changePassword(email, input);
+
+
+    }
+
+
+    @Test
+    @DisplayName("비밀번호 변경 - 실패")
+    void updatePassword_fail() {
+
+        // given
+        Member member = Member.builder()
+            .email("egg@naver.com")
+            .address("서울특별시")
+            .phone("010-2222-0000")
+            .birth(LocalDate.from(LocalDate.of(2000, 9, 30)))
+            .gender("남")
+            .nickName("강동원")
+            .build();
+        String encPassword = bCryptPasswordEncoder.encode("abc!@#12");
+        member.setPassword(encPassword);
+        given(memberRepository.findByEmail(anyString())).willReturn(
+            Optional.of(member)
+        );
+
+        // when
+
+        String email = "egg@naver.com";
+        ChangePasswordInput input = ChangePasswordInput.builder()
+            .password("abc!@#12")
+            .newPassword("xyz")
+            .build();
+
+        // then
+        RuntimeException exception = assertThrows(RuntimeException.class,
+            () -> memberService.changePassword(email, input));
+        assertEquals(exception.getMessage(), "비밀번호는 8자리 이상이어야합니다.(영문자, 숫자, 특수문자를 각각 1글자 이상 포함)");
     }
 
 

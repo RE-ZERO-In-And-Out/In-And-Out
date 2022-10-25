@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -11,6 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rezero.inandout.member.entity.Member;
+import com.rezero.inandout.member.model.ChangePasswordInput;
 import com.rezero.inandout.member.model.FindPasswordMemberInput;
 import com.rezero.inandout.member.model.JoinMemberInput;
 import com.rezero.inandout.member.model.UpdateMemberInput;
@@ -177,7 +179,6 @@ class MemberControllerTest {
         mockMvc.perform(
                 put("/api/member/info")
                     .contentType(MediaType.APPLICATION_JSON)
-
                     .content(inputToJson))
             .andExpect(status().isOk())
             .andDo(print());
@@ -186,8 +187,33 @@ class MemberControllerTest {
         // then
         Mockito.verify(memberServiceImpl, times(1)).updateInfo(anyString(), captor.capture());
         assertEquals(captor.getValue().getPhone(), input.getPhone()); //
-
-
     }
 
+
+    @Test
+    @DisplayName("회원 비밀번호 변경 - 성공")
+    void updatePassword() throws Exception {
+
+        // given
+        ChangePasswordInput input = ChangePasswordInput.builder()
+            .password("abc123!@")
+            .newPassword("xyz098?!")
+            .build();
+        String inputToJson = mapper.writeValueAsString(input);
+
+        //when
+        mockMvc.perform(
+                patch("/api/member/password")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(inputToJson))
+            .andExpect(status().isOk())
+            .andDo(print());
+        ArgumentCaptor<ChangePasswordInput> captor = ArgumentCaptor.forClass(
+            ChangePasswordInput.class);
+
+        // then
+        Mockito.verify(memberServiceImpl, times(1)).changePassword(anyString(), captor.capture());
+        assertEquals(captor.getValue().getNewPassword(), input.getNewPassword());
+
+    }
 }
