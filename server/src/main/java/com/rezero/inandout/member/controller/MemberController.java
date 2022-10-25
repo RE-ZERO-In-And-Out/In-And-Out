@@ -7,6 +7,7 @@ import com.rezero.inandout.member.model.LoginMemberInput;
 import com.rezero.inandout.member.model.MemberDto;
 import com.rezero.inandout.member.model.UpdateMemberInput;
 import com.rezero.inandout.member.service.MemberService;
+import java.security.Principal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -53,19 +54,16 @@ public class MemberController {
 
 
     @GetMapping("/member/info")
-    public ResponseEntity<?> getInfo(/*Principal principal*/) {
-//        String email = Principal.getName();
-        String email = "egg@naver.com";
+    public ResponseEntity<?> getInfo(Principal principal) {
+        String email = principal.getName();
         MemberDto memberDto = memberService.getInfo(email);
         return new ResponseEntity<>(memberDto, HttpStatus.OK);
     }
 
 
     @PutMapping("/member/info")
-    public ResponseEntity<?> updateInfo(/*Principal principal*/
-        @RequestBody UpdateMemberInput input) {
-//        String email = principal.getName();
-        String email = "egg@naver.com";
+    public ResponseEntity<?> updateInfo(Principal principal, @RequestBody UpdateMemberInput input) {
+        String email = principal.getName();
         memberService.updateInfo(email, input);
         String message = "회원 정보를 변경했습니다.";
         return new ResponseEntity<>(message, HttpStatus.OK);
@@ -73,10 +71,9 @@ public class MemberController {
 
 
     @PatchMapping("/member/password")
-    public ResponseEntity<?> updatePassword(/*Principal principal,*/
+    public ResponseEntity<?> updatePassword(Principal principal,
         @RequestBody ChangePasswordInput input) {
-//        String email = principal.getName();
-        String email = "egg@nave.com";
+        String email = principal.getName();
         memberService.changePassword(email, input);
         String message = "비밀 번호가 변경되었습니다.";
         return new ResponseEntity<>(message, HttpStatus.OK);
