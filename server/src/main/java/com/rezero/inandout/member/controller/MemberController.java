@@ -3,6 +3,7 @@ package com.rezero.inandout.member.controller;
 import com.rezero.inandout.member.model.ChangePasswordInput;
 import com.rezero.inandout.member.model.FindPasswordMemberInput;
 import com.rezero.inandout.member.model.JoinMemberInput;
+import com.rezero.inandout.member.model.LoginMemberInput;
 import com.rezero.inandout.member.model.MemberDto;
 import com.rezero.inandout.member.model.UpdateMemberInput;
 import com.rezero.inandout.member.service.MemberService;
@@ -59,6 +60,7 @@ public class MemberController {
         return new ResponseEntity<>(memberDto, HttpStatus.OK);
     }
 
+
     @PutMapping("/member/info")
     public ResponseEntity<?> updateInfo(/*Principal principal*/
         @RequestBody UpdateMemberInput input) {
@@ -69,6 +71,7 @@ public class MemberController {
         return new ResponseEntity<>(message, HttpStatus.OK);
     }
 
+
     @PatchMapping("/member/password")
     public ResponseEntity<?> updatePassword(/*Principal principal,*/
         @RequestBody ChangePasswordInput input) {
@@ -77,6 +80,14 @@ public class MemberController {
         memberService.changePassword(email, input);
         String message = "비밀 번호가 변경되었습니다.";
         return new ResponseEntity<>(message, HttpStatus.OK);
-
     }
+
+
+    @PostMapping("/signin")
+    public ResponseEntity<?> signin(@RequestBody LoginMemberInput input) {
+        memberService.login(input);
+        String message = "정상적으로 로그인 완료했습니다.";
+        return new ResponseEntity(message, HttpStatus.OK);
+    }
+
 }
