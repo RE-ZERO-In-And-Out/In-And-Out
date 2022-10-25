@@ -1,5 +1,23 @@
 package com.rezero.inandout.member.service;
 
+import static com.rezero.inandout.exception.errorcode.MemberErrorCode.CONTAINS_BLANK;
+import static com.rezero.inandout.exception.errorcode.MemberErrorCode.EXIST_EMAIL;
+import static com.rezero.inandout.exception.errorcode.MemberErrorCode.EXIST_NICKNAME;
+import static com.rezero.inandout.exception.errorcode.MemberErrorCode.EXIST_PHONE;
+import static com.rezero.inandout.exception.errorcode.MemberErrorCode.NOT_EXIST_EMAIL;
+import static com.rezero.inandout.exception.errorcode.MemberErrorCode.NOT_EXIST_MEMBER;
+import static com.rezero.inandout.exception.errorcode.MemberErrorCode.NOT_EXIST_PHONE;
+import static com.rezero.inandout.exception.errorcode.MemberErrorCode.NOT_MATCH_PASSWORD;
+import static com.rezero.inandout.exception.errorcode.MemberErrorCode.PASSWORD_LENGTH_MORE_THAN_8;
+import static com.rezero.inandout.exception.errorcode.MemberErrorCode.PASSWORD_NOT_CONTAIN_CHARACTER;
+import static com.rezero.inandout.exception.errorcode.MemberErrorCode.PASSWORD_NOT_CONTAIN_CHARACTER_AND_SPECIAL;
+import static com.rezero.inandout.exception.errorcode.MemberErrorCode.PASSWORD_NOT_CONTAIN_DIGIT;
+import static com.rezero.inandout.exception.errorcode.MemberErrorCode.PASSWORD_NOT_CONTAIN_DIGIT_AND_CHARACTER;
+import static com.rezero.inandout.exception.errorcode.MemberErrorCode.PASSWORD_NOT_CONTAIN_DIGIT_AND_SPECIAL;
+import static com.rezero.inandout.exception.errorcode.MemberErrorCode.PASSWORD_NOT_CONTAIN_SPECIAL;
+
+import com.rezero.inandout.exception.MemberException;
+import com.rezero.inandout.exception.errorcode.MemberErrorCode;
 import com.rezero.inandout.member.entity.Member;
 import com.rezero.inandout.member.model.ChangePasswordInput;
 import com.rezero.inandout.member.model.JoinMemberInput;
@@ -32,8 +50,9 @@ public class MemberServiceImpl implements MemberService {
 
         Optional<Member> optionalMember = memberRepository.findByEmail(username);
         if (!optionalMember.isPresent()) {
-            throw new RuntimeException("회원 정보가 존재하지 않습니다.");
+            throw new MemberException(MemberErrorCode.NOT_EXIST_MEMBER);
         }
+
         Member member = optionalMember.get();
         return new User(member.getEmail(), member.getPassword(), AuthorityUtils.NO_AUTHORITIES);
     }
@@ -46,7 +65,7 @@ public class MemberServiceImpl implements MemberService {
         Optional<Member> optionalMember = memberRepository.findByEmail(input.getEmail());
         Member member = optionalMember.get();
         if (!bCryptPasswordEncoder.matches(input.getPassword(), member.getPassword())) {
-            throw new RuntimeException("회원 비밀번호를 잘못 입력했습니다.");
+            throw new MemberException(NOT_MATCH_PASSWORD);
         }
 
         UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
@@ -59,29 +78,29 @@ public class MemberServiceImpl implements MemberService {
 
         Optional<Member> existsMember = memberRepository.findByEmail(input.getEmail());
         if (existsMember.isPresent()) {
-            throw new RuntimeException("이미 가입된 이메일입니다.");
+            throw new MemberException(EXIST_EMAIL);
         }
 
         existsMember = null;
         existsMember = memberRepository.findByPhone(input.getPhone());
         if (existsMember.isPresent()) {
-            throw new RuntimeException("이미 존재하는 휴대폰 번호입니다.");
+            throw new MemberException(EXIST_PHONE);
         }
 
         existsMember = null;
         existsMember = memberRepository.findByNickName(input.getNickName());
         if (existsMember.isPresent()) {
-            throw new RuntimeException("이미 존재하는 닉네임입니다.");
+            throw new MemberException(EXIST_NICKNAME);
         }
 
         validatePassword(input.getPassword());
     }
 
+
     public void validatePassword(String password) {
 
-        String message = "비밀번호는 ";
         if (password.length() < 8) {
-            throw new RuntimeException("비밀번호는 8자리 이상이어야합니다.(영문자, 숫자, 특수문자를 각각 1글자 이상 포함)");
+            throw new MemberException(PASSWORD_LENGTH_MORE_THAN_8);
         }
 
         Boolean special = false, digit = false, character = false;
@@ -98,37 +117,42 @@ public class MemberServiceImpl implements MemberService {
             }
         }
         for (int i = 0; i < password.length(); ++i) {
-            if ('a' <= password.charAt(i) && password.charAt(i) <= 'z' ||
-                'A' <= password.charAt(i) && password.charAt(i) <= 'Z') {
+            if ('a' <= password.charAt(i) && password.charAt(i) <= 'z'
+                || 'A' <= password.charAt(i) && password.charAt(i) <= 'Z') {
                 character = true;
                 break;
             }
         }
 
         if (!character || !digit || !special) {
-            if (!character) {
-                if (digit && special) {
-                    message += "문자";
-                } else {
-                    message += "문자, ";
-                }
+
+            if (!character && digit && special) {
+                throw new MemberException(PASSWORD_NOT_CONTAIN_CHARACTER);
             }
 
-            if (!digit) {
-                if (special) {
-                    message += "숫자";
-                } else {
-                    message += "숫자, ";
-                }
+            if (character && !digit && special) {
+                throw new MemberException(PASSWORD_NOT_CONTAIN_DIGIT);
             }
 
-            if (!special) {
-                message += "특수문자";
+            if (character && digit && !special) {
+                throw new MemberException(PASSWORD_NOT_CONTAIN_SPECIAL);
             }
-            message += "를 각 한 글자 이상 포함해야 합니다.";
-            throw new RuntimeException(message);
+
+            if (!character && !digit && special) {
+                throw new MemberException(PASSWORD_NOT_CONTAIN_DIGIT_AND_CHARACTER);
+            }
+
+            if (character && !digit && !special) {
+                throw new MemberException(PASSWORD_NOT_CONTAIN_DIGIT_AND_SPECIAL);
+            }
+
+            if (!character && digit && !special) {
+                throw new MemberException(PASSWORD_NOT_CONTAIN_CHARACTER_AND_SPECIAL);
+            }
         }
+
     }
+
 
     @Override
     public void join(JoinMemberInput input) {
@@ -136,15 +160,9 @@ public class MemberServiceImpl implements MemberService {
         validateInput(input);
         String password = input.getPassword();
         String encPassword = bCryptPasswordEncoder.encode(password);
-        Member member = Member.builder()
-            .email(input.getEmail())
-            .address(input.getAddress())
-            .birth(input.getBirth())
-            .gender(input.getGender())
-            .password(encPassword)
-            .nickName(input.getNickName())
-            .phone(input.getPhone())
-            .build();
+        Member member = Member.builder().email(input.getEmail()).address(input.getAddress())
+            .birth(input.getBirth()).gender(input.getGender()).password(encPassword)
+            .nickName(input.getNickName()).phone(input.getPhone()).build();
         memberRepository.save(member);
     }
 
@@ -153,15 +171,16 @@ public class MemberServiceImpl implements MemberService {
 
         Optional<Member> optionalMember = memberRepository.findByEmail(email);
         if (!optionalMember.isPresent()) {
-            throw new RuntimeException("존재하지 않는 아이디(이메일)입니다. 정확하게 입력해주세요.");
+            throw new MemberException(NOT_EXIST_MEMBER);
         }
-
     }
+
 
     @Override
     public void validatePhone(String email, String phone) {
         memberRepository.findByEmailAndPhone(email, phone)
-            .orElseThrow(() -> new RuntimeException("존재하는 연락처가 아닙니다. 정확하게 입력해주세요."));
+            .orElseThrow(() -> new MemberException(NOT_EXIST_PHONE));
+
     }
 
 
@@ -176,22 +195,29 @@ public class MemberServiceImpl implements MemberService {
     public void updateInfo(String email, UpdateMemberInput input) {
 
         Member member = memberRepository.findByEmail(email).get();
-        if (input.getNickName().contains(" ") ||
-            input.getPhone().contains(" ") ||
-            input.getAddress().contains(" ") ||
-            input.getMemberPhotoUrl().contains(" ") ||
-            input.getGender().contains(" ")) {
-            throw new RuntimeException("회원 정보는 공백을 포함할 수 없습니다.");
-        }
-
         String previousUsedPhone = member.getPhone();
         String previousUsedNickname = member.getNickName();
 
-        if (previousUsedPhone.equals(input.getPhone())) {
-            throw new RuntimeException("기존 연락처와 동일합니다.");
+        if (input.getNickName().contains(" ") || input.getPhone().contains(" ")
+            || input.getAddress().contains(" ") || input.getMemberPhotoUrl().contains(" ")
+            || input.getGender().contains(" ")) {
+            throw new MemberException(CONTAINS_BLANK);
         }
-        if (previousUsedNickname.equals(input.getNickName())) {
-            throw new RuntimeException("기존 닉네임과 동일합니다.");
+
+        String inputPhone = input.getPhone();
+        String inputNickname = input.getNickName();
+        if (!previousUsedPhone.equals(inputPhone)) {
+            Optional<Member> existPhoneMember = memberRepository.findByPhone(inputPhone);
+            if (existPhoneMember.isPresent()) {
+                throw new MemberException(EXIST_PHONE);
+            }
+        }
+
+        if (!previousUsedNickname.equals(inputNickname)) {
+            Optional<Member> existNicknameMember = memberRepository.findByNickName(inputNickname);
+            if (existNicknameMember.isPresent()) {
+                throw new MemberException(EXIST_NICKNAME);
+            }
         }
 
         member.setNickName(input.getNickName());
@@ -210,12 +236,13 @@ public class MemberServiceImpl implements MemberService {
 
         Optional<Member> optionalMember = memberRepository.findByEmail(email);
         if (!optionalMember.isPresent()) {
-            throw new RuntimeException("존재하는 아이디(이메일)이 아닙니다.");
+            throw new MemberException(NOT_EXIST_EMAIL);
+
         }
 
         Member member = optionalMember.get();
         if (!bCryptPasswordEncoder.matches(input.getPassword(), member.getPassword())) {
-            throw new RuntimeException("기존 비밀번호를 잘못 입력하셨습니다. 영문자, 숫자, 특수문자를 하나씩 포함하여 다시 입력해주세요.");
+            throw new MemberException(NOT_MATCH_PASSWORD);
         }
 
         validatePassword(input.getNewPassword());
