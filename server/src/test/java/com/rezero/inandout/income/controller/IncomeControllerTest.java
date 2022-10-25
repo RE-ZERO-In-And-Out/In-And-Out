@@ -16,8 +16,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rezero.inandout.income.model.*;
 import com.rezero.inandout.income.repository.DetailIncomeCategoryRepository;
 import com.rezero.inandout.income.repository.IncomeRepository;
-import com.rezero.inandout.income.service.IncomeGraphService;
-import com.rezero.inandout.income.service.IncomeServiceImpl;
+import com.rezero.inandout.income.service.table.IncomeTableService;
+import com.rezero.inandout.income.service.base.impl.IncomeServiceImpl;
 import com.rezero.inandout.member.entity.Member;
 import com.rezero.inandout.member.repository.MemberRepository;
 import com.rezero.inandout.member.service.MemberService;
@@ -27,7 +27,6 @@ import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -47,7 +46,7 @@ class IncomeControllerTest {
     private IncomeServiceImpl incomeService;
 
     @MockBean
-    private IncomeGraphService incomeGraphService;
+    private IncomeTableService incomeTableService;
 
     @MockBean
     private MemberRepository memberRepository;
@@ -111,7 +110,7 @@ class IncomeControllerTest {
         ArgumentCaptor<List<IncomeInput>> captor = ArgumentCaptor.forClass(List.class);
 
         //then
-        verify(incomeGraphService, times(1)).addAndUpdateIncome(any(), captor.capture());
+        verify(incomeTableService, times(1)).addAndUpdateIncome(any(), captor.capture());
         assertEquals(captor.getValue().get(0).getIncomeItem(), "당근마켓판매");
         assertEquals(captor.getValue().get(1).getIncomeItem(), "중고나라판매");
 
@@ -169,7 +168,7 @@ class IncomeControllerTest {
                 .incomeDtoList(incomeDtoList)
                 .build();
 
-        given(incomeGraphService.getCategoryAndIncomeDto(any(), any(), any()))
+        given(incomeTableService.getCategoryAndIncomeDto(any(), any(), any()))
             .willReturn(categoryAndIncomeDto);
 
         //when

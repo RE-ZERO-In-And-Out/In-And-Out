@@ -1,9 +1,9 @@
-package com.rezero.inandout.expense.service.impl;
+package com.rezero.inandout.expense.service.table.impl;
 
 import com.rezero.inandout.expense.model.CategoryAndExpenseDto;
 import com.rezero.inandout.expense.model.ExpenseInput;
-import com.rezero.inandout.expense.service.ExpenseGraphService;
-import com.rezero.inandout.expense.service.ExpenseService;
+import com.rezero.inandout.expense.service.table.ExpenseTableService;
+import com.rezero.inandout.expense.service.base.ExpenseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -13,7 +13,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class ExpenseGraphServiceImpl implements ExpenseGraphService{
+public class ExpenseTableServiceImpl implements ExpenseTableService {
 
     private final ExpenseService expenseService;
 

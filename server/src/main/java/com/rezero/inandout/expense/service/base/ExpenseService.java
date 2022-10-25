@@ -1,4 +1,4 @@
-package com.rezero.inandout.expense.service;
+package com.rezero.inandout.expense.service.base;
 
 import com.rezero.inandout.expense.model.DeleteExpenseInput;
 import com.rezero.inandout.expense.model.ExpenseCategoryDto;

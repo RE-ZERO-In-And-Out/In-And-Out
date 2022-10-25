@@ -23,6 +23,7 @@ import com.rezero.inandout.income.model.IncomeInput;
 import com.rezero.inandout.income.repository.DetailIncomeCategoryRepository;
 import com.rezero.inandout.income.repository.IncomeCategoryRepository;
 import com.rezero.inandout.income.repository.IncomeRepository;
+import com.rezero.inandout.income.service.base.impl.IncomeServiceImpl;
 import com.rezero.inandout.member.entity.Member;
 import com.rezero.inandout.member.repository.MemberRepository;
 import java.time.LocalDate;

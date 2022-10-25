@@ -1,28 +1,18 @@
-package com.rezero.inandout.income.service;
+package com.rezero.inandout.income.service.table.impl;
 
-import com.rezero.inandout.exception.IncomeException;
-import com.rezero.inandout.income.entity.DetailIncomeCategory;
-import com.rezero.inandout.income.entity.Income;
-import com.rezero.inandout.income.entity.IncomeCategory;
 import com.rezero.inandout.income.model.*;
-import com.rezero.inandout.income.repository.DetailIncomeCategoryRepository;
-import com.rezero.inandout.income.repository.IncomeCategoryRepository;
-import com.rezero.inandout.income.repository.IncomeRepository;
-import com.rezero.inandout.member.entity.Member;
-import com.rezero.inandout.member.repository.MemberRepository;
+import com.rezero.inandout.income.service.base.IncomeService;
+import com.rezero.inandout.income.service.table.IncomeTableService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-
-import static com.rezero.inandout.exception.errorcode.IncomeErrorCode.*;
 
 @Service
 @RequiredArgsConstructor
-public class IncomeGraphServiceImpl implements IncomeGraphService {
+public class IncomeTableServiceImpl implements IncomeTableService {
 
     private final IncomeService incomeService;
 

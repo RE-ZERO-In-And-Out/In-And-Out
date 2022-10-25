@@ -3,8 +3,8 @@ package com.rezero.inandout.expense.controller;
 import com.rezero.inandout.expense.model.CategoryAndExpenseDto;
 import com.rezero.inandout.expense.model.DeleteExpenseInput;
 import com.rezero.inandout.expense.model.ExpenseInput;
-import com.rezero.inandout.expense.service.ExpenseGraphService;
-import com.rezero.inandout.expense.service.ExpenseService;
+import com.rezero.inandout.expense.service.table.ExpenseTableService;
+import com.rezero.inandout.expense.service.base.ExpenseService;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.security.Principal;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -25,7 +24,7 @@ import java.util.List;
 public class ExpenseController {
 
     private final ExpenseService expenseService;
-    private final ExpenseGraphService expenseGraphService;
+    private final ExpenseTableService expenseTableService;
 
     @PostMapping
     @ApiOperation(value = "지출내역 저장(수정) API",
@@ -34,7 +33,7 @@ public class ExpenseController {
             @ApiParam(value = "지출내역 목록 (저장은 expenseId 빼고 하면 됨)")
             @Valid @RequestBody List<ExpenseInput> inputs) {
 
-        expenseGraphService.addAndUpdateExpense(/*principal.getName()*/"hgd@gmail.com", inputs);
+        expenseTableService.addAndUpdateExpense(/*principal.getName()*/"hgd@gmail.com", inputs);
 
         return ResponseEntity.ok("지출이 정상적으로 등록되었습니다.");
     }
@@ -49,7 +48,7 @@ public class ExpenseController {
         @RequestParam @DateTimeFormat(iso = ISO.DATE) LocalDate endDt) {
 
         CategoryAndExpenseDto categoryAndExpenseDto =
-                expenseGraphService.getCategoryAndExpenseDto(
+                expenseTableService.getCategoryAndExpenseDto(
                         /*principal.getName()*/"hgd@gmail.com", startDt, endDt);
 
         return ResponseEntity.ok(categoryAndExpenseDto);
