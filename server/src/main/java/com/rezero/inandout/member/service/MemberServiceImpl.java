@@ -3,11 +3,15 @@ package com.rezero.inandout.member.service;
 import com.rezero.inandout.member.entity.Member;
 import com.rezero.inandout.member.model.ChangePasswordInput;
 import com.rezero.inandout.member.model.JoinMemberInput;
+import com.rezero.inandout.member.model.LoginMemberInput;
 import com.rezero.inandout.member.model.MemberDto;
 import com.rezero.inandout.member.model.UpdateMemberInput;
 import com.rezero.inandout.member.repository.MemberRepository;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -27,12 +31,30 @@ public class MemberServiceImpl implements MemberService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
         Optional<Member> optionalMember = memberRepository.findByEmail(username);
-        if (optionalMember == null) {
+        if (!optionalMember.isPresent()) {
             throw new RuntimeException("회원 정보가 존재하지 않습니다.");
         }
+
         Member member = optionalMember.get();
-        return new User(member.getEmail(), member.getPassword(), null);
+        return new User(member.getEmail(), member.getPassword(), AuthorityUtils.NO_AUTHORITIES);
     }
+
+
+    @Override
+    public void login(LoginMemberInput input) {
+
+        UserDetails userDetails = loadUserByUsername(input.getEmail());
+        Optional<Member> optionalMember = memberRepository.findByEmail(input.getEmail());
+        Member member = optionalMember.get();
+        if (!bCryptPasswordEncoder.matches(input.getPassword(), member.getPassword())) {
+            throw new RuntimeException("회원 비밀번호를 잘못 입력했습니다.");
+        }
+
+        UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
+            userDetails, null, userDetails.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(token);
+    }
+
 
     public void validateInput(JoinMemberInput input) {
         Optional<Member> existsMember = memberRepository.findByEmail(input.getEmail());
@@ -54,13 +76,12 @@ public class MemberServiceImpl implements MemberService {
         if (existsMember.isPresent()) {
             throw new RuntimeException("이미 존재하는 닉네임입니다.");
         }
-
         validatePassword(input.getPassword());
     }
 
+
     public void validatePassword(String password) {
 
-        // 비밀번호
         String message = "비밀번호는 ";
         if (password.length() < 8) {
             throw new RuntimeException("비밀번호는 8자리 이상이어야합니다.(영문자, 숫자, 특수문자를 각각 1글자 이상 포함)");
@@ -80,8 +101,8 @@ public class MemberServiceImpl implements MemberService {
             }
         }
         for (int i = 0; i < password.length(); ++i) {
-            if ('a' <= password.charAt(i) && password.charAt(i) <= 'z' ||
-                'A' <= password.charAt(i) && password.charAt(i) <= 'Z') {
+            if ('a' <= password.charAt(i) && password.charAt(i) <= 'z'
+                || 'A' <= password.charAt(i) && password.charAt(i) <= 'Z') {
                 character = true;
                 break;
             }
@@ -112,6 +133,7 @@ public class MemberServiceImpl implements MemberService {
         }
     }
 
+
     @Override
     public void join(JoinMemberInput input) {
 
@@ -130,6 +152,7 @@ public class MemberServiceImpl implements MemberService {
         memberRepository.save(member);
     }
 
+
     @Override
     public void validateEmail(String email) {
 
@@ -137,8 +160,8 @@ public class MemberServiceImpl implements MemberService {
         if (!optionalMember.isPresent()) {
             throw new RuntimeException("존재하지 않는 아이디(이메일)입니다. 정확하게 입력해주세요.");
         }
-
     }
+
 
     @Override
     public void validatePhone(String email, String phone) {
@@ -158,11 +181,9 @@ public class MemberServiceImpl implements MemberService {
     public void updateInfo(String email, UpdateMemberInput input) {
 
         Member member = memberRepository.findByEmail(email).get();
-        if (input.getNickName().contains(" ") ||
-            input.getPhone().contains(" ") ||
-            input.getAddress().contains(" ") ||
-            input.getMemberPhotoUrl().contains(" ") ||
-            input.getGender().contains(" ")) {
+        if (input.getNickName().contains(" ") || input.getPhone().contains(" ")
+            || input.getAddress().contains(" ") || input.getMemberPhotoUrl().contains(" ")
+            || input.getGender().contains(" ")) {
             throw new RuntimeException("회원 정보는 공백을 포함할 수 없습니다.");
         }
 
@@ -183,7 +204,6 @@ public class MemberServiceImpl implements MemberService {
         member.setGender(input.getGender());
         member.setMemberPhotoUrl(input.getMemberPhotoUrl());
         memberRepository.save(member);
-
     }
 
 
@@ -203,7 +223,6 @@ public class MemberServiceImpl implements MemberService {
         validatePassword(input.getNewPassword());
         member.setPassword(bCryptPasswordEncoder.encode(input.getNewPassword()));
         memberRepository.save(member);
-
     }
 
 

@@ -2,16 +2,21 @@ package com.rezero.inandout.member.service;
 
 import com.rezero.inandout.member.model.ChangePasswordInput;
 import com.rezero.inandout.member.model.JoinMemberInput;
+import com.rezero.inandout.member.model.LoginMemberInput;
 import com.rezero.inandout.member.model.MemberDto;
 import com.rezero.inandout.member.model.UpdateMemberInput;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
 public interface MemberService extends UserDetailsService {
-
     /**
      * 회원 가입
      */
     void join(JoinMemberInput input);
+
+    /**
+     * 회원 로그인
+     */
+    void login(LoginMemberInput input);
 
 
     /**
