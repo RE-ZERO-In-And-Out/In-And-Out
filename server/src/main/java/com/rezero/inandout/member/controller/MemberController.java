@@ -80,6 +80,15 @@ public class MemberController {
     }
 
 
+    @PostMapping("/signout")
+    @ApiOperation(value = "회원 로그아웃 API")
+    public ResponseEntity<?> signout() {
+        memberService.logout();
+        String message = "정상적으로 로그아웃을 완료했습니다.";
+        return new ResponseEntity<>(message, HttpStatus.OK);
+    }
+
+
     @PostMapping("/password/email")
     @ApiOperation(value = "아이디(이메일) 찾기 API", notes = "아이디(이메일)를 입력해서 존재하는 회원인지 확인한다.")
     public ResponseEntity<?> checkEmail(
