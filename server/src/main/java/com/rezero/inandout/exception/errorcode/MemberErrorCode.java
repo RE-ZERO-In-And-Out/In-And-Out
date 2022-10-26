@@ -40,7 +40,12 @@ public enum MemberErrorCode {
     /**
      * 비밀번호 오류
      */
-    NOT_MATCH_PASSWORD("회원 비밀번호를 잘못 입력했습니다.");
+    NOT_MATCH_PASSWORD("회원 비밀번호를 잘못 입력했습니다."),
+
+    /**
+     * 로그아웃 오류
+     */
+    NOT_LOGGED_IN("현재 로그인 상태가 아니어서 로그아읏 할 수 없습니다");
 
 
     private final String description;
