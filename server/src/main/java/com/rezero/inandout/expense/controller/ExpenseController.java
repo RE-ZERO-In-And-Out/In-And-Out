@@ -33,7 +33,7 @@ public class ExpenseController {
             @ApiParam(value = "지출내역 목록 (저장은 expenseId 빼고 하면 됨)")
             @Valid @RequestBody List<ExpenseInput> inputs) {
 
-        expenseTableService.addAndUpdateExpense(/*principal.getName()*/"hgd@gmail.com", inputs);
+        expenseTableService.addAndUpdateExpense(principal.getName(), inputs);
 
         return ResponseEntity.ok("지출이 정상적으로 등록되었습니다.");
     }
@@ -49,7 +49,7 @@ public class ExpenseController {
 
         CategoryAndExpenseDto categoryAndExpenseDto =
                 expenseTableService.getCategoryAndExpenseDto(
-                        /*principal.getName()*/"hgd@gmail.com", startDt, endDt);
+                        principal.getName(), startDt, endDt);
 
         return ResponseEntity.ok(categoryAndExpenseDto);
     }
@@ -61,7 +61,7 @@ public class ExpenseController {
         @ApiParam(value = "지출내역 Id 목록")
         @RequestBody List<DeleteExpenseInput> inputs) {
 
-        expenseService.deleteExpense(/*principal.getName()*/"hgd@gmail.com", inputs);
+        expenseService.deleteExpense(principal.getName(), inputs);
         return ResponseEntity.ok("지출이 정상적으로 삭제되었습니다.");
     }
 }
