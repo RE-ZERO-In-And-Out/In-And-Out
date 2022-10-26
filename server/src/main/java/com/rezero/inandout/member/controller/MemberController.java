@@ -30,7 +30,7 @@ public class MemberController {
 
 
     @PostMapping("/signup")
-    @ApiOperation(value = "회원 가입 API", notes = "이메일을 아이디로 사용하여 가일할 수 있다.")
+    @ApiOperation(value = "회원 가입 API", notes = "이메일을 아이디로 사용하여 가입할 수 있다.")
     public ResponseEntity<?> signUp(
         @ApiParam(value = "회원 가입 정보 입력") @RequestBody JoinMemberInput memberInput) {
         memberService.join(memberInput);
