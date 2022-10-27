@@ -1,6 +1,7 @@
 package com.rezero.inandout.member.entity;
 
 import com.rezero.inandout.domain.BaseEntity;
+import com.rezero.inandout.member.model.MemberStatus;
 import java.time.LocalDate;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -33,7 +34,7 @@ public class Member extends BaseEntity {
     private String address;
     private String gender;
     private String memberPhotoUrl;
-    private String status;
+    private MemberStatus status;
     private String resetPasswordKey;
     private String resetPasswordLimitDt;
 
