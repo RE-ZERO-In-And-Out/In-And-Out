@@ -39,7 +39,6 @@ import org.springframework.test.web.servlet.MockMvc;
 @WebMvcTest(MemberController.class)
 @DisplayName("MemberController 테스트")
 @AutoConfigureMockMvc(addFilters = false)
-@MockBean(JpaMetamodelMappingContext.class)
 class MemberControllerTest {
 
     @Autowired
