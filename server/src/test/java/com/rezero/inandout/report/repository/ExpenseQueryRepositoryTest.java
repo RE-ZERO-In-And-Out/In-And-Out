@@ -71,12 +71,12 @@ class ExpenseQueryRepositoryTest {
                 .select(Projections.constructor(
                         ReportDto.class,
                         expense.detailExpenseCategory.expenseCategory
-                                .expenseCategoryName.as("category"),
+                                .expenseCategoryName,
                         expense.expenseCard.add(expense.expenseCash)
-                                .sum().as("categorySum"),
+                                .sum(),
                         expense.expenseCard.add(expense.expenseCash)
                                 .sum().multiply(100).doubleValue()
-                                .divide(totalSum).as("categoryRatio")
+                                .divide(totalSum).multiply(100).round().divide(100.0)
                 ))
         ).willReturn(resultStep1);
 
