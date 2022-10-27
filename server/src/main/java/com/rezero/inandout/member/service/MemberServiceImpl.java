@@ -25,6 +25,7 @@ import com.rezero.inandout.member.model.ChangePasswordInput;
 import com.rezero.inandout.member.model.JoinMemberInput;
 import com.rezero.inandout.member.model.LoginMemberInput;
 import com.rezero.inandout.member.model.MemberDto;
+import com.rezero.inandout.member.model.MemberStatus;
 import com.rezero.inandout.member.model.UpdateMemberInput;
 import com.rezero.inandout.member.repository.MemberRepository;
 import java.util.Optional;
@@ -175,7 +176,7 @@ public class MemberServiceImpl implements MemberService {
         String encPassword = bCryptPasswordEncoder.encode(password);
         Member member = Member.builder().email(input.getEmail()).address(input.getAddress())
             .birth(input.getBirth()).gender(input.getGender()).password(encPassword)
-            .nickName(input.getNickName()).phone(input.getPhone()).build();
+            .nickName(input.getNickName()).phone(input.getPhone()).status(MemberStatus.REQ).build();
         memberRepository.save(member);
     }
 

@@ -1,8 +1,11 @@
 package com.rezero.inandout.member.entity;
 
 import com.rezero.inandout.domain.BaseEntity;
+import com.rezero.inandout.member.model.MemberStatus;
 import java.time.LocalDate;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -33,7 +36,8 @@ public class Member extends BaseEntity {
     private String address;
     private String gender;
     private String memberPhotoUrl;
-    private String status;
+    @Enumerated(value = EnumType.STRING)
+    private MemberStatus status;
     private String resetPasswordKey;
     private String resetPasswordLimitDt;
 
