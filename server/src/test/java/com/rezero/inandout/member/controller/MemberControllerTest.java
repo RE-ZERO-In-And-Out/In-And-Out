@@ -39,6 +39,7 @@ import org.springframework.test.web.servlet.MockMvc;
 @WebMvcTest(MemberController.class)
 @DisplayName("MemberController 테스트")
 @AutoConfigureMockMvc(addFilters = false)
+@MockBean(JpaMetamodelMappingContext.class)
 class MemberControllerTest {
 
     @Autowired
@@ -221,4 +222,31 @@ class MemberControllerTest {
         assertEquals(captor.getValue().getPassword(), input.getPassword());
 
     }
+
+
+    @Test
+    @DisplayName("로그아웃 - 성공")
+    void signout() throws Exception {
+
+        // given
+        Member member = Member.builder().email("egg@naver.com")
+            .password("abc123~!").build();
+        String inputToJson = mapper.writeValueAsString(member);
+        User user = new User(member.getEmail(), member.getPassword(),
+            AuthorityUtils.NO_AUTHORITIES);
+        TestingAuthenticationToken testingAuthenticationToken = new TestingAuthenticationToken(user,
+            null);
+
+        // when
+        mockMvc.perform(
+                post("/api/signout").contentType(MediaType.APPLICATION_JSON).content(inputToJson)
+                    .principal(testingAuthenticationToken))
+            .andExpect(status().isOk()).andDo(print());
+
+        // then
+        Mockito.verify(memberServiceImpl, times(1)).logout();
+
+    }
+
+
 }

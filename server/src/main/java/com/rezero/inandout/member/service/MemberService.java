@@ -22,6 +22,12 @@ public interface MemberService extends UserDetailsService {
 
 
     /**
+     * 회원 로그아웃
+     */
+    void logout();
+
+
+    /**
      * 회원 탈퇴
      */
     void withdraw(String email, String password);

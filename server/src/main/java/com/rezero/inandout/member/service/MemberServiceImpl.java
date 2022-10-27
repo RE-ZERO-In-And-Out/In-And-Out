@@ -1,13 +1,12 @@
 package com.rezero.inandout.member.service;
 
+import static com.rezero.inandout.exception.errorcode.MemberErrorCode.CANNOT_GET_INFO;
+import static com.rezero.inandout.exception.errorcode.MemberErrorCode.CANNOT_LOGOUT;
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.CONTAINS_BLANK;
-import static com.rezero.inandout.exception.errorcode.MemberErrorCode.EXIST_EMAIL;
-import static com.rezero.inandout.exception.errorcode.MemberErrorCode.EXIST_NICKNAME;
-import static com.rezero.inandout.exception.errorcode.MemberErrorCode.EXIST_PHONE;
-import static com.rezero.inandout.exception.errorcode.MemberErrorCode.NOT_EXIST_EMAIL;
-import static com.rezero.inandout.exception.errorcode.MemberErrorCode.NOT_EXIST_MEMBER;
-import static com.rezero.inandout.exception.errorcode.MemberErrorCode.NOT_EXIST_PHONE;
-import static com.rezero.inandout.exception.errorcode.MemberErrorCode.NOT_MATCH_PASSWORD;
+import static com.rezero.inandout.exception.errorcode.MemberErrorCode.EMAIL_EXIST;
+import static com.rezero.inandout.exception.errorcode.MemberErrorCode.EMAIL_NOT_EXIST;
+import static com.rezero.inandout.exception.errorcode.MemberErrorCode.MEMBER_NOT_EXIST;
+import static com.rezero.inandout.exception.errorcode.MemberErrorCode.NICKNAME_EXIST;
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.PASSWORD_LENGTH_MORE_THAN_8;
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.PASSWORD_NOT_CONTAIN_CHARACTER;
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.PASSWORD_NOT_CONTAIN_CHARACTER_AND_SPECIAL;
@@ -15,6 +14,9 @@ import static com.rezero.inandout.exception.errorcode.MemberErrorCode.PASSWORD_N
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.PASSWORD_NOT_CONTAIN_DIGIT_AND_CHARACTER;
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.PASSWORD_NOT_CONTAIN_DIGIT_AND_SPECIAL;
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.PASSWORD_NOT_CONTAIN_SPECIAL;
+import static com.rezero.inandout.exception.errorcode.MemberErrorCode.PASSWORD_NOT_MATCH;
+import static com.rezero.inandout.exception.errorcode.MemberErrorCode.PHONE_EXIST;
+import static com.rezero.inandout.exception.errorcode.MemberErrorCode.PHONE_NOT_EXIST;
 
 import com.rezero.inandout.exception.MemberException;
 import com.rezero.inandout.exception.errorcode.MemberErrorCode;
@@ -50,7 +52,7 @@ public class MemberServiceImpl implements MemberService {
 
         Optional<Member> optionalMember = memberRepository.findByEmail(username);
         if (!optionalMember.isPresent()) {
-            throw new MemberException(MemberErrorCode.NOT_EXIST_MEMBER);
+            throw new MemberException(MemberErrorCode.MEMBER_NOT_EXIST);
         }
 
         Member member = optionalMember.get();
@@ -65,12 +67,25 @@ public class MemberServiceImpl implements MemberService {
         Optional<Member> optionalMember = memberRepository.findByEmail(input.getEmail());
         Member member = optionalMember.get();
         if (!bCryptPasswordEncoder.matches(input.getPassword(), member.getPassword())) {
-            throw new MemberException(NOT_MATCH_PASSWORD);
+            throw new MemberException(PASSWORD_NOT_MATCH);
         }
 
         UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
             userDetails, null, userDetails.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(token);
+
+    }
+
+
+    @Override
+    public void logout() {
+
+        if (SecurityContextHolder.getContext().getAuthentication() == null) {
+            throw new MemberException(CANNOT_LOGOUT);
+        }
+
+        SecurityContextHolder.clearContext();
+
     }
 
 
@@ -78,19 +93,17 @@ public class MemberServiceImpl implements MemberService {
 
         Optional<Member> existsMember = memberRepository.findByEmail(input.getEmail());
         if (existsMember.isPresent()) {
-            throw new MemberException(EXIST_EMAIL);
+            throw new MemberException(EMAIL_EXIST);
         }
 
-        existsMember = null;
         existsMember = memberRepository.findByPhone(input.getPhone());
         if (existsMember.isPresent()) {
-            throw new MemberException(EXIST_PHONE);
+            throw new MemberException(PHONE_EXIST);
         }
 
-        existsMember = null;
         existsMember = memberRepository.findByNickName(input.getNickName());
         if (existsMember.isPresent()) {
-            throw new MemberException(EXIST_NICKNAME);
+            throw new MemberException(NICKNAME_EXIST);
         }
 
         validatePassword(input.getPassword());
@@ -171,7 +184,7 @@ public class MemberServiceImpl implements MemberService {
 
         Optional<Member> optionalMember = memberRepository.findByEmail(email);
         if (!optionalMember.isPresent()) {
-            throw new MemberException(NOT_EXIST_MEMBER);
+            throw new MemberException(MEMBER_NOT_EXIST);
         }
     }
 
@@ -179,13 +192,17 @@ public class MemberServiceImpl implements MemberService {
     @Override
     public void validatePhone(String email, String phone) {
         memberRepository.findByEmailAndPhone(email, phone)
-            .orElseThrow(() -> new MemberException(NOT_EXIST_PHONE));
+            .orElseThrow(() -> new MemberException(PHONE_NOT_EXIST));
 
     }
 
 
     @Override
     public MemberDto getInfo(String email) {
+
+        if (email == null) {
+            throw new MemberException(CANNOT_GET_INFO);
+        }
         Member member = memberRepository.findByEmail(email).get();
         return MemberDto.toDto(member);
     }
@@ -209,14 +226,14 @@ public class MemberServiceImpl implements MemberService {
         if (!previousUsedPhone.equals(inputPhone)) {
             Optional<Member> existPhoneMember = memberRepository.findByPhone(inputPhone);
             if (existPhoneMember.isPresent()) {
-                throw new MemberException(EXIST_PHONE);
+                throw new MemberException(PHONE_EXIST);
             }
         }
 
         if (!previousUsedNickname.equals(inputNickname)) {
             Optional<Member> existNicknameMember = memberRepository.findByNickName(inputNickname);
             if (existNicknameMember.isPresent()) {
-                throw new MemberException(EXIST_NICKNAME);
+                throw new MemberException(NICKNAME_EXIST);
             }
         }
 
@@ -236,13 +253,13 @@ public class MemberServiceImpl implements MemberService {
 
         Optional<Member> optionalMember = memberRepository.findByEmail(email);
         if (!optionalMember.isPresent()) {
-            throw new MemberException(NOT_EXIST_EMAIL);
+            throw new MemberException(EMAIL_NOT_EXIST);
 
         }
 
         Member member = optionalMember.get();
         if (!bCryptPasswordEncoder.matches(input.getPassword(), member.getPassword())) {
-            throw new MemberException(NOT_MATCH_PASSWORD);
+            throw new MemberException(PASSWORD_NOT_MATCH);
         }
 
         validatePassword(input.getNewPassword());

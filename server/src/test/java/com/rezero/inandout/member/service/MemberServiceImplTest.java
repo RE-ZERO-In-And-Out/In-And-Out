@@ -1,6 +1,6 @@
 package com.rezero.inandout.member.service;
 
-import static com.rezero.inandout.exception.errorcode.MemberErrorCode.NOT_EXIST_MEMBER;
+import static com.rezero.inandout.exception.errorcode.MemberErrorCode.MEMBER_NOT_EXIST;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -27,6 +27,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.TestingAuthenticationToken;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 
@@ -36,6 +40,9 @@ class MemberServiceImplTest {
 
     @Mock
     private MemberRepository memberRepository;
+
+    @Mock
+    private SecurityContextHolder securityContextHolder;
 
     @Spy
     private BCryptPasswordEncoder bCryptPasswordEncoder;
@@ -194,7 +201,7 @@ class MemberServiceImplTest {
             () -> memberService.updateInfo(memberB.getEmail(), input));
 
         // then
-        assertEquals(MemberErrorCode.EXIST_PHONE.getDescription(),
+        assertEquals(MemberErrorCode.PHONE_EXIST.getDescription(),
             exception.getErrorCode().getDescription());
     }
 
@@ -223,7 +230,7 @@ class MemberServiceImplTest {
             () -> memberService.updateInfo(memberA.getEmail(), input));
 
         // then
-        assertEquals(MemberErrorCode.EXIST_NICKNAME.getDescription(),
+        assertEquals(MemberErrorCode.NICKNAME_EXIST.getDescription(),
             exception.getErrorCode().getDescription());
 
 
@@ -267,7 +274,6 @@ class MemberServiceImplTest {
         given(memberRepository.findByEmail(anyString())).willReturn(Optional.of(member));
 
         // when
-
         String email = "egg@naver.com";
         ChangePasswordInput input = ChangePasswordInput.builder().password("abc!@#12")
             .newPassword("xyz").build();
@@ -315,7 +321,7 @@ class MemberServiceImplTest {
         // then
         MemberException error = assertThrows(MemberException.class,
             () -> memberService.login(input));
-        assertEquals(NOT_EXIST_MEMBER.getDescription(), error.getErrorCode().getDescription());
+        assertEquals(MEMBER_NOT_EXIST.getDescription(), error.getErrorCode().getDescription());
 
     }
 
@@ -337,7 +343,46 @@ class MemberServiceImplTest {
         // then
         MemberException exception = assertThrows(MemberException.class,
             () -> memberService.login(input));
-        assertEquals(MemberErrorCode.NOT_MATCH_PASSWORD.getDescription(),
+        assertEquals(MemberErrorCode.PASSWORD_NOT_MATCH.getDescription(),
             exception.getErrorCode().getDescription());
     }
+
+    @Test
+    @DisplayName("로그아웃　- 성공")
+    void logout() {
+
+        // given
+        User user = new User("egg@naver.com", "abc123!@", AuthorityUtils.NO_AUTHORITIES);
+        TestingAuthenticationToken testingAuthenticationToken = new TestingAuthenticationToken(user,
+            null);
+
+        // when
+        securityContextHolder.getContext()
+            .setAuthentication(testingAuthenticationToken);
+        memberService.logout();
+
+        // then
+        assertThrows(NullPointerException.class,
+            () -> securityContextHolder.getContext().getAuthentication().getName());
+
+    }
+
+
+    @Test
+    @DisplayName("로그아웃(로그인하지 않은 상태) - 실패")
+    void logout_fail() {
+
+        // given
+        securityContextHolder.getContext().setAuthentication(null);
+
+        // when
+        MemberException exception = assertThrows(MemberException.class,
+            () -> memberService.logout());
+
+        // then
+        assertEquals(MemberErrorCode.CANNOT_LOGOUT.getDescription(),
+            exception.getErrorCode().getDescription());
+    }
+
+
 }
