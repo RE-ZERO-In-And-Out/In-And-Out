@@ -17,9 +17,9 @@ import com.rezero.inandout.member.model.FindPasswordMemberInput;
 import com.rezero.inandout.member.model.JoinMemberInput;
 import com.rezero.inandout.member.model.LoginMemberInput;
 import com.rezero.inandout.member.model.UpdateMemberInput;
-import com.rezero.inandout.member.repository.MemberRepository;
 import com.rezero.inandout.member.service.MemberServiceImpl;
 import java.time.LocalDate;
+import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -50,8 +50,6 @@ class MemberControllerTest {
     @MockBean
     private MemberServiceImpl memberServiceImpl;
 
-    @MockBean
-    private MemberRepository memberRepository;
 
     @Test
     @DisplayName("회원가입")
@@ -75,6 +73,27 @@ class MemberControllerTest {
         assertEquals(captor.getValue().getEmail(), memberInput.getEmail());
 
     }
+
+
+    @Test
+    @DisplayName("이메일 인증")
+    void emailAuth() throws Exception {
+
+        // given
+        String uuid = UUID.randomUUID().toString();
+
+        // when
+        mockMvc.perform(
+                get("/api/signup/sending?id=" + uuid).contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk()).andDo(print());
+        ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+
+        // then
+        Mockito.verify(memberServiceImpl, times(1)).emailAuth(captor.capture());
+        assertEquals(uuid, captor.getValue());
+
+    }
+
 
     @Test
     @DisplayName("아이디(이메일) 찾기 - 존재 여부 확인")
@@ -150,7 +169,6 @@ class MemberControllerTest {
             .phone("010-1111-2313").birth(LocalDate.now()).memberPhotoUrl("c:").gender("여")
             .address("강원도").build();
         String inputToJson = mapper.writeValueAsString(input);
-
         String email = "egg@naver.com";
         String pwd = "123abc?!";
 
@@ -228,8 +246,7 @@ class MemberControllerTest {
     void signout() throws Exception {
 
         // given
-        Member member = Member.builder().email("egg@naver.com")
-            .password("abc123~!").build();
+        Member member = Member.builder().email("egg@naver.com").password("abc123~!").build();
         String inputToJson = mapper.writeValueAsString(member);
         User user = new User(member.getEmail(), member.getPassword(),
             AuthorityUtils.NO_AUTHORITIES);
@@ -238,9 +255,8 @@ class MemberControllerTest {
 
         // when
         mockMvc.perform(
-                post("/api/signout").contentType(MediaType.APPLICATION_JSON).content(inputToJson)
-                    .principal(testingAuthenticationToken))
-            .andExpect(status().isOk()).andDo(print());
+            post("/api/signout").contentType(MediaType.APPLICATION_JSON).content(inputToJson)
+                .principal(testingAuthenticationToken)).andExpect(status().isOk()).andDo(print());
 
         // then
         Mockito.verify(memberServiceImpl, times(1)).logout();
