@@ -3,6 +3,7 @@ package com.rezero.inandout.member.service;
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.CANNOT_GET_INFO;
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.CANNOT_LOGOUT;
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.CONTAINS_BLANK;
+import static com.rezero.inandout.exception.errorcode.MemberErrorCode.EMAIL_AUTH_KEY_NOT_EXIST;
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.EMAIL_EXIST;
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.EMAIL_NOT_EXIST;
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.MEMBER_NOT_EXIST;
@@ -24,11 +25,13 @@ import com.rezero.inandout.member.entity.Member;
 import com.rezero.inandout.member.model.ChangePasswordInput;
 import com.rezero.inandout.member.model.JoinMemberInput;
 import com.rezero.inandout.member.model.LoginMemberInput;
+import com.rezero.inandout.member.model.MailComponent;
 import com.rezero.inandout.member.model.MemberDto;
 import com.rezero.inandout.member.model.MemberStatus;
 import com.rezero.inandout.member.model.UpdateMemberInput;
 import com.rezero.inandout.member.repository.MemberRepository;
 import java.util.Optional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.AuthorityUtils;
@@ -46,6 +49,8 @@ public class MemberServiceImpl implements MemberService {
     private final MemberRepository memberRepository;
 
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
+
+    private final MailComponent mailComponent;
 
 
     @Override
@@ -107,7 +112,6 @@ public class MemberServiceImpl implements MemberService {
             throw new MemberException(NICKNAME_EXIST);
         }
 
-        validatePassword(input.getPassword());
     }
 
 
@@ -172,13 +176,39 @@ public class MemberServiceImpl implements MemberService {
     public void join(JoinMemberInput input) {
 
         validateInput(input);
+        validatePassword(input.getPassword());
+
         String password = input.getPassword();
         String encPassword = bCryptPasswordEncoder.encode(password);
+        String uuid = UUID.randomUUID().toString();
         Member member = Member.builder().email(input.getEmail()).address(input.getAddress())
             .birth(input.getBirth()).gender(input.getGender()).password(encPassword)
-            .nickName(input.getNickName()).phone(input.getPhone()).status(MemberStatus.REQ).build();
+            .nickName(input.getNickName()).phone(input.getPhone()).status(MemberStatus.REQ)
+            .emailAuthKey(uuid).build();
         memberRepository.save(member);
+
+        String subject = "In and Out 회원 가입을 축하드립니다.";
+        String text = "<p>안녕하세요. In And Out 입니다.</p><p>아래 링크를 누르시면 회원 가입이 완료됩니다.</p>"
+            + "<div><a href='http://localhost:8080/api/signup/sending?id=" + uuid
+            + "'>가입 완료</a></div>";
+        mailComponent.send(input.getEmail(), subject, text);
+
     }
+
+
+    @Override
+    public void emailAuth(String uuid) {
+
+        Optional<Member> optionalMember = memberRepository.findByEmailAuthKey(uuid);
+        if (!optionalMember.isPresent()) {
+            throw new MemberException(EMAIL_AUTH_KEY_NOT_EXIST);
+        }
+        Member member = optionalMember.get();
+        member.setStatus(MemberStatus.ING);
+        memberRepository.save(member);
+
+    }
+
 
     @Override
     public void validateEmail(String email) {
