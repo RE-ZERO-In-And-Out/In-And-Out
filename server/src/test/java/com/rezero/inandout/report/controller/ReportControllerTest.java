@@ -88,7 +88,7 @@ class ReportControllerTest {
 
         //when
         mockMvc.perform(
-                get("/api/report/income/month?startDt=2022-10-01&endDt=2022-10-30")
+                get("/api/report/month/income?startDt=2022-10-01&endDt=2022-10-30")
                     .principal(testingAuthenticationToken))
             .andDo(print())
                 .andExpect(status().isOk())

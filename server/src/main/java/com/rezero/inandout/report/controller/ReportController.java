@@ -22,7 +22,7 @@ public class ReportController {
     private final ReportService reportService;
 
 
-    @GetMapping("/income/month")
+    @GetMapping("/month/income")
     public ResponseEntity<?> getMonthlyIncomeReport(Principal principal,
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
             @ApiParam(value = "조회할 기간의 시작일", example = "2022-10-01") LocalDate startDt,
