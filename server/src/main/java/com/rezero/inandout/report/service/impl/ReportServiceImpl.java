@@ -26,11 +26,6 @@ public class ReportServiceImpl implements ReportService {
         List<ReportDto> monthlyIncomeReport
             =  incomeQueryRepository.getMonthlyIncomeReport(member.getMemberId(), startDt, endDt);
 
-        for (ReportDto item : monthlyIncomeReport) {
-            double categoryRatio = item.getCategoryRatio();
-            item.setCategoryRatio(Math.round(categoryRatio * 100) / 100.0);
-        }
-
         return monthlyIncomeReport;
     }
 }

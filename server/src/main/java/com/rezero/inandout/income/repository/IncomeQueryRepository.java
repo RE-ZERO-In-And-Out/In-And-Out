@@ -39,9 +39,8 @@ public class IncomeQueryRepository {
                 incomeCategory.incomeCategoryName,
                 income.incomeAmount.sum(),
                 income.incomeAmount.sum()
-                    .multiply(100)
-                    .doubleValue()
-                    .divide(a)
+                    .multiply(100).doubleValue()
+                    .divide(a).multiply(100).round().divide(100.0)
                 )
             )
             .from(income)

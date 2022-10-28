@@ -85,6 +85,9 @@ class IncomeQueryRepositoryTest {
                 .multiply(100)
                 .doubleValue()
                 .divide(intA)
+                .multiply(100)
+                .round()
+                .divide(100.0)
                 )
             )
         ).willReturn(step5);
