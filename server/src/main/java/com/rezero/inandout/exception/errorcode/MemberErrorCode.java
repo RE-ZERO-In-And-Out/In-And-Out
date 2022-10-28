@@ -31,6 +31,11 @@ public enum MemberErrorCode {
     EMAIL_AUTH_KEY_NOT_EXIST("이메일 인증키가 존재하지 않습니다."),
 
     /**
+     * 이메일 발송 오류
+     */
+    EMAIL_SENDING_FAILED("이메일 발송에 실패했습니다."),
+
+    /**
      * 회원 조회 오류
      */
     MEMBER_NOT_EXIST("회원 정보가 존재하지 않습니다."),
