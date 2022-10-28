@@ -26,6 +26,11 @@ public enum MemberErrorCode {
     PASSWORD_NOT_CONTAIN_CHARACTER_AND_SPECIAL("비밀번호는 영문자, 특수 문자를 각각 한 글자 이상 포함해야합니다."),
 
     /**
+     * 회원 가입 - 이메일 인증 오류
+     */
+    EMAIL_AUTH_KEY_NOT_EXIST("이메일 인증키가 존재하지 않습니다."),
+
+    /**
      * 회원 조회 오류
      */
     MEMBER_NOT_EXIST("회원 정보가 존재하지 않습니다."),

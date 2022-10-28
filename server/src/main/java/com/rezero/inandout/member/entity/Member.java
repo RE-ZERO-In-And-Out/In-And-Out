@@ -40,5 +40,5 @@ public class Member extends BaseEntity {
     private MemberStatus status;
     private String resetPasswordKey;
     private String resetPasswordLimitDt;
-
+    private String emailAuthKey;
 }
