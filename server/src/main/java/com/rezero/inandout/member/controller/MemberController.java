@@ -10,6 +10,7 @@ import com.rezero.inandout.member.service.MemberService;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import java.security.Principal;
+import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,13 +29,22 @@ public class MemberController {
 
     private final MemberService memberService;
 
-
     @PostMapping("/signup")
     @ApiOperation(value = "회원 가입 API", notes = "이메일을 아이디로 사용하여 가입할 수 있다.")
     public ResponseEntity<?> signUp(
         @ApiParam(value = "회원 가입 정보 입력") @RequestBody JoinMemberInput memberInput) {
         memberService.join(memberInput);
-        String message = "회원 가입이 완료됐습니다.";
+        String message = "이메일 인증을 하시면 회원가입이 완료됩니다.";
+        return new ResponseEntity(message, HttpStatus.OK);
+    }
+
+
+    @PostMapping("/signup/sending")
+    @ApiOperation(value = "회원 가입을 위한 이메일 인증 API", notes = "이메일을 인증하여 회원 가입 가능하다.")
+    public ResponseEntity<?> emailAuth(HttpServletRequest request) {
+        String uuid = request.getParameter("id");
+        memberService.emailAuth(uuid);
+        String message = "회원가입이 완료되었습니다.";
         return new ResponseEntity(message, HttpStatus.OK);
     }
 

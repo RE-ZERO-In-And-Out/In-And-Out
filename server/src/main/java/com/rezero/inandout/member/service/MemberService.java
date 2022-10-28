@@ -14,6 +14,10 @@ public interface MemberService extends UserDetailsService {
      */
     void join(JoinMemberInput input);
 
+    /**
+     * 이메일 인증
+     */
+    void emailAuth(String uuid);
 
     /**
      * 회원 로그인

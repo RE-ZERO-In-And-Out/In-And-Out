@@ -15,11 +15,14 @@ import com.rezero.inandout.member.entity.Member;
 import com.rezero.inandout.member.model.ChangePasswordInput;
 import com.rezero.inandout.member.model.JoinMemberInput;
 import com.rezero.inandout.member.model.LoginMemberInput;
+import com.rezero.inandout.member.model.MailComponent;
 import com.rezero.inandout.member.model.MemberDto;
+import com.rezero.inandout.member.model.MemberStatus;
 import com.rezero.inandout.member.model.UpdateMemberInput;
 import com.rezero.inandout.member.repository.MemberRepository;
 import java.time.LocalDate;
 import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -47,12 +50,16 @@ class MemberServiceImplTest {
     @Spy
     private BCryptPasswordEncoder bCryptPasswordEncoder;
 
+    @Mock
+    private MailComponent mailComponent;
+
     @InjectMocks
     private MemberServiceImpl memberService;
 
     @Test
     @DisplayName("회원가입")
     void join() {
+
 
         // given
         given(memberRepository.findByEmail(anyString())).willReturn(Optional.empty());
@@ -71,6 +78,46 @@ class MemberServiceImplTest {
         verify(memberRepository, times(1)).save(member);
 
     }
+
+
+    @Test
+    @DisplayName("회원가입을 위한 이메일 인증 - 성공")
+    void emailAuth() {
+
+        // given
+        String uuid = UUID.randomUUID().toString();
+        Member member = Member.builder()
+            .email("egg@naver.com")
+            .password("abc123!@")
+            .emailAuthKey(uuid)
+            .status(MemberStatus.REQ)
+            .build();
+        given(memberRepository.findByEmailAuthKey(anyString())).willReturn(Optional.of(member));
+
+        // when
+        memberService.emailAuth(uuid);
+
+        // then
+        assertEquals(MemberStatus.ING, member.getStatus());
+    }
+
+    @Test
+    @DisplayName("회원가입을 위한 이메일 인증 - 실패")
+    void emailAuth_fail() {
+
+        // given
+        String uuid = UUID.randomUUID().toString();
+        given(memberRepository.findByEmailAuthKey(anyString())).willReturn(Optional.empty());
+
+        // when
+        MemberException exception = assertThrows(MemberException.class,
+            () -> memberService.emailAuth(uuid));
+
+        // then
+        assertEquals(MemberErrorCode.EMAIL_AUTH_KEY_NOT_EXIST, exception.getErrorCode());
+
+    }
+
 
     @Test
     @DisplayName("아이디 찾기 - 이메일 확인")
@@ -383,6 +430,5 @@ class MemberServiceImplTest {
         assertEquals(MemberErrorCode.CANNOT_LOGOUT.getDescription(),
             exception.getErrorCode().getDescription());
     }
-
 
 }
