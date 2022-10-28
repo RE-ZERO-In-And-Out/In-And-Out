@@ -25,8 +25,7 @@ public class ReportServiceImpl implements ReportService {
     
     @Override
     public List<ReportDto> getMonthlyIncomeReport(String email, LocalDate startDt, LocalDate endDt) {
-        Member member = memberRepository.findByEmail(email)
-            .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_EXIST_MEMBER));
+        Member member = findMemberByEmail(email);
 
         return incomeQueryRepository.getMonthlyIncomeReport(member.getMemberId(), startDt, endDt);
     }
@@ -34,10 +33,13 @@ public class ReportServiceImpl implements ReportService {
     @Override
     public List<ReportDto> getMonthlyExpenseReport(String email, LocalDate startDt, LocalDate endDt) {
 
-        Member member = memberRepository.findByEmail(email)
-                .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_EXIST_MEMBER));
+        Member member = findMemberByEmail(email);
 
         return expenseQueryRepository.getExpenseMonthReport(member, startDt, endDt);
     }
-    
+
+    private Member findMemberByEmail(String email) {
+        return memberRepository.findByEmail(email)
+                .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_EXIST_MEMBER));
+    }
 }
