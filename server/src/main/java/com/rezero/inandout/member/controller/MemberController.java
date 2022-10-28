@@ -39,7 +39,7 @@ public class MemberController {
     }
 
 
-    @GetMapping("/signup/sending")
+    @PostMapping("/signup/sending")
     @ApiOperation(value = "회원 가입을 위한 이메일 인증 API", notes = "이메일을 인증하여 회원 가입 가능하다.")
     public ResponseEntity<?> emailAuth(HttpServletRequest request) {
         String uuid = request.getParameter("id");

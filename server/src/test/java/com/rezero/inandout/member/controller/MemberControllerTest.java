@@ -76,7 +76,7 @@ class MemberControllerTest {
 
 
     @Test
-    @DisplayName("이메일 인증")
+    @DisplayName("회원 가입을 위한 이메일 인증")
     void emailAuth() throws Exception {
 
         // given
@@ -84,7 +84,8 @@ class MemberControllerTest {
 
         // when
         mockMvc.perform(
-                get("/api/signup/sending?id=" + uuid).contentType(MediaType.APPLICATION_JSON))
+                post("/api/signup/sending?id=" + uuid)
+                    .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk()).andDo(print());
         ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
 
