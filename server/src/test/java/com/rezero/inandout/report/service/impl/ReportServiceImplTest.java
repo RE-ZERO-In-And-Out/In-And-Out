@@ -82,7 +82,7 @@ class ReportServiceImplTest {
 
             //when
             List<ReportDto> getReportDtoList
-                = reportService.getMonthlyIncomeReport(member.getEmail(),
+                = reportServiceImpl.getMonthlyIncomeReport(member.getEmail(),
                 LocalDate.of(2022, 10, 1),
                 LocalDate.of(2022, 10, 31));
 
@@ -140,7 +140,7 @@ class ReportServiceImplTest {
                 .willReturn(result);
 
         //when
-        List<ReportDto> reportDtos = reportServiceImpl.getExpenseMonthReport(
+        List<ReportDto> reportDtos = reportServiceImpl.getMonthlyExpenseReport(
                 "hgd@gmail.com",
                 LocalDate.of(2022, 10, 1),
                 LocalDate.of(2022, 10, 31)
@@ -158,18 +158,12 @@ class ReportServiceImplTest {
     @DisplayName("월 지출 보고서 조회 - 실패")
     void getExpenseMonthReport_fail_() {
         //given
-        Member member = Member.builder()
-                .memberId(1L)
-                .email("hgd@gmail.com")
-                .password("1234")
-                .build();
-
         given(memberRepository.findByEmail(any()))
                 .willReturn(Optional.empty());
 
         //when
-        ExpenseException exception = assertThrows(ExpenseException.class,
-                () -> reportServiceImpl.getExpenseMonthReport(
+        MemberException exception = assertThrows(MemberException.class,
+                () -> reportServiceImpl.getMonthlyExpenseReport(
                 "hgd@gmail.com",
                 LocalDate.of(2022, 10, 1),
                 LocalDate.of(2022, 10, 31)
@@ -177,6 +171,6 @@ class ReportServiceImplTest {
         );
 
         //then
-        assertEquals(exception.getErrorCode().getDescription(), "없는 멤버입니다.");
+        assertEquals(exception.getErrorCode(), MemberErrorCode.NOT_EXIST_MEMBER);
     }
 }

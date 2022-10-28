@@ -1,5 +1,26 @@
 package com.rezero.inandout.report.controller;
 
+import com.rezero.inandout.member.entity.Member;
+import com.rezero.inandout.member.service.MemberService;
+import com.rezero.inandout.report.model.ReportDto;
+import com.rezero.inandout.report.service.ReportService;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
+import org.springframework.http.MediaType;
+import org.springframework.security.authentication.TestingAuthenticationToken;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
@@ -8,33 +29,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rezero.inandout.income.repository.IncomeQueryRepository;
-import com.rezero.inandout.member.entity.Member;
-import com.rezero.inandout.member.repository.MemberRepository;
-import com.rezero.inandout.member.service.MemberService;
-import com.rezero.inandout.report.model.ReportDto;
-import com.rezero.inandout.report.service.ReportService;
-import com.rezero.inandout.report.service.impl.ReportServiceImpl;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
-
-import org.springframework.http.MediaType;
-
-import org.springframework.security.authentication.TestingAuthenticationToken;
-import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.test.web.servlet.MockMvc;
 
 @MockBean(JpaMetamodelMappingContext.class)
 @WebMvcTest(ReportController.class)
@@ -135,7 +129,7 @@ class ReportControllerTest {
                         .build()
         );
 
-        given(reportService.getExpenseMonthReport(any(), any(), any()))
+        given(reportService.getMonthlyExpenseReport(any(), any(), any()))
                 .willReturn(reportDtos);
 
         //when

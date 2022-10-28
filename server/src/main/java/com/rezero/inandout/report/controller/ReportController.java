@@ -27,10 +27,10 @@ public class ReportController {
             @ApiParam(value = "조회할 기간의 시작일", example = "2022-10-01") LocalDate startDt,
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
             @ApiParam(value = "조회할 기간의 마지막일", example = "2022-10-31") LocalDate endDt) {
-        List<ReportDto> reportDtoList
-            = reportService.getMonthlyIncomeReport(principal.getName(), startDt, endDt);
+        List<ReportDto> reportDtos =
+                reportService.getMonthlyIncomeReport(principal.getName(), startDt, endDt);
 
-        return ResponseEntity.ok().body(reportDtoList);
+        return ResponseEntity.ok().body(reportDtos);
     }
     
     @GetMapping("/month/expense")
@@ -38,7 +38,8 @@ public class ReportController {
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDt,
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDt) {
 
-        List<ReportDto> reportDtos = reportService.getExpenseMonthReport(principal.getName(), startDt, endDt);
+        List<ReportDto> reportDtos =
+                reportService.getMonthlyExpenseReport(principal.getName(), startDt, endDt);
 
         return ResponseEntity.ok(reportDtos);
     }
