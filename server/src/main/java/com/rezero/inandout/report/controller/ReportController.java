@@ -21,7 +21,6 @@ public class ReportController {
 
     private final ReportService reportService;
 
-
     @GetMapping("/month/income")
     public ResponseEntity<?> getMonthlyIncomeReport(Principal principal,
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
@@ -32,7 +31,16 @@ public class ReportController {
             = reportService.getMonthlyIncomeReport(principal.getName(), startDt, endDt);
 
         return ResponseEntity.ok().body(reportDtoList);
+    }
+    
+    @GetMapping("/month/expense")
+    public ResponseEntity<?> getMonthlyExpenseReport(Principal principal,
+        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDt,
+        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDt) {
 
+        List<ReportDto> reportDtos = reportService.getExpenseMonthReport(principal.getName(), startDt, endDt);
+
+        return ResponseEntity.ok(reportDtos);
     }
 
 }
