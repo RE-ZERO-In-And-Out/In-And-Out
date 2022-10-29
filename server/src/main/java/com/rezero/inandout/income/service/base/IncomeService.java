@@ -7,6 +7,7 @@ import com.rezero.inandout.income.model.IncomeCategoryDto;
 import com.rezero.inandout.income.model.IncomeDto;
 import com.rezero.inandout.income.model.IncomeInput;
 import com.rezero.inandout.report.model.ReportDto;
+import com.rezero.inandout.report.model.YearlyReportDto;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -21,5 +22,6 @@ public interface IncomeService {
 
 
     List<ReportDto> getMonthlyIncomeReport(String email, LocalDate startDt, LocalDate endDt);
+    List<YearlyReportDto> getYearlyIncomeReport(String email, LocalDate startDt, LocalDate endDt);
 
 }
