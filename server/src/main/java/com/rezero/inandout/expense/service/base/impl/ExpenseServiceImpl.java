@@ -149,9 +149,10 @@ public class ExpenseServiceImpl implements ExpenseService {
         if (reportDtos.size() > 0) {
             totalSum = expenseQueryRepository.getTotalSum(member, startDt, endDt);
 
-            for (int i = 0; i < reportDtos.size(); i++) {
-                reportDtos.get(i).setCategoryRatio(
-                        Math.round(reportDtos.get(i).getCategoryRatio()/totalSum*100)/100.0);
+            for (ReportDto reportDto : reportDtos) {
+                reportDto.setCategoryRatio(
+                        Math.round(reportDto.getCategoryRatio()/totalSum*100)/100.0
+                );
             }
         }
 
@@ -177,9 +178,8 @@ public class ExpenseServiceImpl implements ExpenseService {
 
             int totalSum = 0;
 
-            if (reportDtos.size() > 0) {
-                totalSum = expenseQueryRepository
-                        .getTotalSum(member, countDate, countDate.plusMonths(1).minusDays(1));
+            for (ReportDto reportDto : reportDtos) {
+                totalSum += reportDto.getCategorySum();
             }
 
             YearlyReportDto yearlyReportDto = YearlyReportDto.builder()
