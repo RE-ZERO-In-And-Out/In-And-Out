@@ -33,6 +33,18 @@ public class ReportController {
 
         return ResponseEntity.ok().body(reportDtos);
     }
+
+    @GetMapping("/year/income")
+    public ResponseEntity<?> getYearlyIncomeReport(Principal principal,
+        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+        @ApiParam(value = "조회할 기간의 시작일", example = "2021-10-01") LocalDate startDt,
+        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+        @ApiParam(value = "조회할 기간의 마지막일", example = "2022-09-30") LocalDate endDt) {
+        List<YearlyReportDto> yearlyReportDtoList =
+            reportService.getYearlyIncomeReport(principal.getName(), startDt, endDt);
+
+        return ResponseEntity.ok().body(yearlyReportDtoList);
+    }
     
     @GetMapping("/month/expense")
     public ResponseEntity<?> getMonthlyExpenseReport(Principal principal,

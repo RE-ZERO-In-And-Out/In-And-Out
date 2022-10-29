@@ -7,6 +7,7 @@ import com.rezero.inandout.income.entity.QIncome;
 import com.rezero.inandout.income.entity.QIncomeCategory;
 import com.rezero.inandout.member.entity.QMember;
 import com.rezero.inandout.report.model.ReportDto;
+import com.rezero.inandout.report.model.YearlyReportDto;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -25,22 +26,12 @@ public class IncomeQueryRepository {
 
     public List<ReportDto> getMonthlyIncomeReport (Long id, LocalDate startDt, LocalDate endDt) {
 
-        Integer a = queryFactory
-            .select(income.incomeAmount.sum())
-            .from(income)
-            .where(income.member.memberId.eq(id)
-                .and(income.incomeDt.between(startDt, endDt)))
-            .fetchOne();
-
-        assert a != null;
-
-        List<ReportDto> reportDtoList = queryFactory
+        return queryFactory
             .select(Projections.constructor(ReportDto.class,
                 incomeCategory.incomeCategoryName,
                 income.incomeAmount.sum(),
                 income.incomeAmount.sum()
                     .multiply(100).doubleValue()
-                    .divide(a).multiply(100).round().divide(100.0)
                 )
             )
             .from(income)
@@ -52,10 +43,19 @@ public class IncomeQueryRepository {
             .orderBy(income.incomeAmount.sum().desc())
             .fetch();
 
-        return reportDtoList;
-
     }
 
 
+    public int getMonthlyIncomeSum(Long id, LocalDate startDt, LocalDate endDt) {
+        Integer sum = queryFactory
+            .select(income.incomeAmount.sum())
+            .from(income)
+            .where(income.member.memberId.eq(id)
+                .and(income.incomeDt.between(startDt, endDt)))
+            .fetchOne();
+
+        return (sum == 0) ? 0 : sum;
+
+    }
 
 }
