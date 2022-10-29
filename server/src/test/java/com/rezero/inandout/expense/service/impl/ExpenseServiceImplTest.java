@@ -607,11 +607,6 @@ class ExpenseServiceImplTest {
             given(expenseQueryRepository.getMonthlyExpenseReport(any(),any(),any()))
                     .willReturn(reportDtos);
 
-            Integer totalSum = 8800000+23000000+200000+41000+462000;
-
-            given(expenseQueryRepository.getTotalSum(any(),any(),any()))
-                    .willReturn(totalSum);
-
             //when
             List<YearlyReportDto> yearlyReportDtos =
                     expenseServiceImpl.getYearlyExpenseReport(
