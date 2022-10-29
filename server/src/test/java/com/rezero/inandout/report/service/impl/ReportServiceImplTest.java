@@ -46,73 +46,7 @@ class ReportServiceImplTest {
     @InjectMocks
     ReportServiceImpl reportServiceImpl;
 
-    @Nested
-    @DisplayName("월 수입 보고서 조회 서비스 테스트")
-    class getMonthlyIncomeReportMethod {
 
-        Member member = Member.builder()
-            .memberId(1L)
-            .password("1234")
-            .email("test@naver.com")
-            .build();
-
-        ReportDto reportDto1 = ReportDto.builder()
-            .category("주수입")
-            .categorySum(1234567)
-            .categoryRatio(80)
-            .build();
-
-        ReportDto reportDto2 = ReportDto.builder()
-            .category("부수입")
-            .categorySum(12345)
-            .categoryRatio(20)
-            .build();
-
-        List<ReportDto> reportDtoList = new ArrayList<>(Arrays.asList(reportDto1, reportDto2));
-
-        @Test
-        @DisplayName("성공")
-        void getMonthlyIncomeReport_success() {
-            //given
-            given(memberRepository.findByEmail(any()))
-                .willReturn(Optional.of(member));
-
-            given(incomeQueryRepository.getMonthlyIncomeReport(any(), any(), any()))
-                .willReturn(reportDtoList);
-
-            //when
-            List<ReportDto> getReportDtoList
-                = reportServiceImpl.getMonthlyIncomeReport(member.getEmail(),
-                LocalDate.of(2022, 10, 1),
-                LocalDate.of(2022, 10, 31));
-
-            //then
-            verify(incomeQueryRepository, times(1))
-                .getMonthlyIncomeReport(any(), any(), any());
-            assertEquals(getReportDtoList.get(0).getCategorySum(),
-                reportDtoList.get(0).getCategorySum());
-            assertEquals(getReportDtoList.get(1).getCategoryRatio(),
-                reportDtoList.get(1).getCategoryRatio());
-            assertEquals(getReportDtoList.size(), 2);
-        }
-
-        @Test
-        @DisplayName("실패 - 멤버 없음")
-        void getMonthlyIncomeReport_fail_no_member() {
-            //given
-            given(memberRepository.findByEmail(any()))
-                .willReturn(Optional.empty());
-
-            //when
-            MemberException exception = assertThrows(MemberException.class,
-                () -> reportServiceImpl.getMonthlyIncomeReport(member.getEmail(),
-                LocalDate.of(2022, 10, 1),
-                LocalDate.of(2022, 10, 31)));
-
-            //then
-            assertEquals(exception.getErrorCode(), MemberErrorCode.NOT_EXIST_MEMBER);
-        }    
-    }
     
     @Test
     @DisplayName("월 지출 보고서 조회 - 성공")

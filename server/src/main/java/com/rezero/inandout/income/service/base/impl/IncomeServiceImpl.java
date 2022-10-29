@@ -16,10 +16,12 @@ import com.rezero.inandout.income.model.IncomeDto;
 import com.rezero.inandout.income.model.IncomeInput;
 import com.rezero.inandout.income.repository.DetailIncomeCategoryRepository;
 import com.rezero.inandout.income.repository.IncomeCategoryRepository;
+import com.rezero.inandout.income.repository.IncomeQueryRepository;
 import com.rezero.inandout.income.repository.IncomeRepository;
 import com.rezero.inandout.income.service.base.IncomeService;
 import com.rezero.inandout.member.entity.Member;
 import com.rezero.inandout.member.repository.MemberRepository;
+import com.rezero.inandout.report.model.ReportDto;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,6 +38,7 @@ public class IncomeServiceImpl implements IncomeService {
     private final IncomeRepository incomeRepository;
     private final IncomeCategoryRepository incomeCategoryRepository;
     private final DetailIncomeCategoryRepository detailIncomeCategoryRepository;
+    private final IncomeQueryRepository incomeQueryRepository;
 
 
     @Override
@@ -140,6 +143,25 @@ public class IncomeServiceImpl implements IncomeService {
         }
 
         incomeRepository.deleteAllByIdInBatch(deleteIncomeIdList);
+    }
+
+    @Override
+    public List<ReportDto> getMonthlyIncomeReport(String email, LocalDate startDt,
+        LocalDate endDt) {
+        Member member = findMemberByEmail(email);
+        List<ReportDto> reportDtoList
+            = incomeQueryRepository.getMonthlyIncomeReport(member.getMemberId(), startDt, endDt);
+
+        for (ReportDto item : reportDtoList) {
+            int sum = item.getCategorySum();
+            if(sum != 0) {
+                int divideInt
+                    = incomeQueryRepository.getMonthlyIncomeSum(member.getMemberId(), startDt, endDt);
+                item.setCategoryRatio(Math.round(item.getCategoryRatio() / divideInt * 100 / 100.0));
+            }
+        }
+
+        return reportDtoList;
     }
 
 
