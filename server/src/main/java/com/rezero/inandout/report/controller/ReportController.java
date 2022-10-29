@@ -57,4 +57,15 @@ public class ReportController {
         return ResponseEntity.ok(reportDtos);
     }
 
+    @GetMapping("/year/expense")
+    public ResponseEntity<?> getYearlyExpenseReport(Principal principal,
+       @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDt,
+       @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDt) {
+
+        List<YearlyReportDto> yearlyReportDtos =
+                reportService.getYearlyExpenseReport(principal.getName(), startDt, endDt);
+
+        return ResponseEntity.ok(yearlyReportDtos);
+    }
+
 }

@@ -1,4 +1,4 @@
-package com.rezero.inandout.report.repository;
+package com.rezero.inandout.expense.repository;
 
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -17,15 +17,9 @@ public class ExpenseQueryRepository {
 
     private final JPAQueryFactory jpaQueryFactory;
 
-    public List<ReportDto> getExpenseMonthReport(Member member, LocalDate startDt, LocalDate endDt) {
+    public List<ReportDto> getMonthlyExpenseReport(Member member, LocalDate startDt, LocalDate endDt) {
 
         QExpense expense = QExpense.expense;
-
-        Integer totalSum = jpaQueryFactory.select(expense.expenseCard.add(expense.expenseCash).sum())
-                .from(expense)
-                .where(expense.member.eq(member),
-                        expense.expenseDt.between(startDt, endDt))
-                .fetchOne();
 
         List<ReportDto> result = jpaQueryFactory
                 .select(Projections.constructor(
@@ -36,7 +30,7 @@ public class ExpenseQueryRepository {
                                                 .sum(),
                                         expense.expenseCard.add(expense.expenseCash)
                                                 .sum().multiply(100).doubleValue()
-                                                .divide(totalSum).multiply(100).round().divide(100.0)
+
                         )
                 )
                 .from(expense)
@@ -47,4 +41,16 @@ public class ExpenseQueryRepository {
 
         return result;
     }
+
+    public Integer getTotalSum(Member member, LocalDate startDt, LocalDate endDt) {
+
+        QExpense expense = QExpense.expense;
+
+        return jpaQueryFactory.select(expense.expenseCard.add(expense.expenseCash).sum())
+                .from(expense)
+                .where(expense.member.eq(member),
+                        expense.expenseDt.between(startDt, endDt))
+                .fetchOne();
+    }
+
 }

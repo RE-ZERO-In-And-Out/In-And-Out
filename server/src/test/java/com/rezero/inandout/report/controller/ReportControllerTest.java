@@ -3,7 +3,6 @@ package com.rezero.inandout.report.controller;
 import com.rezero.inandout.member.entity.Member;
 import com.rezero.inandout.member.service.MemberService;
 import com.rezero.inandout.report.model.ReportDto;
-import com.rezero.inandout.report.model.YearlyReportDto;
 import com.rezero.inandout.report.service.ReportService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -146,6 +145,130 @@ class ReportControllerTest {
                 .andExpect(jsonPath("$.[3].categorySum").value(41000))
                 .andExpect(jsonPath("$.[4].categorySum").value(462000));
     }
+
+    @Test
+    @DisplayName("연 지출 보고서 조회")
+    void getYearlyExpenseReport() throws Exception {
+        //given
+        Member member = Member.builder()
+                .memberId(1L)
+                .email("hgd@gmail.com")
+                .password("1234")
+                .build();
+
+        User user = new User(member.getEmail(), member.getPassword(), AuthorityUtils.NO_AUTHORITIES);
+        TestingAuthenticationToken testingAuthenticationToken = new TestingAuthenticationToken(user,null);
+
+        List<ReportDto> reportDtos = Arrays.asList(
+                ReportDto.builder()
+                        .category("건강/문화")
+                        .categorySum(8800000)
+                        .categoryRatio(27.07)
+                        .build(),
+                ReportDto.builder()
+                        .category("교통/차량")
+                        .categorySum(23000000)
+                        .categoryRatio(70.76)
+                        .build(),
+                ReportDto.builder()
+                        .category("세금/이자")
+                        .categorySum(200000)
+                        .categoryRatio(0.62)
+                        .build(),
+                ReportDto.builder()
+                        .category("식비")
+                        .categorySum(41000)
+                        .categoryRatio(0.13)
+                        .build(),
+                ReportDto.builder()
+                        .category("의복/미용")
+                        .categorySum(462000)
+                        .categoryRatio(1.42)
+                        .build()
+        );
+
+        List<YearlyReportDto> yearlyReportDtos = Arrays.asList(
+                YearlyReportDto.builder()
+                        .year(2022)
+                        .month(1)
+                        .monthlySum(0)
+                        .build(),
+                YearlyReportDto.builder()
+                        .year(2022)
+                        .month(2)
+                        .monthlySum(0)
+                        .build(),
+                YearlyReportDto.builder()
+                        .year(2022)
+                        .month(3)
+                        .monthlySum(0)
+                        .build(),
+                YearlyReportDto.builder()
+                        .year(2022)
+                        .month(4)
+                        .monthlySum(0)
+                        .build(),
+                YearlyReportDto.builder()
+                        .year(2022)
+                        .month(5)
+                        .monthlySum(0)
+                        .build(),
+                YearlyReportDto.builder()
+                        .year(2022)
+                        .month(6)
+                        .monthlySum(0)
+                        .build(),
+                YearlyReportDto.builder()
+                        .year(2022)
+                        .month(7)
+                        .monthlySum(0)
+                        .build(),
+                YearlyReportDto.builder()
+                        .year(2022)
+                        .month(8)
+                        .monthlySum(0)
+                        .build(),
+                YearlyReportDto.builder()
+                        .year(2022)
+                        .month(9)
+                        .monthlySum(0)
+                        .build(),
+                YearlyReportDto.builder()
+                        .year(2022)
+                        .month(10)
+                        .monthlySum(8800000+23000000+200000+41000+462000)
+                        .report(reportDtos)
+                        .build(),
+                YearlyReportDto.builder()
+                        .year(2022)
+                        .month(11)
+                        .monthlySum(0)
+                        .build(),
+                YearlyReportDto.builder()
+                        .year(2022)
+                        .month(12)
+                        .monthlySum(0)
+                        .build()
+        );
+        given(reportService.getYearlyExpenseReport(any(),any(),any()))
+                .willReturn(yearlyReportDtos);
+        //when
+        //then
+        mockMvc.perform(get("/api/report/year/expense?startDt=2022-01-01&endDt=2022-12-31")
+                .contentType(MediaType.APPLICATION_JSON)
+                .principal(testingAuthenticationToken)
+        ).andExpect(status().isOk())
+                .andDo(print())
+                .andExpect(jsonPath("$.[9].year").value(2022))
+                .andExpect(jsonPath("$.[9].month").value(10))
+                .andExpect(jsonPath("$.[9].monthlySum").value(8800000+23000000+200000+41000+462000))
+                .andExpect(jsonPath("$.[9].report[0].categorySum").value(8800000))
+                .andExpect(jsonPath("$.[9].report[1].categorySum").value(23000000))
+                .andExpect(jsonPath("$.[9].report[2].categorySum").value(200000))
+                .andExpect(jsonPath("$.[9].report[3].categorySum").value(41000))
+                .andExpect(jsonPath("$.[9].report[4].categorySum").value(462000));
+    }
+
 
     @Test
     @DisplayName("연 수입 보고서 조회")
