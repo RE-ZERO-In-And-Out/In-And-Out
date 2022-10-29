@@ -3,6 +3,7 @@ package com.rezero.inandout.report.controller;
 import com.rezero.inandout.member.entity.Member;
 import com.rezero.inandout.member.service.MemberService;
 import com.rezero.inandout.report.model.ReportDto;
+import com.rezero.inandout.report.model.YearlyReportDto;
 import com.rezero.inandout.report.service.ReportService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
