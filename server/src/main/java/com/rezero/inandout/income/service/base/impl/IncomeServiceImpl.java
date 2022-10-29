@@ -155,11 +155,10 @@ public class IncomeServiceImpl implements IncomeService {
             = incomeQueryRepository.getMonthlyIncomeReport(member.getMemberId(), startDt, endDt);
 
         for (ReportDto item : reportDtoList) {
-            int sum = item.getCategorySum();
-            if(sum != 0) {
-                int divideInt
+            if(item.getCategorySum() != 0) {
+                int monthlyIncomeSum
                     = incomeQueryRepository.getMonthlyIncomeSum(member.getMemberId(), startDt, endDt);
-                item.setCategoryRatio(Math.round(item.getCategoryRatio() / divideInt * 100 / 100.0));
+                item.setCategoryRatio(Math.round(item.getCategoryRatio() / monthlyIncomeSum * 100 / 100.0));
             }
         }
 
