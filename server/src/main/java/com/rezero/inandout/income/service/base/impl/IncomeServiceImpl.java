@@ -22,8 +22,10 @@ import com.rezero.inandout.income.service.base.IncomeService;
 import com.rezero.inandout.member.entity.Member;
 import com.rezero.inandout.member.repository.MemberRepository;
 import com.rezero.inandout.report.model.ReportDto;
+import com.rezero.inandout.report.model.YearlyReportDto;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
@@ -152,16 +154,58 @@ public class IncomeServiceImpl implements IncomeService {
         List<ReportDto> reportDtoList
             = incomeQueryRepository.getMonthlyIncomeReport(member.getMemberId(), startDt, endDt);
 
+        int monthlyIncomeSum
+            = incomeQueryRepository.getMonthlyIncomeSum(member.getMemberId(), startDt, endDt);
+
         for (ReportDto item : reportDtoList) {
-            int sum = item.getCategorySum();
-            if(sum != 0) {
-                int divideInt
-                    = incomeQueryRepository.getMonthlyIncomeSum(member.getMemberId(), startDt, endDt);
-                item.setCategoryRatio(Math.round(item.getCategoryRatio() / divideInt * 100 / 100.0));
+            if(item.getCategorySum() != 0) {
+                item.setCategoryRatio(Math.round(item.getCategoryRatio() / monthlyIncomeSum * 100 / 100.0));
             }
         }
 
         return reportDtoList;
+    }
+
+    @Override
+    public List<YearlyReportDto> getYearlyIncomeReport(String email, LocalDate startDt,
+        LocalDate endDt) {
+
+        Member member = findMemberByEmail(email);
+
+        List<YearlyReportDto> yearlyReportDtoList = new ArrayList<>();
+
+        int thisYear = startDt.getYear();
+        int thisStartMonth = startDt.getMonthValue();
+        int thisSum = 0;
+
+        for (int i = 0; i < 12; i++) {
+            int thisMonth = thisStartMonth + i;
+            if(thisMonth > 12) {
+                thisMonth = thisStartMonth - 11;
+                thisStartMonth = thisMonth - 1;
+                thisYear++;
+            }
+
+            List<ReportDto> reportDtoList
+                = getMonthlyIncomeReport(member.getEmail(),
+                    LocalDate.of(thisYear, thisMonth, 1),
+                    LocalDate.of(thisYear, thisMonth, getLastDayOfTheMonth(thisYear, thisMonth)));
+
+            for (ReportDto item : reportDtoList) {
+                thisSum += item.getCategorySum();
+            }
+
+            yearlyReportDtoList.add(
+                YearlyReportDto.builder()
+                    .year(thisYear)
+                    .month(thisMonth)
+                    .monthlySum(thisSum)
+                    .report(reportDtoList)
+                    .build()
+            );
+        }
+
+        return yearlyReportDtoList;
     }
 
 
@@ -188,6 +232,12 @@ public class IncomeServiceImpl implements IncomeService {
         if(!Objects.equals(loginMember.getMemberId(), memberId)) {
             throw new IncomeException(NOT_MATCH_MEMBER_AND_INCOME);
         }
+    }
+
+    private int getLastDayOfTheMonth(int year, int month) {
+        Calendar cal = Calendar.getInstance();
+        cal.set(year, month - 1, 1);
+        return cal.getActualMaximum(Calendar.DAY_OF_MONTH);
     }
 
 }

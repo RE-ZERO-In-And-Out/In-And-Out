@@ -7,6 +7,7 @@ import com.rezero.inandout.income.service.base.impl.IncomeServiceImpl;
 import com.rezero.inandout.member.entity.Member;
 import com.rezero.inandout.member.repository.MemberRepository;
 import com.rezero.inandout.report.model.ReportDto;
+import com.rezero.inandout.report.model.YearlyReportDto;
 import com.rezero.inandout.report.repository.ExpenseQueryRepository;
 import com.rezero.inandout.report.service.ReportService;
 import java.time.LocalDate;
@@ -33,6 +34,12 @@ public class ReportServiceImpl implements ReportService {
         Member member = findMemberByEmail(email);
 
         return expenseQueryRepository.getExpenseMonthReport(member, startDt, endDt);
+    }
+
+    @Override
+    public List<YearlyReportDto> getYearlyIncomeReport(String email, LocalDate startDt,
+        LocalDate endDt) {
+        return incomeService.getYearlyIncomeReport(email, startDt, endDt);
     }
 
     private Member findMemberByEmail(String email) {

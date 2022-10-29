@@ -89,7 +89,6 @@ class IncomeQueryRepositoryTest {
         given(step5.orderBy(income.incomeAmount.sum().desc()))
             .willReturn(step6);
 
-        mock(JPAQuery.class);
         given(step6.fetch())
             .willReturn(reportDtoList);
 
