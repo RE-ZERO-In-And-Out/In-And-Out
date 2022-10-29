@@ -1,13 +1,9 @@
 package com.rezero.inandout.report.service.impl;
 
 
-import com.rezero.inandout.exception.MemberException;
-import com.rezero.inandout.exception.errorcode.MemberErrorCode;
-import com.rezero.inandout.income.repository.IncomeQueryRepository;
-import com.rezero.inandout.member.entity.Member;
-import com.rezero.inandout.member.repository.MemberRepository;
+import com.rezero.inandout.expense.service.base.ExpenseService;
 import com.rezero.inandout.report.model.ReportDto;
-import com.rezero.inandout.report.repository.ExpenseQueryRepository;
+import com.rezero.inandout.report.model.YearlyReportDto;
 import com.rezero.inandout.report.service.ReportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,27 +15,23 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ReportServiceImpl implements ReportService {
 
-    private final MemberRepository memberRepository;
-    private final IncomeQueryRepository incomeQueryRepository;
-    private final ExpenseQueryRepository expenseQueryRepository;
-    
+    private final ExpenseService expenseService;
+
     @Override
     public List<ReportDto> getMonthlyIncomeReport(String email, LocalDate startDt, LocalDate endDt) {
-        Member member = findMemberByEmail(email);
 
-        return incomeQueryRepository.getMonthlyIncomeReport(member.getMemberId(), startDt, endDt);
+        return null;
     }
 
     @Override
     public List<ReportDto> getMonthlyExpenseReport(String email, LocalDate startDt, LocalDate endDt) {
 
-        Member member = findMemberByEmail(email);
-
-        return expenseQueryRepository.getExpenseMonthReport(member, startDt, endDt);
+        return expenseService.getMonthlyExpenseReport(email, startDt, endDt);
     }
 
-    private Member findMemberByEmail(String email) {
-        return memberRepository.findByEmail(email)
-                .orElseThrow(() -> new MemberException(MemberErrorCode.NOT_EXIST_MEMBER));
+    @Override
+    public List<YearlyReportDto> getYearlyExpenseReport(String email, LocalDate startDt, LocalDate endDt) {
+
+        return expenseService.getYearlyExpenseReport(email, startDt, endDt);
     }
 }

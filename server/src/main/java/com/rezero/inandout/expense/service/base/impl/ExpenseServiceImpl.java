@@ -8,10 +8,13 @@ import com.rezero.inandout.expense.entity.ExpenseCategory;
 import com.rezero.inandout.expense.model.*;
 import com.rezero.inandout.expense.repository.DetailExpenseCategoryRepository;
 import com.rezero.inandout.expense.repository.ExpenseCategoryRepository;
+import com.rezero.inandout.expense.repository.ExpenseQueryRepository;
 import com.rezero.inandout.expense.repository.ExpenseRepository;
 import com.rezero.inandout.expense.service.base.ExpenseService;
 import com.rezero.inandout.member.entity.Member;
 import com.rezero.inandout.member.repository.MemberRepository;
+import com.rezero.inandout.report.model.ReportDto;
+import com.rezero.inandout.report.model.YearlyReportDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +31,7 @@ public class ExpenseServiceImpl implements ExpenseService {
     private final DetailExpenseCategoryRepository detailExpenseCategoryRepository;
     private final ExpenseCategoryRepository expenseCategoryRepository;
     private final MemberRepository memberRepository;
+    private final ExpenseQueryRepository expenseQueryRepository;
 
     @Override
     @Transactional
@@ -131,6 +135,66 @@ public class ExpenseServiceImpl implements ExpenseService {
         }
 
         expenseRepository.deleteAllByIdInBatch(expenseIds);
+    }
+
+    @Override
+    public List<ReportDto> getMonthlyExpenseReport(String email, LocalDate startDt, LocalDate endDt) {
+
+        Member member = findMemberByEmail(email);
+
+        List<ReportDto> reportDtos = expenseQueryRepository.getMonthlyExpenseReport(member, startDt, endDt);
+
+        int totalSum;
+
+        if (reportDtos.size() > 0) {
+            totalSum = expenseQueryRepository.getTotalSum(member, startDt, endDt);
+
+            for (int i = 0; i < reportDtos.size(); i++) {
+                reportDtos.get(i).setCategoryRatio(
+                        Math.round(reportDtos.get(i).getCategoryRatio()/totalSum*100)/100.0);
+            }
+        }
+
+        return reportDtos;
+    }
+
+    @Override
+    public List<YearlyReportDto> getYearlyExpenseReport(String email, LocalDate startDt, LocalDate endDt) {
+
+        Member member = findMemberByEmail(email);
+
+        LocalDate countDate = startDt;
+
+        List<YearlyReportDto> yearlyReportDtos = new ArrayList<>();
+
+        while (countDate.isBefore(endDt)) {
+            List<ReportDto> reportDtos = expenseQueryRepository.getMonthlyExpenseReport(
+                    member, countDate, countDate.plusMonths(1).minusDays(1));
+
+            for (int i = 0; i < reportDtos.size(); i++) {
+                reportDtos.get(i).setCategoryRatio(0);
+            }
+
+            int totalSum = 0;
+
+            if (reportDtos.size() > 0) {
+                totalSum = expenseQueryRepository
+                        .getTotalSum(member, countDate, countDate.plusMonths(1).minusDays(1));
+            }
+
+            YearlyReportDto yearlyReportDto = YearlyReportDto.builder()
+                    .year(countDate.getYear())
+                    .month(countDate.getMonthValue())
+                    .monthlySum(totalSum)
+                    .report(reportDtos)
+                    .build();
+
+            yearlyReportDtos.add(yearlyReportDto);
+
+            countDate = countDate.plusMonths(1);
+        }
+
+        return yearlyReportDtos;
     }
 
     private Expense findExpenseByExpenseId(Long expenseId) {
