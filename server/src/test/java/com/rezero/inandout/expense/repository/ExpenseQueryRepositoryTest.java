@@ -1,4 +1,4 @@
-package com.rezero.inandout.report.repository;
+package com.rezero.inandout.expense.repository;
 
 import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.Projections;
@@ -20,7 +20,7 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
@@ -38,25 +38,6 @@ class ExpenseQueryRepositoryTest {
     void getExpenseMonthReport() {
         //given
         QExpense expense = QExpense.expense;
-
-        Integer totalSum = 8800000 + 23000000 + 200000 + 41000 + 462000;
-
-        JPAQuery totalSumStep1 = Mockito.mock(JPAQuery.class);
-        given(jpaQueryFactory.select(expense.expenseCard.add(expense.expenseCash).sum()))
-                .willReturn(totalSumStep1);
-
-        JPAQuery totalSumStep2 = Mockito.mock(JPAQuery.class);
-        given(totalSumStep1.from(any(EntityPath.class)))
-                .willReturn(totalSumStep2);
-
-        JPAQuery totalSumStep3 = Mockito.mock(JPAQuery.class);
-        given(totalSumStep2.where(
-                any(BooleanExpression.class),
-                any(BooleanExpression.class)))
-                .willReturn(totalSumStep3);
-
-        given(totalSumStep3.fetchOne())
-                .willReturn(totalSum);
 
         List<ReportDto> result = Arrays.asList(
                 new ReportDto("건강/문화", 8800000, 27.07),
@@ -76,7 +57,6 @@ class ExpenseQueryRepositoryTest {
                                 .sum(),
                         expense.expenseCard.add(expense.expenseCash)
                                 .sum().multiply(100).doubleValue()
-                                .divide(totalSum).multiply(100).round().divide(100.0)
                 ))
         ).willReturn(resultStep1);
 
@@ -99,7 +79,7 @@ class ExpenseQueryRepositoryTest {
 
         //when
         List<ReportDto> reportDtos = expenseQueryRepository
-                .getExpenseMonthReport(
+                .getMonthlyExpenseReport(
                         Member.builder()
                                 .memberId(1L)
                                 .email("hgd@gmail.com")
@@ -115,5 +95,42 @@ class ExpenseQueryRepositoryTest {
         assertEquals(200000, reportDtos.get(2).getCategorySum());
         assertEquals(41000, reportDtos.get(3).getCategorySum());
         assertEquals(462000, reportDtos.get(4).getCategorySum());
+    }
+
+    @Test
+    void getTotalSum() {
+        //given
+        QExpense expense = QExpense.expense;
+
+        Integer totalSum = 8800000 + 23000000 + 200000 + 41000 + 462000;
+
+        JPAQuery totalSumStep1 = Mockito.mock(JPAQuery.class);
+        given(jpaQueryFactory.select(expense.expenseCard.add(expense.expenseCash).sum()))
+                .willReturn(totalSumStep1);
+
+        JPAQuery totalSumStep2 = Mockito.mock(JPAQuery.class);
+        given(totalSumStep1.from(any(EntityPath.class)))
+                .willReturn(totalSumStep2);
+
+        JPAQuery totalSumStep3 = Mockito.mock(JPAQuery.class);
+        given(totalSumStep2.where(
+                any(BooleanExpression.class),
+                any(BooleanExpression.class)))
+                .willReturn(totalSumStep3);
+
+        given(totalSumStep3.fetchOne())
+                .willReturn(totalSum);
+        //when
+        Integer result = expenseQueryRepository.getTotalSum(
+                Member.builder()
+                        .memberId(1L)
+                        .email("hgd@gmail.com")
+                        .password("1234")
+                        .build(),
+                LocalDate.of(2022, 10, 1),
+                LocalDate.of(2022, 10, 31)
+        );
+        //then
+        assertEquals(8800000 + 23000000 + 200000 + 41000 + 462000, result);
     }
 }
