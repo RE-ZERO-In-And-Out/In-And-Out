@@ -8,11 +8,12 @@ import lombok.Getter;
 public enum MemberErrorCode {
 
     /**
-     * 회원가입 - 이미 존재하는 이메일, 휴대폰, 닉네임 오류
+     * 회원가입 - 이미 존재하는 이메일, 휴대폰, 닉네임 오류, 탈퇴 회원
      */
     EMAIL_EXIST("이미 가입된 이메일입니다."),
     PHONE_EXIST("동일한 휴대폰 번호가 존재합니다. 다른 번호를 입력하세요."),
     NICKNAME_EXIST("동일한 닉네임이 존재합니다. 다른 닉네임을 입력하세요"),
+    WITHDRAWAL_MEMBER("이미 탈퇴한 아이디(이메일)입니다. 다른 이메일로 회원 가입하시길 바랍니다."),
 
     /**
      * 회원가입 - 비밀번호 오류
@@ -52,6 +53,13 @@ public enum MemberErrorCode {
      * 비밀번호 오류
      */
     PASSWORD_NOT_MATCH("회원 비밀번호를 잘못 입력했습니다."),
+
+    /**
+     * 로그인 오류
+     */
+    CANNOT_LOGIN_REQ("이메일 인증을 완료해야 로그인이 가능합니다."),
+    CANNOT_LOGIN_STOP("정지된 회원입니다. 관리자에게 문의하시길 바랍니다."),
+    CANNOT_LOGIN_WITHDRAW("이미 탈퇴한 회원입니다. 새로운 아이디로 회원가입 후, 로그인하시길 바랍니다."),
 
     /**
      * 로그아웃 오류

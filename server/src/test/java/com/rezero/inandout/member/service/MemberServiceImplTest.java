@@ -11,11 +11,11 @@ import static org.mockito.Mockito.verify;
 
 import com.rezero.inandout.exception.MemberException;
 import com.rezero.inandout.exception.errorcode.MemberErrorCode;
+import com.rezero.inandout.member.component.MailComponent;
 import com.rezero.inandout.member.entity.Member;
 import com.rezero.inandout.member.model.ChangePasswordInput;
 import com.rezero.inandout.member.model.JoinMemberInput;
 import com.rezero.inandout.member.model.LoginMemberInput;
-import com.rezero.inandout.member.component.MailComponent;
 import com.rezero.inandout.member.model.MemberDto;
 import com.rezero.inandout.member.model.MemberStatus;
 import com.rezero.inandout.member.model.UpdateMemberInput;
@@ -60,7 +60,6 @@ class MemberServiceImplTest {
     @DisplayName("회원가입")
     void join() {
 
-
         // given
         given(memberRepository.findByEmail(anyString())).willReturn(Optional.empty());
         Member member = Member.builder().email("egg@naver.com").phone("010-2222-0000")
@@ -101,6 +100,7 @@ class MemberServiceImplTest {
         assertEquals(MemberStatus.ING, member.getStatus());
     }
 
+
     @Test
     @DisplayName("회원가입을 위한 이메일 인증 - 실패")
     void emailAuth_fail() {
@@ -138,6 +138,7 @@ class MemberServiceImplTest {
 
     }
 
+
     @Test
     @DisplayName("비밀번호 찾기 - 이메일, 휴대폰 일치 확인")
     void findPhone() {
@@ -157,6 +158,7 @@ class MemberServiceImplTest {
         memberService.validatePhone(email, phone);
 
     }
+
 
     @Test
     @DisplayName("회원 정보 조회")
@@ -252,6 +254,7 @@ class MemberServiceImplTest {
             exception.getErrorCode().getDescription());
     }
 
+
     @Test
     @DisplayName("회원 정보 수정(같은 닉네임이 존재하는 경우) - 실패(3)")
     void updateInfo_fail_samePhoneNumber() {
@@ -280,7 +283,6 @@ class MemberServiceImplTest {
         assertEquals(MemberErrorCode.NICKNAME_EXIST.getDescription(),
             exception.getErrorCode().getDescription());
 
-
     }
 
 
@@ -303,7 +305,6 @@ class MemberServiceImplTest {
 
         // then
         memberService.changePassword(email, input);
-
 
     }
 
@@ -394,6 +395,7 @@ class MemberServiceImplTest {
             exception.getErrorCode().getDescription());
     }
 
+
     @Test
     @DisplayName("로그아웃　- 성공")
     void logout() {
@@ -429,6 +431,74 @@ class MemberServiceImplTest {
         // then
         assertEquals(MemberErrorCode.CANNOT_LOGOUT.getDescription(),
             exception.getErrorCode().getDescription());
+    }
+
+
+    @Test
+    @DisplayName("회원 탈퇴 - 성공")
+    void withdraw() {
+
+        // given
+        Member member = Member.builder()
+            .email("egg@naver.com")
+            .status(MemberStatus.ING)
+            .build();
+        String rawPassword = "abc123!@";
+        member.setPassword(bCryptPasswordEncoder.encode(rawPassword));
+
+        // when
+        given(memberRepository.findByEmail(anyString())).willReturn(Optional.of(member));
+        memberService.withdraw(member.getEmail(), rawPassword);
+
+        // then
+        assertEquals(MemberStatus.WITHDRAW,
+            memberRepository.findByEmail(member.getEmail()).get().getStatus());
+    }
+
+    @Test
+    @DisplayName("회원 탈퇴 (이메일 오류) - 실패")
+    void withdraw_fail_email() {
+
+        // given
+        Member member = Member.builder()
+            .email("egg@naver.com")
+            .status(MemberStatus.ING)
+            .build();
+        String rawPassword = "abc123!@";
+        member.setPassword(bCryptPasswordEncoder.encode(rawPassword));
+
+        // when
+        given(memberRepository.findByEmail(anyString())).willReturn(Optional.empty());
+
+        // then
+        MemberException exception = assertThrows(MemberException.class,
+            () -> memberService.withdraw(member.getEmail(), rawPassword));
+        assertEquals(MemberErrorCode.EMAIL_NOT_EXIST, exception.getErrorCode());
+
+    }
+
+
+    @Test
+    @DisplayName("회원 탈퇴 (비밀번호 오류) - 실패")
+    void withdraw_fail_pwd() {
+
+        // given
+        Member member = Member.builder()
+            .email("egg@naver.com")
+            .status(MemberStatus.ING)
+            .build();
+        String rawPassword = "abc123!@";
+        String wrongPassword = "xyz123!@";
+        member.setPassword(bCryptPasswordEncoder.encode(rawPassword));
+
+        // when
+        given(memberRepository.findByEmail(anyString())).willReturn(Optional.of(member));
+
+        // then
+        MemberException exception = assertThrows(MemberException.class,
+            () -> memberService.withdraw(member.getEmail(), wrongPassword));
+        assertEquals(MemberErrorCode.PASSWORD_NOT_MATCH, exception.getErrorCode());
+
     }
 
 }
