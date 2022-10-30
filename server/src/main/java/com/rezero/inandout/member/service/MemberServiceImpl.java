@@ -18,18 +18,20 @@ import static com.rezero.inandout.exception.errorcode.MemberErrorCode.PASSWORD_N
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.PASSWORD_NOT_MATCH;
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.PHONE_EXIST;
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.PHONE_NOT_EXIST;
+import static com.rezero.inandout.exception.errorcode.MemberErrorCode.WITHDRAWAL_MEMBER;
 
 import com.rezero.inandout.exception.MemberException;
 import com.rezero.inandout.exception.errorcode.MemberErrorCode;
+import com.rezero.inandout.member.component.MailComponent;
 import com.rezero.inandout.member.entity.Member;
 import com.rezero.inandout.member.model.ChangePasswordInput;
 import com.rezero.inandout.member.model.JoinMemberInput;
 import com.rezero.inandout.member.model.LoginMemberInput;
-import com.rezero.inandout.member.component.MailComponent;
 import com.rezero.inandout.member.model.MemberDto;
 import com.rezero.inandout.member.model.MemberStatus;
 import com.rezero.inandout.member.model.UpdateMemberInput;
 import com.rezero.inandout.member.repository.MemberRepository;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -62,6 +64,16 @@ public class MemberServiceImpl implements MemberService {
         }
 
         Member member = optionalMember.get();
+        if (member.getStatus().equals(MemberStatus.REQ)) {
+            throw new MemberException(MemberErrorCode.CANNOT_LOGIN_REQ);
+        }
+        if (member.getStatus().equals(MemberStatus.WITHDRAW)) {
+            throw new MemberException(MemberErrorCode.CANNOT_LOGIN_WITHDRAW);
+        }
+        if (member.getStatus().equals(MemberStatus.STOP)) {
+            throw new MemberException(MemberErrorCode.CANNOT_LOGIN_STOP);
+        }
+
         return new User(member.getEmail(), member.getPassword(), AuthorityUtils.NO_AUTHORITIES);
     }
 
@@ -99,6 +111,11 @@ public class MemberServiceImpl implements MemberService {
 
         Optional<Member> existsMember = memberRepository.findByEmail(input.getEmail());
         if (existsMember.isPresent()) {
+
+            if(existsMember.get().getStatus().equals(MemberStatus.WITHDRAW)){
+                throw new MemberException(WITHDRAWAL_MEMBER);
+            }
+
             throw new MemberException(EMAIL_EXIST);
         }
 
@@ -302,6 +319,31 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     public void withdraw(String email, String password) {
+
+        Optional<Member> optionalMember = memberRepository.findByEmail(email);
+        if (!optionalMember.isPresent()) {
+            throw new MemberException(EMAIL_NOT_EXIST);
+        }
+
+        Member member = optionalMember.get();
+        if (!bCryptPasswordEncoder.matches(password, member.getPassword())) {
+            throw new MemberException(PASSWORD_NOT_MATCH);
+        }
+
+        member.setStatus(MemberStatus.WITHDRAW);
+        member.setDeleteDt(LocalDateTime.now());
+        member.setPassword(null);
+        member.setNickName(null);
+        member.setPhone(null);
+        member.setBirth(null);
+        member.setAddress(null);
+        member.setGender(null);
+        member.setMemberPhotoUrl(null);
+        member.setResetPasswordKey(null);
+        member.setResetPasswordLimitDt(null);
+        member.setEmailAuthKey(null);
+        memberRepository.save(member);
+
 
     }
 
