@@ -25,6 +25,9 @@ bin/
 out/
 !**/src/main/**/out/
 !**/src/test/**/out/
+application-secret.properties
+application-dbsecret.properties
+data.sql
 
 ### NetBeans ###
 /nbproject/private/
