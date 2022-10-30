@@ -340,7 +340,7 @@ class MemberServiceImplTest {
     void login() {
 
         // given
-        Member member = Member.builder().email("egg@naver.com").build();
+        Member member = Member.builder().email("egg@naver.com").status(MemberStatus.ING).build();
 
         String encPassword = bCryptPasswordEncoder.encode("abc!@#12");
         member.setPassword(encPassword);
