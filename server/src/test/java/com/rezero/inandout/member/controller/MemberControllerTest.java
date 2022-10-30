@@ -16,7 +16,9 @@ import com.rezero.inandout.member.model.ChangePasswordInput;
 import com.rezero.inandout.member.model.FindPasswordMemberInput;
 import com.rezero.inandout.member.model.JoinMemberInput;
 import com.rezero.inandout.member.model.LoginMemberInput;
+import com.rezero.inandout.member.model.MemberStatus;
 import com.rezero.inandout.member.model.UpdateMemberInput;
+import com.rezero.inandout.member.model.WithdrawMemberInput;
 import com.rezero.inandout.member.service.MemberServiceImpl;
 import java.time.LocalDate;
 import java.util.UUID;
@@ -34,6 +36,7 @@ import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 @MockBean(JpaMetamodelMappingContext.class)
 @WebMvcTest(MemberController.class)
@@ -261,6 +264,36 @@ class MemberControllerTest {
 
         // then
         Mockito.verify(memberServiceImpl, times(1)).logout();
+
+    }
+
+
+    @Test
+    @DisplayName("회원 탈퇴 - 성공")
+    void delete() throws Exception {
+
+        // given
+        Member member = Member.builder().email("egg@naver.com").password("abc123~!")
+            .status(MemberStatus.ING).build();
+        WithdrawMemberInput input = WithdrawMemberInput.builder()
+            .password("abc123~!")
+            .build();
+        String withdrawInputToJson = mapper.writeValueAsString(input);
+        User user = new User(member.getEmail(), member.getPassword(),
+            AuthorityUtils.NO_AUTHORITIES);
+        TestingAuthenticationToken testingAuthenticationToken = new TestingAuthenticationToken(user,
+            null);
+
+        // when
+        mockMvc.perform(MockMvcRequestBuilders
+            .delete("/api/member/info").contentType(MediaType.APPLICATION_JSON)
+            .content(withdrawInputToJson)
+            .principal(testingAuthenticationToken)).andExpect(status().isOk()).andDo(print());
+        ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
+
+        // then
+        Mockito.verify(memberServiceImpl, times(1)).withdraw(anyString(), captor.capture());
+        assertEquals(input.getPassword(), captor.getValue());
 
     }
 
