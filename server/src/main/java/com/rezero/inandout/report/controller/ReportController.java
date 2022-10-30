@@ -1,7 +1,9 @@
 package com.rezero.inandout.report.controller;
 
 import com.rezero.inandout.report.model.ReportDto;
-import com.rezero.inandout.report.model.YearlyReportDto;
+import com.rezero.inandout.report.model.YearlyExpenseReportDto;
+import com.rezero.inandout.report.model.YearlyIncomeReportDto;
+import com.rezero.inandout.report.model.YearlyTotalReportDto;
 import com.rezero.inandout.report.service.ReportService;
 import io.swagger.annotations.ApiParam;
 import java.security.Principal;
@@ -40,7 +42,7 @@ public class ReportController {
         @ApiParam(value = "조회할 기간의 시작일", example = "2021-10-01") LocalDate startDt,
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
         @ApiParam(value = "조회할 기간의 마지막일", example = "2022-09-30") LocalDate endDt) {
-        List<YearlyReportDto> yearlyReportDtoList =
+        List<YearlyIncomeReportDto> yearlyReportDtoList =
             reportService.getYearlyIncomeReport(principal.getName(), startDt, endDt);
 
         return ResponseEntity.ok().body(yearlyReportDtoList);
@@ -62,10 +64,22 @@ public class ReportController {
        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDt,
        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDt) {
 
-        List<YearlyReportDto> yearlyReportDtos =
+        List<YearlyExpenseReportDto> yearlyReportDtos =
                 reportService.getYearlyExpenseReport(principal.getName(), startDt, endDt);
 
         return ResponseEntity.ok(yearlyReportDtos);
+    }
+
+    @GetMapping("/year")
+    public ResponseEntity<?> getYearlyTotalReport(Principal principal,
+        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+        @ApiParam(value = "조회할 기간의 시작일", example = "2021-10-01") LocalDate startDt,
+        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+        @ApiParam(value = "조회할 기간의 마지막일", example = "2022-09-30") LocalDate endDt) {
+        YearlyTotalReportDto yearlyTotalReportDto =
+            reportService.getYearlyTotalReport(principal.getName(), startDt, endDt);
+
+        return ResponseEntity.ok().body(yearlyTotalReportDto);
     }
 
 }

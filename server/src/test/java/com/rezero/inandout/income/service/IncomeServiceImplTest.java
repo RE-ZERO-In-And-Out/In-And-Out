@@ -28,7 +28,7 @@ import com.rezero.inandout.income.service.base.impl.IncomeServiceImpl;
 import com.rezero.inandout.member.entity.Member;
 import com.rezero.inandout.member.repository.MemberRepository;
 import com.rezero.inandout.report.model.ReportDto;
-import com.rezero.inandout.report.model.YearlyReportDto;
+import com.rezero.inandout.report.model.YearlyIncomeReportDto;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -680,19 +680,19 @@ class IncomeServiceImplTest {
 
         List<ReportDto> reportDtoList_ele = new ArrayList<>(Arrays.asList(reportDto3, reportDto4));
 
-        List<YearlyReportDto> yearlyReportDtoList = new ArrayList<>(Arrays.asList(
-            YearlyReportDto.builder().year(2022).month(1).report(null).build(),
-            YearlyReportDto.builder().year(2022).month(2).report(null).build(),
-            YearlyReportDto.builder().year(2022).month(3).report(null).build(),
-            YearlyReportDto.builder().year(2022).month(4).report(null).build(),
-            YearlyReportDto.builder().year(2022).month(5).report(null).build(),
-            YearlyReportDto.builder().year(2022).month(6).report(null).build(),
-            YearlyReportDto.builder().year(2022).month(7).report(null).build(),
-            YearlyReportDto.builder().year(2022).month(8).report(null).build(),
-            YearlyReportDto.builder().year(2022).month(9).report(null).build(),
-            YearlyReportDto.builder().year(2022).month(10).report(reportDtoList_ten).build(),
-            YearlyReportDto.builder().year(2022).month(11).report(reportDtoList_ele).build(),
-            YearlyReportDto.builder().year(2022).month(12).report(null).build())
+        List<YearlyIncomeReportDto> yearlyReportDtoList = new ArrayList<>(Arrays.asList(
+            YearlyIncomeReportDto.builder().year(2022).month(1).incomeReport(null).build(),
+            YearlyIncomeReportDto.builder().year(2022).month(2).incomeReport(null).build(),
+            YearlyIncomeReportDto.builder().year(2022).month(3).incomeReport(null).build(),
+            YearlyIncomeReportDto.builder().year(2022).month(4).incomeReport(null).build(),
+            YearlyIncomeReportDto.builder().year(2022).month(5).incomeReport(null).build(),
+            YearlyIncomeReportDto.builder().year(2022).month(6).incomeReport(null).build(),
+            YearlyIncomeReportDto.builder().year(2022).month(7).incomeReport(null).build(),
+            YearlyIncomeReportDto.builder().year(2022).month(8).incomeReport(null).build(),
+            YearlyIncomeReportDto.builder().year(2022).month(9).incomeReport(null).build(),
+            YearlyIncomeReportDto.builder().year(2022).month(10).incomeReport(reportDtoList_ten).build(),
+            YearlyIncomeReportDto.builder().year(2022).month(11).incomeReport(reportDtoList_ele).build(),
+            YearlyIncomeReportDto.builder().year(2022).month(12).incomeReport(null).build())
         );
 
         @Test
@@ -703,7 +703,7 @@ class IncomeServiceImplTest {
                 .willReturn(Optional.of(member));
 
             //when
-            List<YearlyReportDto> findYearlyReportDto
+            List<YearlyIncomeReportDto> findYearlyReportDto
                 = incomeService.getYearlyIncomeReport(member.getEmail(),
                 LocalDate.of(2022, 1, 1),
                 LocalDate.of(2022, 12, 31)

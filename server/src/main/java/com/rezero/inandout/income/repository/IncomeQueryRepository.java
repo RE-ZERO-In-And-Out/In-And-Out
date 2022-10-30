@@ -7,7 +7,6 @@ import com.rezero.inandout.income.entity.QIncome;
 import com.rezero.inandout.income.entity.QIncomeCategory;
 import com.rezero.inandout.member.entity.QMember;
 import com.rezero.inandout.report.model.ReportDto;
-import com.rezero.inandout.report.model.YearlyReportDto;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
