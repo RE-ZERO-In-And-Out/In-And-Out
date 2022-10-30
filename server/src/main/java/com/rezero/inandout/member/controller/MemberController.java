@@ -1,11 +1,13 @@
 package com.rezero.inandout.member.controller;
 
 import com.rezero.inandout.member.model.ChangePasswordInput;
+import com.rezero.inandout.member.model.FindEmailMemberInput;
 import com.rezero.inandout.member.model.FindPasswordMemberInput;
 import com.rezero.inandout.member.model.JoinMemberInput;
 import com.rezero.inandout.member.model.LoginMemberInput;
 import com.rezero.inandout.member.model.MemberDto;
 import com.rezero.inandout.member.model.UpdateMemberInput;
+import com.rezero.inandout.member.model.WithdrawMemberInput;
 import com.rezero.inandout.member.service.MemberService;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -14,6 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -102,9 +105,9 @@ public class MemberController {
     @PostMapping("/password/email")
     @ApiOperation(value = "아이디(이메일) 찾기 API", notes = "아이디(이메일)를 입력해서 존재하는 회원인지 확인한다.")
     public ResponseEntity<?> checkEmail(
-        @ApiParam(value = "아이디(이메일) 입력") @RequestBody FindPasswordMemberInput findPasswordMemberInput) {
-        memberService.validateEmail(findPasswordMemberInput.getEmail());
-        return new ResponseEntity(findPasswordMemberInput.getEmail(), HttpStatus.OK);
+        @ApiParam(value = "아이디(이메일) 입력") @RequestBody FindEmailMemberInput input) {
+        memberService.validateEmail(input.getEmail());
+        return new ResponseEntity(input.getEmail(), HttpStatus.OK);
     }
 
 
@@ -118,5 +121,15 @@ public class MemberController {
         return new ResponseEntity(message, HttpStatus.OK);
     }
 
+
+    @DeleteMapping("/member/info")
+    @ApiOperation(value = "회원 탈퇴 API", notes = "비밀번호를 입력하여 회원 탈퇴할 수 있다.")
+    public ResponseEntity<?> delete(
+        @ApiParam(value = "비밀번호 입력") @RequestBody WithdrawMemberInput input, Principal principal) {
+        String email = principal.getName();
+        memberService.withdraw(email, input.getPassword());
+        String message = "회원 탈퇴 완료";
+        return new ResponseEntity(message, HttpStatus.OK);
+    }
 
 }
