@@ -22,10 +22,13 @@ import com.rezero.inandout.income.model.IncomeDto;
 import com.rezero.inandout.income.model.IncomeInput;
 import com.rezero.inandout.income.repository.DetailIncomeCategoryRepository;
 import com.rezero.inandout.income.repository.IncomeCategoryRepository;
+import com.rezero.inandout.income.repository.IncomeQueryRepository;
 import com.rezero.inandout.income.repository.IncomeRepository;
 import com.rezero.inandout.income.service.base.impl.IncomeServiceImpl;
 import com.rezero.inandout.member.entity.Member;
 import com.rezero.inandout.member.repository.MemberRepository;
+import com.rezero.inandout.report.model.ReportDto;
+import com.rezero.inandout.report.model.YearlyIncomeReportDto;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -54,6 +57,9 @@ class IncomeServiceImplTest {
 
     @Mock
     private DetailIncomeCategoryRepository detailIncomeCategoryRepository;
+
+    @Mock
+    private IncomeQueryRepository incomeQueryRepository;
 
     @InjectMocks
     private IncomeServiceImpl incomeService;
@@ -567,4 +573,171 @@ class IncomeServiceImplTest {
             assertEquals(exception.getErrorCode(), NOT_MATCH_MEMBER_AND_INCOME);
         }
     }
+
+    @Nested
+    @DisplayName("월 수입 보고서 조회 서비스 테스트")
+    class getMonthlyIncomeReportMethod {
+
+        Member member = Member.builder()
+            .memberId(1L)
+            .password("1234")
+            .email("test@naver.com")
+            .build();
+
+        ReportDto reportDto1 = ReportDto.builder()
+            .category("주수입")
+            .categorySum(1234567)
+            .categoryRatio(80)
+            .build();
+
+        ReportDto reportDto2 = ReportDto.builder()
+            .category("부수입")
+            .categorySum(12345)
+            .categoryRatio(20)
+            .build();
+
+        List<ReportDto> reportDtoList = new ArrayList<>(Arrays.asList(reportDto1, reportDto2));
+
+        @Test
+        @DisplayName("성공")
+        void getMonthlyIncomeReport_success() {
+            //given
+            given(memberRepository.findByEmail(any()))
+                .willReturn(Optional.of(member));
+
+            given(incomeQueryRepository.getMonthlyIncomeReport(any(), any(), any()))
+                .willReturn(reportDtoList);
+
+            //when
+            List<ReportDto> getReportDtoList
+                = incomeService.getMonthlyIncomeReport(member.getEmail(),
+                LocalDate.of(2022, 10, 1),
+                LocalDate.of(2022, 10, 31));
+
+            //then
+            verify(incomeQueryRepository, times(1))
+                .getMonthlyIncomeReport(any(), any(), any());
+            assertEquals(getReportDtoList.get(0).getCategorySum(),
+                reportDtoList.get(0).getCategorySum());
+            assertEquals(getReportDtoList.get(1).getCategoryRatio(),
+                reportDtoList.get(1).getCategoryRatio());
+            assertEquals(getReportDtoList.size(), 2);
+        }
+
+        @Test
+        @DisplayName("실패 - 멤버 없음")
+        void getMonthlyIncomeReport_fail_no_member() {
+            //given
+            given(memberRepository.findByEmail(any()))
+                .willReturn(Optional.empty());
+
+            //when
+            IncomeException exception = assertThrows(IncomeException.class,
+                () -> incomeService.getMonthlyIncomeReport(member.getEmail(),
+                    LocalDate.of(2022, 10, 1),
+                    LocalDate.of(2022, 10, 31)));
+
+            //then
+            assertEquals(exception.getErrorCode(), NO_MEMBER);
+        }
+    }
+
+    @Nested
+    @DisplayName("연 수입 보고서 조회 서비스 테스트")
+    class getYearlyIncomeReportMethod {
+
+        Member member = Member.builder()
+            .memberId(1L)
+            .password("1234")
+            .email("test@naver.com")
+            .build();
+
+        ReportDto reportDto1 = ReportDto.builder()
+            .category("10월주수입")
+            .categorySum(2000)
+            .categoryRatio(80)
+            .build();
+
+        ReportDto reportDto2 = ReportDto.builder()
+            .category("10월부수입")
+            .categorySum(200)
+            .categoryRatio(20)
+            .build();
+
+        List<ReportDto> reportDtoList_ten = new ArrayList<>(Arrays.asList(reportDto1, reportDto2));
+
+        ReportDto reportDto3 = ReportDto.builder()
+            .category("11월주수입")
+            .categorySum(1000)
+            .categoryRatio(30)
+            .build();
+
+        ReportDto reportDto4 = ReportDto.builder()
+            .category("11월부수입")
+            .categorySum(1500)
+            .categoryRatio(70)
+            .build();
+
+        List<ReportDto> reportDtoList_ele = new ArrayList<>(Arrays.asList(reportDto3, reportDto4));
+
+        List<YearlyIncomeReportDto> yearlyReportDtoList = new ArrayList<>(Arrays.asList(
+            YearlyIncomeReportDto.builder().year(2022).month(1).incomeReport(null).build(),
+            YearlyIncomeReportDto.builder().year(2022).month(2).incomeReport(null).build(),
+            YearlyIncomeReportDto.builder().year(2022).month(3).incomeReport(null).build(),
+            YearlyIncomeReportDto.builder().year(2022).month(4).incomeReport(null).build(),
+            YearlyIncomeReportDto.builder().year(2022).month(5).incomeReport(null).build(),
+            YearlyIncomeReportDto.builder().year(2022).month(6).incomeReport(null).build(),
+            YearlyIncomeReportDto.builder().year(2022).month(7).incomeReport(null).build(),
+            YearlyIncomeReportDto.builder().year(2022).month(8).incomeReport(null).build(),
+            YearlyIncomeReportDto.builder().year(2022).month(9).incomeReport(null).build(),
+            YearlyIncomeReportDto.builder().year(2022).month(10).incomeReport(reportDtoList_ten).build(),
+            YearlyIncomeReportDto.builder().year(2022).month(11).incomeReport(reportDtoList_ele).build(),
+            YearlyIncomeReportDto.builder().year(2022).month(12).incomeReport(null).build())
+        );
+
+        @Test
+        @DisplayName("성공")
+        void getYearlyIncomeReport_success() {
+            //given
+            given(memberRepository.findByEmail(any()))
+                .willReturn(Optional.of(member));
+
+            //when
+            List<YearlyIncomeReportDto> findYearlyReportDto
+                = incomeService.getYearlyIncomeReport(member.getEmail(),
+                LocalDate.of(2022, 1, 1),
+                LocalDate.of(2022, 12, 31)
+            );
+
+            //then
+            verify(incomeQueryRepository, times(12))
+                .getMonthlyIncomeReport(any(), any(), any());
+
+            assertEquals(findYearlyReportDto.size(), 12);
+            assertEquals(findYearlyReportDto.get(0).getYear(), 2022);
+            assertEquals(findYearlyReportDto.get(0).getMonth(), 1);
+            assertEquals(findYearlyReportDto.get(11).getYear(), 2022);
+            assertEquals(findYearlyReportDto.get(11).getMonth(), 12);
+
+        }
+
+        @Test
+        @DisplayName("실패 - 맴버 없음")
+        void getYearlyIncomeReport_fail_no_member() {
+            //given
+            given(memberRepository.findByEmail(any()))
+                .willReturn(Optional.empty());
+
+            //when
+            IncomeException exception = assertThrows(IncomeException.class,
+                () -> incomeService.getYearlyIncomeReport(member.getEmail(),
+                    LocalDate.of(2022, 1, 1),
+                    LocalDate.of(2022, 12, 31))
+            );
+
+            //then
+            assertEquals(exception.getErrorCode(), NO_MEMBER);
+        }
+    }
+
 }

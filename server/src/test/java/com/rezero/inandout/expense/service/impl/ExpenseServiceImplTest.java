@@ -1,6 +1,7 @@
 package com.rezero.inandout.expense.service.impl;
 
 import com.rezero.inandout.exception.ExpenseException;
+import com.rezero.inandout.exception.errorcode.ExpenseErrorCode;
 import com.rezero.inandout.expense.entity.DetailExpenseCategory;
 import com.rezero.inandout.expense.entity.Expense;
 import com.rezero.inandout.expense.entity.ExpenseCategory;
@@ -10,10 +11,13 @@ import com.rezero.inandout.expense.model.ExpenseDto;
 import com.rezero.inandout.expense.model.ExpenseInput;
 import com.rezero.inandout.expense.repository.DetailExpenseCategoryRepository;
 import com.rezero.inandout.expense.repository.ExpenseCategoryRepository;
+import com.rezero.inandout.expense.repository.ExpenseQueryRepository;
 import com.rezero.inandout.expense.repository.ExpenseRepository;
 import com.rezero.inandout.expense.service.base.impl.ExpenseServiceImpl;
 import com.rezero.inandout.member.entity.Member;
 import com.rezero.inandout.member.repository.MemberRepository;
+import com.rezero.inandout.report.model.ReportDto;
+import com.rezero.inandout.report.model.YearlyExpenseReportDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -49,6 +53,9 @@ class ExpenseServiceImplTest {
 
     @Mock
     private MemberRepository memberRepository;
+
+    @Mock
+    private ExpenseQueryRepository expenseQueryRepository;
 
     @InjectMocks
     private ExpenseServiceImpl expenseServiceImpl;
@@ -486,6 +493,156 @@ class ExpenseServiceImplTest {
 
             //then
             assertEquals("지출내역의 주인이 아닙니다. 잘못된 요청입니다.", exception.getErrorCode().getDescription());
+        }
+    }
+
+    @Nested
+    @DisplayName("월 지출 보고서 조회")
+    class getExpenseMonthReportMethod {
+        Member member = Member.builder()
+                .memberId(1L)
+                .email("hgd@gmail.com")
+                .password("1234")
+                .build();
+
+        @Test
+        @DisplayName("월 지출 보고서 조회 - 성공")
+        void getExpenseMonthReport_success() {
+            //given
+            given(memberRepository.findByEmail(any()))
+                    .willReturn(Optional.of(member));
+
+
+            List<ReportDto> result = Arrays.asList(
+                    new ReportDto("건강/문화", 8800000, 27.07),
+                    new ReportDto("교통/차량", 23000000, 70.76),
+                    new ReportDto("세금/이자", 200000, 0.62),
+                    new ReportDto("식비", 41000, 0.13),
+                    new ReportDto("의복/미용", 462000, 1.42)
+            );
+
+            given(expenseQueryRepository.getMonthlyExpenseReport(any(), any(), any()))
+                    .willReturn(result);
+
+            //when
+            List<ReportDto> reportDtos = expenseServiceImpl.getMonthlyExpenseReport(
+                    "hgd@gmail.com",
+                    LocalDate.of(2022, 10, 1),
+                    LocalDate.of(2022, 10, 31)
+            );
+
+            //then
+            assertEquals(8800000, reportDtos.get(0).getCategorySum());
+            assertEquals(23000000, reportDtos.get(1).getCategorySum());
+            assertEquals(200000, reportDtos.get(2).getCategorySum());
+            assertEquals(41000, reportDtos.get(3).getCategorySum());
+            assertEquals(462000, reportDtos.get(4).getCategorySum());
+        }
+
+        @Test
+        @DisplayName("월 지출 보고서 조회 - 실패 : 없는 회원")
+        void getExpenseMonthReport_fail_noMember() {
+            //given
+            given(memberRepository.findByEmail(any()))
+                    .willReturn(Optional.empty());
+
+            //when
+            ExpenseException exception = assertThrows(ExpenseException.class,
+                    () -> expenseServiceImpl.getMonthlyExpenseReport(
+                            "hgd@gmail.com",
+                            LocalDate.of(2022, 10, 1),
+                            LocalDate.of(2022, 10, 31)
+                    )
+            );
+
+            //then
+            assertEquals(exception.getErrorCode(), ExpenseErrorCode.NO_MEMBER);
+        }
+    }
+
+    @Nested
+    @DisplayName("연 지출 보고서 조회")
+    class getYearlyExpenseReportMethod {
+        Member member = Member.builder()
+                .memberId(1L)
+                .email("hgd@gmail.com")
+                .password("1234")
+                .build();
+
+        @Test
+        @DisplayName("연 지출 보고서 조회 - 성공")
+        void getYearlyExpenseReport_success() {
+            //given
+            given(memberRepository.findByEmail(any()))
+                    .willReturn(Optional.of(member));
+
+            List<ReportDto> reportDtos = Arrays.asList(
+                    ReportDto.builder()
+                            .category("건강/문화")
+                            .categorySum(8800000)
+                            .categoryRatio(27.07)
+                            .build(),
+                    ReportDto.builder()
+                            .category("교통/차량")
+                            .categorySum(23000000)
+                            .categoryRatio(70.76)
+                            .build(),
+                    ReportDto.builder()
+                            .category("세금/이자")
+                            .categorySum(200000)
+                            .categoryRatio(0.62)
+                            .build(),
+                    ReportDto.builder()
+                            .category("식비")
+                            .categorySum(41000)
+                            .categoryRatio(0.13)
+                            .build(),
+                    ReportDto.builder()
+                            .category("의복/미용")
+                            .categorySum(462000)
+                            .categoryRatio(1.42)
+                            .build()
+            );
+
+            given(expenseQueryRepository.getMonthlyExpenseReport(any(),any(),any()))
+                    .willReturn(reportDtos);
+
+            //when
+            List<YearlyExpenseReportDto> yearlyReportDtos =
+                    expenseServiceImpl.getYearlyExpenseReport(
+                            "hgd@gmail.com",
+                            LocalDate.of(2022, 1, 1),
+                            LocalDate.of(2022, 12, 31));
+
+            //then
+            assertEquals(2022, yearlyReportDtos.get(9).getYear());
+            assertEquals(10, yearlyReportDtos.get(9).getMonth());
+            assertEquals(8800000+23000000+200000+41000+462000, yearlyReportDtos.get(9).getMonthlySum());
+            assertEquals(8800000, yearlyReportDtos.get(9).getExpenseReport().get(0).getCategorySum());
+            assertEquals(23000000, yearlyReportDtos.get(9).getExpenseReport().get(1).getCategorySum());
+            assertEquals(200000, yearlyReportDtos.get(9).getExpenseReport().get(2).getCategorySum());
+            assertEquals(41000, yearlyReportDtos.get(9).getExpenseReport().get(3).getCategorySum());
+            assertEquals(462000, yearlyReportDtos.get(9).getExpenseReport().get(4).getCategorySum());
+        }
+
+        @Test
+        @DisplayName("연 지출 보고서 조회 - 실패 : 없는 회원")
+        void getYearlyExpenseReport_fail_noMember() {
+            //given
+            given(memberRepository.findByEmail(any()))
+                    .willReturn(Optional.empty());
+
+            //when
+            ExpenseException exception = assertThrows(ExpenseException.class,
+                    () -> expenseServiceImpl.getYearlyExpenseReport(
+                            "hgd@gmail.com",
+                            LocalDate.of(2022, 10, 1),
+                            LocalDate.of(2022, 10, 31)
+                    )
+            );
+
+            //then
+            assertEquals(exception.getErrorCode(), ExpenseErrorCode.NO_MEMBER);
         }
     }
 }
