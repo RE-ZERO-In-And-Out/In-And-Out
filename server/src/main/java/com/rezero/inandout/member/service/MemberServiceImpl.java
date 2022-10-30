@@ -64,15 +64,8 @@ public class MemberServiceImpl implements MemberService {
         }
 
         Member member = optionalMember.get();
-        if (member.getStatus().equals(MemberStatus.REQ)) {
-            throw new MemberException(MemberErrorCode.CANNOT_LOGIN_REQ);
-        }
-        if (member.getStatus().equals(MemberStatus.WITHDRAW)) {
-            throw new MemberException(MemberErrorCode.CANNOT_LOGIN_WITHDRAW);
-        }
-        if (member.getStatus().equals(MemberStatus.STOP)) {
-            throw new MemberException(MemberErrorCode.CANNOT_LOGIN_STOP);
-        }
+
+
 
         return new User(member.getEmail(), member.getPassword(), AuthorityUtils.NO_AUTHORITIES);
     }
@@ -84,8 +77,18 @@ public class MemberServiceImpl implements MemberService {
         UserDetails userDetails = loadUserByUsername(input.getEmail());
         Optional<Member> optionalMember = memberRepository.findByEmail(input.getEmail());
         Member member = optionalMember.get();
+
         if (!bCryptPasswordEncoder.matches(input.getPassword(), member.getPassword())) {
             throw new MemberException(PASSWORD_NOT_MATCH);
+        }
+        if (member.getStatus().equals(MemberStatus.REQ)) {
+            throw new MemberException(MemberErrorCode.CANNOT_LOGIN_REQ);
+        }
+        if (member.getStatus().equals(MemberStatus.WITHDRAW)) {
+            throw new MemberException(MemberErrorCode.CANNOT_LOGIN_WITHDRAW);
+        }
+        if (member.getStatus().equals(MemberStatus.STOP)) {
+            throw new MemberException(MemberErrorCode.CANNOT_LOGIN_STOP);
         }
 
         UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
