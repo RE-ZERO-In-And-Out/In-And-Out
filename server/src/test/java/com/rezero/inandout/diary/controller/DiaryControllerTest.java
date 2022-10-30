@@ -1,0 +1,100 @@
+package com.rezero.inandout.diary.controller;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.rezero.inandout.diary.model.DiaryDto;
+import com.rezero.inandout.diary.service.DiaryService;
+import com.rezero.inandout.member.entity.Member;
+import com.rezero.inandout.member.service.MemberService;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
+import org.springframework.http.MediaType;
+import org.springframework.security.authentication.TestingAuthenticationToken;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.test.web.servlet.MockMvc;
+
+import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@MockBean(JpaMetamodelMappingContext.class)
+@WebMvcTest(DiaryController.class)
+@AutoConfigureMockMvc(addFilters = false)
+@DisplayName("DiaryController 테스트")
+class DiaryControllerTest {
+
+    @MockBean
+    private DiaryService diaryService;
+
+    @MockBean
+    private MemberService memberService;
+
+    @Autowired
+    MockMvc mockMvc;
+
+    @Autowired
+    ObjectMapper objectMapper;
+
+    @Test
+    void getDiaryList() throws Exception {
+        //given
+        Member member = Member.builder()
+                .memberId(1L)
+                .email("hgd@gmail.com")
+                .password("1234")
+                .build();
+
+        User user = new User(member.getEmail(), member.getPassword(), AuthorityUtils.NO_AUTHORITIES);
+        TestingAuthenticationToken testingAuthenticationToken = new TestingAuthenticationToken(user,null);
+
+        List<DiaryDto> diaryDtos = Arrays.asList(
+                DiaryDto.builder()
+                        .diaryId(1L)
+                        .nickName("홍길동")
+                        .diaryDt(LocalDate.of(2020, 10, 1))
+                        .text("굿")
+                        .diaryPhotoUrl("/diary/photo/~~")
+                        .build(),
+                DiaryDto.builder()
+                        .diaryId(2L)
+                        .nickName("홍길동")
+                        .diaryDt(LocalDate.of(2020, 10, 2))
+                        .text("굿")
+                        .diaryPhotoUrl("/diary/photo/~~")
+                        .build(),
+                DiaryDto.builder()
+                        .diaryId(3L)
+                        .nickName("홍길동")
+                        .diaryDt(LocalDate.of(2020, 10, 3))
+                        .text("굿")
+                        .diaryPhotoUrl("/diary/photo/~~")
+                        .build()
+        );
+        given(diaryService.getDiaryList(any(), any(), any()))
+                .willReturn(diaryDtos);
+
+        //when
+        //then
+        mockMvc.perform(
+                get("/api/diary?startDt=2022-10-01&endDt=2022-10-31")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .principal(testingAuthenticationToken)
+        ).andExpect(status().isOk())
+                .andDo(print())
+                .andExpect(jsonPath("$.[0].diaryId").value(1L))
+                .andExpect(jsonPath("$.[1].diaryId").value(2L))
+                .andExpect(jsonPath("$.[2].diaryId").value(3L));
+    }
+}
