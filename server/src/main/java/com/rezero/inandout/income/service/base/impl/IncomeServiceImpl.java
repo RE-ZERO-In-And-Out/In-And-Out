@@ -5,6 +5,7 @@ import static com.rezero.inandout.exception.errorcode.IncomeErrorCode.NO_CATEGOR
 import static com.rezero.inandout.exception.errorcode.IncomeErrorCode.NO_INCOME;
 import static com.rezero.inandout.exception.errorcode.IncomeErrorCode.NO_MEMBER;
 
+import com.rezero.inandout.calendar.model.CalendarIncomeDto;
 import com.rezero.inandout.exception.IncomeException;
 import com.rezero.inandout.income.entity.DetailIncomeCategory;
 import com.rezero.inandout.income.entity.Income;
@@ -202,6 +203,13 @@ public class IncomeServiceImpl implements IncomeService {
         }
 
         return yearlyReportDtoList;
+    }
+
+    @Override
+    public List<CalendarIncomeDto> getMonthlyIncomeCalendar(String email, LocalDate startDt, LocalDate endDt) {
+        Member member = findMemberByEmail(email);
+
+        return incomeQueryRepository.getMonthlyIncomeCalendar(member.getMemberId(), startDt, endDt);
     }
 
 

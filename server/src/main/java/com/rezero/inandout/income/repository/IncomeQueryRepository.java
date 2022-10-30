@@ -2,6 +2,7 @@ package com.rezero.inandout.income.repository;
 
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.rezero.inandout.calendar.model.CalendarIncomeDto;
 import com.rezero.inandout.income.entity.QDetailIncomeCategory;
 import com.rezero.inandout.income.entity.QIncome;
 import com.rezero.inandout.income.entity.QIncomeCategory;
@@ -57,4 +58,16 @@ public class IncomeQueryRepository {
 
     }
 
+    public List<CalendarIncomeDto> getMonthlyIncomeCalendar(Long id, LocalDate startDt, LocalDate endDt) {
+
+        return queryFactory
+            .select(Projections.constructor(CalendarIncomeDto.class,
+                income.incomeDt, income.incomeItem, income.incomeAmount))
+            .from(income)
+            .where(income.member.memberId.eq(id)
+                .and(income.incomeDt.between(startDt, endDt)))
+            .orderBy(income.incomeDt.asc())
+            .fetch();
+
+    }
 }

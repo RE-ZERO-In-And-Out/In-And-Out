@@ -1,5 +1,6 @@
 package com.rezero.inandout.expense.service.base;
 
+import com.rezero.inandout.calendar.model.CalendarExpenseDto;
 import com.rezero.inandout.expense.model.DeleteExpenseInput;
 import com.rezero.inandout.expense.model.ExpenseCategoryDto;
 import com.rezero.inandout.expense.model.ExpenseDto;
@@ -25,4 +26,6 @@ public interface ExpenseService {
     List<ReportDto> getMonthlyExpenseReport(String email, LocalDate startDt, LocalDate endDt);
 
     List<YearlyExpenseReportDto> getYearlyExpenseReport(String email, LocalDate startDt, LocalDate endDt);
+
+    List<CalendarExpenseDto> getMonthlyExpenseCalendar(String email, LocalDate startDt, LocalDate endDt);
 }
