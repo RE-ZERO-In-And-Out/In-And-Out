@@ -5,7 +5,7 @@ import com.rezero.inandout.expense.model.ExpenseCategoryDto;
 import com.rezero.inandout.expense.model.ExpenseDto;
 import com.rezero.inandout.expense.model.ExpenseInput;
 import com.rezero.inandout.report.model.ReportDto;
-import com.rezero.inandout.report.model.YearlyReportDto;
+import com.rezero.inandout.report.model.YearlyExpenseReportDto;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -24,5 +24,5 @@ public interface ExpenseService {
 
     List<ReportDto> getMonthlyExpenseReport(String email, LocalDate startDt, LocalDate endDt);
 
-    List<YearlyReportDto> getYearlyExpenseReport(String email, LocalDate startDt, LocalDate endDt);
+    List<YearlyExpenseReportDto> getYearlyExpenseReport(String email, LocalDate startDt, LocalDate endDt);
 }

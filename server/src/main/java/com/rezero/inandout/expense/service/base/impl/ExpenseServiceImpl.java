@@ -14,7 +14,7 @@ import com.rezero.inandout.expense.service.base.ExpenseService;
 import com.rezero.inandout.member.entity.Member;
 import com.rezero.inandout.member.repository.MemberRepository;
 import com.rezero.inandout.report.model.ReportDto;
-import com.rezero.inandout.report.model.YearlyReportDto;
+import com.rezero.inandout.report.model.YearlyExpenseReportDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -142,7 +142,8 @@ public class ExpenseServiceImpl implements ExpenseService {
 
         Member member = findMemberByEmail(email);
 
-        List<ReportDto> reportDtos = expenseQueryRepository.getMonthlyExpenseReport(member, startDt, endDt);
+        List<ReportDto> reportDtos
+            = expenseQueryRepository.getMonthlyExpenseReport(member, startDt, endDt);
 
         int totalSum;
 
@@ -160,13 +161,13 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
-    public List<YearlyReportDto> getYearlyExpenseReport(String email, LocalDate startDt, LocalDate endDt) {
+    public List<YearlyExpenseReportDto> getYearlyExpenseReport(String email, LocalDate startDt, LocalDate endDt) {
 
         Member member = findMemberByEmail(email);
 
         LocalDate countDate = startDt;
 
-        List<YearlyReportDto> yearlyReportDtos = new ArrayList<>();
+        List<YearlyExpenseReportDto> yearlyReportDtos = new ArrayList<>();
 
         while (countDate.isBefore(endDt)) {
             List<ReportDto> reportDtos = expenseQueryRepository.getMonthlyExpenseReport(
@@ -182,11 +183,11 @@ public class ExpenseServiceImpl implements ExpenseService {
                 totalSum += reportDto.getCategorySum();
             }
 
-            YearlyReportDto yearlyReportDto = YearlyReportDto.builder()
+            YearlyExpenseReportDto yearlyReportDto = YearlyExpenseReportDto.builder()
                     .year(countDate.getYear())
                     .month(countDate.getMonthValue())
                     .monthlySum(totalSum)
-                    .report(reportDtos)
+                    .expenseReport(reportDtos)
                     .build();
 
             yearlyReportDtos.add(yearlyReportDto);
