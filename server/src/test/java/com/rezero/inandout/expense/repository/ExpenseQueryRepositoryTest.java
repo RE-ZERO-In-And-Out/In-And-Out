@@ -5,9 +5,11 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.rezero.inandout.calendar.model.CalendarExpenseDto;
 import com.rezero.inandout.expense.entity.QExpense;
 import com.rezero.inandout.member.entity.Member;
 import com.rezero.inandout.report.model.ReportDto;
+import java.util.ArrayList;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,6 +25,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("ExpenseQueryRepository 테스트")
@@ -132,5 +135,58 @@ class ExpenseQueryRepositoryTest {
         );
         //then
         assertEquals(8800000 + 23000000 + 200000 + 41000 + 462000, result);
+    }
+
+    @Test
+    @DisplayName("달력 월 수입내역 조회")
+    void getMonthlyIncomeCalendar_success() {
+
+        //given
+        QExpense expense = QExpense.expense;
+
+        List<CalendarExpenseDto> calendarExpenseDtoList = new ArrayList<>(Arrays.asList(
+            CalendarExpenseDto.builder().expenseDt(LocalDate.of(2022, 10, 2))
+                .item("지출1").amount(6543).build(),
+            CalendarExpenseDto.builder().expenseDt(LocalDate.of(2022, 10, 28))
+                .item("지출2").amount(12345).build()
+        ));
+
+        JPAQuery step1 = mock(JPAQuery.class);
+        given(jpaQueryFactory.select(
+                Projections.constructor(CalendarExpenseDto.class,
+                    expense.expenseDt, expense.expenseItem,
+                    expense.expenseCard.add(expense.expenseCash).sum())))
+            .willReturn(step1);
+
+        JPAQuery step2 = mock(JPAQuery.class);
+        given(step1.from(expense))
+            .willReturn(step2);
+
+        JPAQuery step3 = mock(JPAQuery.class);
+        given(step2.where(
+            any(BooleanExpression.class)))
+            .willReturn(step3);
+
+        JPAQuery step4 = mock(JPAQuery.class);
+        given(step3.groupBy(
+            expense.expenseDt))
+            .willReturn(step4);
+
+        JPAQuery step5 = mock(JPAQuery.class);
+        given(step4.orderBy(
+            expense.expenseDt.asc()))
+            .willReturn(step5);
+
+        given(step5.fetch())
+            .willReturn(calendarExpenseDtoList);
+
+        //when
+        List<CalendarExpenseDto> getCalendarExpenseDtoList
+            = expenseQueryRepository.getMonthlyExpenseCalendar(1L,
+            LocalDate.of(2022,10,1),
+            LocalDate.of(2022,10,31));
+
+        //then
+        assertEquals(getCalendarExpenseDtoList, calendarExpenseDtoList);
     }
 }
