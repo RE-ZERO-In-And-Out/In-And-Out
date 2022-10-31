@@ -1,5 +1,6 @@
 package com.rezero.inandout.diary.controller;
 
+import com.rezero.inandout.diary.model.AddDiaryInput;
 import com.rezero.inandout.diary.model.DiaryDto;
 import com.rezero.inandout.diary.service.DiaryService;
 import io.swagger.annotations.ApiOperation;
@@ -7,10 +8,9 @@ import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.format.annotation.DateTimeFormat.ISO;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.security.Principal;
 import java.time.LocalDate;
@@ -36,4 +36,16 @@ public class DiaryController {
 
     }
 
+    @PostMapping
+    @ApiOperation(value = "일기 등록 API",
+            notes = "일기 을 통해 저장을 할 수 있다.")
+    public ResponseEntity<?> addDiary(Principal principal,
+                                      @RequestPart AddDiaryInput addDiaryInput,
+                                      @RequestPart MultipartFile file) {
+
+        diaryService.addDiary(principal.getName(), addDiaryInput.getDiaryDt(),
+                addDiaryInput.getText(), file);
+
+        return ResponseEntity.ok("일기가 등록됐습니다.");
+    }
 }

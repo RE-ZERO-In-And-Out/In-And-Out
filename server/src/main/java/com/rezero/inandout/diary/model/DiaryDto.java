@@ -18,7 +18,7 @@ public class DiaryDto {
     private String nickName;
     private LocalDate diaryDt;
     private String text;
-    private String diaryPhotoUrl;
+    private String s3ImageUrl;
 
     public static DiaryDto toDto(Diary diary) {
         return DiaryDto.builder()
