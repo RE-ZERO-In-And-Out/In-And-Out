@@ -1,6 +1,9 @@
 package com.rezero.inandout.member.service;
 
+import static com.rezero.inandout.exception.errorcode.MemberErrorCode.CONFIRM_PASSWORD;
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.MEMBER_NOT_EXIST;
+import static com.rezero.inandout.exception.errorcode.MemberErrorCode.RESET_PASSWORD_KEY_EXPIRED;
+import static com.rezero.inandout.exception.errorcode.MemberErrorCode.RESET_PASSWORD_KEY_NOT_EXIST;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -18,9 +21,11 @@ import com.rezero.inandout.member.model.JoinMemberInput;
 import com.rezero.inandout.member.model.LoginMemberInput;
 import com.rezero.inandout.member.model.MemberDto;
 import com.rezero.inandout.member.model.MemberStatus;
+import com.rezero.inandout.member.model.ResetPasswordInput;
 import com.rezero.inandout.member.model.UpdateMemberInput;
 import com.rezero.inandout.member.repository.MemberRepository;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
@@ -85,12 +90,8 @@ class MemberServiceImplTest {
 
         // given
         String uuid = UUID.randomUUID().toString();
-        Member member = Member.builder()
-            .email("egg@naver.com")
-            .password("abc123!@")
-            .emailAuthKey(uuid)
-            .status(MemberStatus.REQ)
-            .build();
+        Member member = Member.builder().email("egg@naver.com").password("abc123!@")
+            .emailAuthKey(uuid).status(MemberStatus.REQ).build();
         given(memberRepository.findByEmailAuthKey(anyString())).willReturn(Optional.of(member));
 
         // when
@@ -406,8 +407,7 @@ class MemberServiceImplTest {
             null);
 
         // when
-        securityContextHolder.getContext()
-            .setAuthentication(testingAuthenticationToken);
+        securityContextHolder.getContext().setAuthentication(testingAuthenticationToken);
         memberService.logout();
 
         // then
@@ -439,10 +439,7 @@ class MemberServiceImplTest {
     void withdraw() {
 
         // given
-        Member member = Member.builder()
-            .email("egg@naver.com")
-            .status(MemberStatus.ING)
-            .build();
+        Member member = Member.builder().email("egg@naver.com").status(MemberStatus.ING).build();
         String rawPassword = "abc123!@";
         member.setPassword(bCryptPasswordEncoder.encode(rawPassword));
 
@@ -460,10 +457,7 @@ class MemberServiceImplTest {
     void withdraw_fail_email() {
 
         // given
-        Member member = Member.builder()
-            .email("egg@naver.com")
-            .status(MemberStatus.ING)
-            .build();
+        Member member = Member.builder().email("egg@naver.com").status(MemberStatus.ING).build();
         String rawPassword = "abc123!@";
         member.setPassword(bCryptPasswordEncoder.encode(rawPassword));
 
@@ -483,10 +477,7 @@ class MemberServiceImplTest {
     void withdraw_fail_pwd() {
 
         // given
-        Member member = Member.builder()
-            .email("egg@naver.com")
-            .status(MemberStatus.ING)
-            .build();
+        Member member = Member.builder().email("egg@naver.com").status(MemberStatus.ING).build();
         String rawPassword = "abc123!@";
         String wrongPassword = "xyz123!@";
         member.setPassword(bCryptPasswordEncoder.encode(rawPassword));
@@ -500,5 +491,86 @@ class MemberServiceImplTest {
         assertEquals(MemberErrorCode.PASSWORD_NOT_MATCH, exception.getErrorCode());
 
     }
+
+
+    @Test
+    @DisplayName("비밀번호 초기화 - 성공")
+    void resetPassword() {
+
+        // given
+        ResetPasswordInput input = ResetPasswordInput.builder().newPassword("abc123!@")
+            .confirmNewPassword("abc123!@").build();
+
+        // when
+        String uuid = UUID.randomUUID().toString();
+        Member member = Member.builder().email("egg@naver.com").resetPasswordKey(uuid)
+            .resetPasswordLimitDt(LocalDateTime.now().plusDays(1)).status(MemberStatus.ING).build();
+        given(memberRepository.findByResetPasswordKey(anyString())).willReturn(Optional.of(member));
+
+        // then
+        memberService.resetPassword(uuid, input);
+    }
+
+
+    @Test
+    @DisplayName("비밀번호 초기화 실패 - (1) uuid 오류")
+    void resetPassword_fail_uuid() {
+
+        // given
+        ResetPasswordInput input = ResetPasswordInput.builder().newPassword("abc123!@")
+            .confirmNewPassword("abc123!@").build();
+
+        // when
+        String uuid = UUID.randomUUID().toString();
+        given(memberRepository.findByResetPasswordKey(anyString())).willReturn(Optional.empty());
+
+        // then
+        MemberException exception = assertThrows(MemberException.class,
+            () -> memberService.resetPassword(uuid, input));
+        assertEquals(exception.getErrorCode(), RESET_PASSWORD_KEY_NOT_EXIST);
+    }
+
+
+    @Test
+    @DisplayName("비밀번호 초기화 실패 - (2) 비밀번호 확인 불일치")
+    void resetPassword_fail_password_not_match() {
+
+        // given
+        ResetPasswordInput input = ResetPasswordInput.builder().newPassword("abc123!@")
+            .confirmNewPassword("abc123!@#$%").build();
+
+        // when
+        String uuid = UUID.randomUUID().toString();
+        Member member = Member.builder().email("egg@naver.com").resetPasswordKey(uuid)
+            .resetPasswordLimitDt(LocalDateTime.now().plusDays(1)).status(MemberStatus.ING).build();
+        given(memberRepository.findByResetPasswordKey(anyString())).willReturn(Optional.of(member));
+
+        // then
+        MemberException exception = assertThrows(MemberException.class,
+            () -> memberService.resetPassword(uuid, input));
+        assertEquals(exception.getErrorCode(), CONFIRM_PASSWORD);
+    }
+
+
+    @Test
+    @DisplayName("비밀번호 초기화 실패 - (3) 초기화 기간 만료")
+    void resetPassword_fail_resetDt_expired() {
+
+        // given
+        ResetPasswordInput input = ResetPasswordInput.builder().newPassword("abc123!@")
+            .confirmNewPassword("abc123!@").build();
+
+        // when
+        String uuid = UUID.randomUUID().toString();
+        Member member = Member.builder().email("egg@naver.com").resetPasswordKey(uuid)
+            .resetPasswordLimitDt(LocalDateTime.now()).status(MemberStatus.ING).build();
+        given(memberRepository.findByResetPasswordKey(anyString())).willReturn(Optional.of(member));
+
+        // then
+        MemberException exception = assertThrows(MemberException.class,
+            () -> memberService.resetPassword(uuid, input));
+        assertEquals(exception.getErrorCode(), RESET_PASSWORD_KEY_EXPIRED);
+    }
+
 
 }
