@@ -21,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -38,8 +39,27 @@ public class DiaryServiceImpl implements DiaryService {
     public List<DiaryDto> getDiaryList(String email, LocalDate startDt, LocalDate endDt) {
         Member member = findMemberByEmail(email);
 
-        return DiaryDto.toDtos(diaryRepository.findByMemberAndDiaryDtBetween(member, startDt, endDt));
+        List<Diary> diaries = diaryRepository.findByMemberAndDiaryDtBetween(member, startDt, endDt);
+
+        List<DiaryDto> diaryDtos = new ArrayList<>();
+
+        for (Diary diary : diaries) {
+            diaryDtos.add(DiaryDto.builder()
+                    .diaryId(diary.getDiaryId())
+                    .nickName(diary.getMember().getNickName())
+                    .diaryDt(diary.getDiaryDt())
+                    .text(diary.getText())
+                    .s3ImageUrl(getS3ImageUrl(diary.getDiaryS3ImageKey()))
+                    .build());
+        }
+
+        return diaryDtos;
     }
+
+    private String getS3ImageUrl(String s3ImageKey) {
+        return amazonS3Client.getUrl(S3Bucket, s3ImageKey).toString();
+    }
+
 
     @Override
     public void addDiary(String email, LocalDate diaryDt, String text, MultipartFile file) {
@@ -51,7 +71,7 @@ public class DiaryServiceImpl implements DiaryService {
                 .member(member)
                 .diaryDt(diaryDt)
                 .text(text)
-                .s3ImageKey(s3ImageKey)
+                .diaryS3ImageKey(s3ImageKey)
                 .build();
 
         diaryRepository.save(diary);
