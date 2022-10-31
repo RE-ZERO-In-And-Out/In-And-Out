@@ -33,6 +33,6 @@ public class Diary extends BaseEntity{
     private LocalDate diaryDt;
     private String text;
 
-    @Column(name = "s3_image_key")
-    private String s3ImageKey;
+    @Column(name = "diary_s3_image_key")
+    private String diaryS3ImageKey;
 }
