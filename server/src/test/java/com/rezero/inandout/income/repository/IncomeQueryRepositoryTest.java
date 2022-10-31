@@ -11,11 +11,13 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.rezero.inandout.calendar.model.CalendarIncomeDto;
 import com.rezero.inandout.income.entity.QIncome;
 import com.rezero.inandout.income.entity.QIncomeCategory;
 import com.rezero.inandout.report.model.ReportDto;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -204,4 +206,52 @@ class IncomeQueryRepositoryTest {
         //then
         assertEquals(sum, 10000);
     }
+
+    @Test
+    @DisplayName("달력 월 수입내역 조회")
+    void getMonthlyIncomeCalendar_success() {
+
+        //given
+        QIncome income = new QIncome("i");
+        QIncomeCategory incomeCategory = new QIncomeCategory("ic");
+
+        List<CalendarIncomeDto> calendarIncomeDtoList = new ArrayList<>(Arrays.asList(
+            CalendarIncomeDto.builder().incomeDt(LocalDate.of(2022, 10, 2))
+                .item("수입1").amount(123456).build(),
+            CalendarIncomeDto.builder().incomeDt(LocalDate.of(2022, 10, 28))
+                .item("수입2").amount(54321).build()
+        ));
+
+        JPAQuery step1 = mock(JPAQuery.class);
+        given(queryFactory.select(Projections.constructor(CalendarIncomeDto.class,
+                income.incomeDt, income.incomeItem, income.incomeAmount)))
+            .willReturn(step1);
+
+        JPAQuery step2 = mock(JPAQuery.class);
+        given(step1.from(income))
+            .willReturn(step2);
+
+        JPAQuery step3 = mock(JPAQuery.class);
+        given(step2.where(
+            any(BooleanExpression.class)))
+            .willReturn(step3);
+
+        JPAQuery step4 = mock(JPAQuery.class);
+        given(step3.orderBy(
+            income.incomeDt.asc()))
+            .willReturn(step4);
+
+        given(step4.fetch())
+            .willReturn(calendarIncomeDtoList);
+
+        //when
+        List<CalendarIncomeDto> getCalendarIncomeDtoList
+            = incomeQueryRepository.getMonthlyIncomeCalendar(1L,
+            LocalDate.of(2022,10,1),
+            LocalDate.of(2022,10,31));
+
+        //then
+        assertEquals(getCalendarIncomeDtoList, calendarIncomeDtoList);
+    }
+
 }
