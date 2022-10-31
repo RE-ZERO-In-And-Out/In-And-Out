@@ -8,6 +8,7 @@ import com.rezero.inandout.diary.entity.Diary;
 import com.rezero.inandout.diary.model.DiaryDto;
 import com.rezero.inandout.diary.repository.DiaryRepository;
 import com.rezero.inandout.diary.service.DiaryService;
+import com.rezero.inandout.exception.DiaryException;
 import com.rezero.inandout.exception.MemberException;
 import com.rezero.inandout.exception.errorcode.MemberErrorCode;
 import com.rezero.inandout.member.entity.Member;
@@ -72,7 +73,7 @@ public class DiaryServiceImpl implements DiaryService {
                             .withCannedAcl(CannedAccessControlList.PublicRead)
             );
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new DiaryException(e.getMessage());
         }
 
         return key;
