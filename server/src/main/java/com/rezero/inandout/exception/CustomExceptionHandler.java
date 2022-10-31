@@ -1,5 +1,6 @@
 package com.rezero.inandout.exception;
 
+import com.rezero.inandout.exception.response.DiaryErrorResponse;
 import com.rezero.inandout.exception.response.ExpenseErrorResponse;
 import com.rezero.inandout.exception.response.IncomeErrorResponse;
 import com.rezero.inandout.exception.response.MemberErrorResponse;
@@ -32,16 +33,25 @@ public class CustomExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(MemberException.class)
-    protected ResponseEntity<MemberErrorResponse> MemberHandlerCustomException(
-        MemberException e) {
-        MemberErrorResponse errorResponse = MemberErrorResponse.builder()
-            .errorCode(e.getErrorCode())
-            .message(e.getErrorCode().getDescription())
-            .build();
+    @ExceptionHandler(DiaryException.class)
+    protected ResponseEntity<DiaryErrorResponse> MemberHandlerCustomException(
+            DiaryException e) {
+        DiaryErrorResponse errorResponse = DiaryErrorResponse.builder()
+                .errorCode(e.getErrorCode())
+                .message(e.getMessage())
+                .build();
 
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(MemberException.class)
+    protected ResponseEntity<MemberErrorResponse> MemberHandlerCustomException(
+            MemberException e) {
+        MemberErrorResponse errorResponse = MemberErrorResponse.builder()
+                .errorCode(e.getErrorCode())
+                .message(e.getErrorCode().getDescription())
+                .build();
 
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
 }
