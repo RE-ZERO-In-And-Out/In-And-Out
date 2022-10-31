@@ -19,6 +19,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
@@ -67,33 +69,41 @@ class DiaryServiceImplTest {
                         .member(member)
                         .diaryDt(LocalDate.of(2020, 10, 1))
                         .text("굿")
-//                        .diaryPhotoUrl("/diary/photo/~~")
+                        .diaryS3ImageKey("2022-10-31T17:36:50.822 diary 강아지.jpg")
                         .build(),
                 Diary.builder()
                         .diaryId(2L)
                         .member(member)
                         .diaryDt(LocalDate.of(2020, 10, 2))
                         .text("굿")
-//                        .diaryPhotoUrl("/diary/photo/~~")
+                        .diaryS3ImageKey("2022-10-31T17:36:50.822 diary 강아지.jpg")
                         .build(),
                 Diary.builder()
                         .diaryId(3L)
                         .member(member)
                         .diaryDt(LocalDate.of(2020, 10, 3))
                         .text("굿")
-//                        .diaryPhotoUrl("/diary/photo/~~")
+                        .diaryS3ImageKey("2022-10-31T17:36:50.822 diary 강아지.jpg")
                         .build()
         );
 
         @Test
         @DisplayName("일기 목록 조회 - 성공")
-        void getDiaryList_success() {
+        void getDiaryList_success() throws MalformedURLException {
             //given
             given(memberRepository.findByEmail(anyString()))
                     .willReturn(Optional.of(member));
 
             given(diaryRepository.findByMemberAndDiaryDtBetween(any(), any(), any()))
                     .willReturn(diaries);
+
+            URL url = new URL("https://inandoutimagebucket.s3.ap-northeast-2" +
+                    ".amazonaws.com/2022-10-31T17%3A36%3A50.822%20diary%20%E1%84" +
+                    "%80%E1%85%A1%E1%86%BC%E1%84%8B%E1%85%A1%E1%84%8C%E1%85%B5.jpg");
+
+            given(amazonS3Client.getUrl(any(), any()))
+                    .willReturn(url);
+
             //when
             List<DiaryDto> diaryDtos = diaryServiceImpl.getDiaryList("hgd@gmail.com",
                     LocalDate.of(2022, 10, 1),
