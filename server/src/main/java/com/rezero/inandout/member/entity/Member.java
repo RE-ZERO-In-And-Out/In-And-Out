@@ -3,6 +3,7 @@ package com.rezero.inandout.member.entity;
 import com.rezero.inandout.domain.BaseEntity;
 import com.rezero.inandout.member.model.MemberStatus;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -39,6 +40,6 @@ public class Member extends BaseEntity {
     @Enumerated(value = EnumType.STRING)
     private MemberStatus status;
     private String resetPasswordKey;
-    private String resetPasswordLimitDt;
+    private LocalDateTime resetPasswordLimitDt;
     private String emailAuthKey;
 }

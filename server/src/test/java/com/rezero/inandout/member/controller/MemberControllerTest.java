@@ -17,6 +17,7 @@ import com.rezero.inandout.member.model.FindPasswordMemberInput;
 import com.rezero.inandout.member.model.JoinMemberInput;
 import com.rezero.inandout.member.model.LoginMemberInput;
 import com.rezero.inandout.member.model.MemberStatus;
+import com.rezero.inandout.member.model.ResetPasswordInput;
 import com.rezero.inandout.member.model.UpdateMemberInput;
 import com.rezero.inandout.member.model.WithdrawMemberInput;
 import com.rezero.inandout.member.service.MemberServiceImpl;
@@ -87,8 +88,7 @@ class MemberControllerTest {
 
         // when
         mockMvc.perform(
-                post("/api/signup/sending?id=" + uuid)
-                    .contentType(MediaType.APPLICATION_JSON))
+                post("/api/signup/sending?id=" + uuid).contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk()).andDo(print());
         ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
 
@@ -275,9 +275,7 @@ class MemberControllerTest {
         // given
         Member member = Member.builder().email("egg@naver.com").password("abc123~!")
             .status(MemberStatus.ING).build();
-        WithdrawMemberInput input = WithdrawMemberInput.builder()
-            .password("abc123~!")
-            .build();
+        WithdrawMemberInput input = WithdrawMemberInput.builder().password("abc123~!").build();
         String withdrawInputToJson = mapper.writeValueAsString(input);
         User user = new User(member.getEmail(), member.getPassword(),
             AuthorityUtils.NO_AUTHORITIES);
@@ -285,15 +283,38 @@ class MemberControllerTest {
             null);
 
         // when
-        mockMvc.perform(MockMvcRequestBuilders
-            .delete("/api/member/info").contentType(MediaType.APPLICATION_JSON)
-            .content(withdrawInputToJson)
+        mockMvc.perform(MockMvcRequestBuilders.delete("/api/member/info")
+            .contentType(MediaType.APPLICATION_JSON).content(withdrawInputToJson)
             .principal(testingAuthenticationToken)).andExpect(status().isOk()).andDo(print());
         ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
 
         // then
         Mockito.verify(memberServiceImpl, times(1)).withdraw(anyString(), captor.capture());
         assertEquals(input.getPassword(), captor.getValue());
+
+    }
+
+
+    @Test
+    @DisplayName("회원 비밀번호 초기화")
+    void resetPassword() throws Exception {
+
+        // given
+        ResetPasswordInput input = ResetPasswordInput.builder().newPassword("abc123!@")
+            .confirmNewPassword("abc123!@").build();
+        String inputToJson = mapper.writeValueAsString(input);
+
+        // when
+        String uuid = UUID.randomUUID().toString();
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/password/email/phone/sending?id=" + uuid)
+                .contentType(MediaType.APPLICATION_JSON).content(inputToJson))
+            .andExpect(status().isOk()).andDo(print());
+        ArgumentCaptor<ResetPasswordInput> captor = ArgumentCaptor.forClass(
+            ResetPasswordInput.class);
+
+        // then
+        Mockito.verify(memberServiceImpl, times(1)).resetPassword(anyString(), captor.capture());
+        assertEquals(input.getNewPassword(), captor.getValue().getNewPassword());
 
     }
 

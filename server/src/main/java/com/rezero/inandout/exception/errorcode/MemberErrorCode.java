@@ -53,6 +53,9 @@ public enum MemberErrorCode {
      * 비밀번호 오류
      */
     PASSWORD_NOT_MATCH("회원 비밀번호를 잘못 입력했습니다."),
+    CONFIRM_PASSWORD("비밀번호가 일치하지 않습니다. 두 비밀번호를 동일하게 입력하시길 바랍니다."),
+    RESET_PASSWORD_KEY_NOT_EXIST("비밀번호 초기화 코드가 존재하지 않습니다."),
+    RESET_PASSWORD_KEY_EXPIRED("비밀번호 초기화 코드의 유효기간이 만료됐습니다. 비밀번호 찾기를 처음부터 다시 진행하시길 바랍니다."),
 
     /**
      * 로그인 오류
