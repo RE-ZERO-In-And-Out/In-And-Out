@@ -301,7 +301,7 @@ class MemberControllerTest {
 
         // given
         ResetPasswordInput input = ResetPasswordInput.builder().newPassword("abc123!@")
-            .confirmNewPassword("abc123!@#$%").build();
+            .confirmNewPassword("abc123!@").build();
         String inputToJson = mapper.writeValueAsString(input);
 
         // when
@@ -315,7 +315,6 @@ class MemberControllerTest {
         // then
         Mockito.verify(memberServiceImpl, times(1)).resetPassword(anyString(), captor.capture());
         assertEquals(input.getNewPassword(), captor.getValue().getNewPassword());
-
 
     }
 
