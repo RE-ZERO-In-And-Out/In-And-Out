@@ -28,7 +28,7 @@ public class MemberDto {
             .address(member.getAddress())
             .birth(member.getBirth())
             .gender(member.getGender())
-            .memberPhotoUrl(member.getMemberPhotoUrl())
+            .memberPhotoUrl(member.getMemberS3ImageKey())
             .nickName(member.getNickName())
             .phone(member.getPhone())
             .build();
