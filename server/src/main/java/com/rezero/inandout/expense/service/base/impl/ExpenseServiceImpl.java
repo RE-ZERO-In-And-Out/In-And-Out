@@ -1,5 +1,6 @@
 package com.rezero.inandout.expense.service.base.impl;
 
+import com.rezero.inandout.calendar.model.CalendarExpenseDto;
 import com.rezero.inandout.exception.ExpenseException;
 import com.rezero.inandout.exception.errorcode.ExpenseErrorCode;
 import com.rezero.inandout.expense.entity.DetailExpenseCategory;
@@ -196,6 +197,13 @@ public class ExpenseServiceImpl implements ExpenseService {
         }
 
         return yearlyReportDtos;
+    }
+
+    @Override
+    public List<CalendarExpenseDto> getMonthlyExpenseCalendar(String email, LocalDate startDt, LocalDate endDt) {
+        Member member = findMemberByEmail(email);
+
+        return expenseQueryRepository.getMonthlyExpenseCalendar(member.getMemberId(), startDt, endDt);
     }
 
     private Expense findExpenseByExpenseId(Long expenseId) {

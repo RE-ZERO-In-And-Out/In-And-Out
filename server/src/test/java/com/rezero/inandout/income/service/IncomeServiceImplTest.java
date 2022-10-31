@@ -11,6 +11,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import com.rezero.inandout.calendar.model.CalendarIncomeDto;
 import com.rezero.inandout.exception.IncomeException;
 import com.rezero.inandout.exception.errorcode.IncomeErrorCode;
 import com.rezero.inandout.income.entity.DetailIncomeCategory;
@@ -738,6 +739,66 @@ class IncomeServiceImplTest {
             //then
             assertEquals(exception.getErrorCode(), NO_MEMBER);
         }
+    }
+
+    @Nested
+    @DisplayName("달력 수입 조회 서비스 테스트")
+    class getMonthlyIncomeCalendarMethod {
+
+        Member member = Member.builder()
+            .memberId(1L)
+            .password("1234")
+            .email("test@naver.com")
+            .build();
+
+        List<CalendarIncomeDto> calendarIncomeDtoList = new ArrayList<>(Arrays.asList(
+            CalendarIncomeDto.builder().incomeDt(LocalDate.of(2022, 10, 2))
+                .item("수입1").amount(123456).build(),
+            CalendarIncomeDto.builder().incomeDt(LocalDate.of(2022, 10, 28))
+                .item("수입2").amount(54321).build()
+        ));
+
+        @Test
+        @DisplayName("성공")
+        void getMonthlyIncomeCalendar_success() {
+            //given
+            given(memberRepository.findByEmail(any()))
+                .willReturn(Optional.of(member));
+
+            given(incomeQueryRepository.getMonthlyIncomeCalendar(any(), any(), any()))
+                .willReturn(calendarIncomeDtoList);
+
+            //when
+            List<CalendarIncomeDto> getMonthlyIncomeCalendar
+                = incomeService.getMonthlyIncomeCalendar("test@naver.com",
+                LocalDate.of(2022, 10, 1),
+                LocalDate.of(2022, 10, 31));
+
+            //then
+            verify(incomeQueryRepository, times(1))
+                .getMonthlyIncomeCalendar(any(), any(), any());
+            assertEquals(getMonthlyIncomeCalendar.get(0).getItem(),
+                        calendarIncomeDtoList.get(0).getItem());
+        }
+
+        @Test
+        @DisplayName("실패 - 맴버 없음")
+        void getMonthlyIncomeCalendar_no_member() {
+            //given
+            given(memberRepository.findByEmail(any()))
+                .willReturn(Optional.empty());
+
+            //when
+            IncomeException exception = assertThrows(IncomeException.class,
+                () -> incomeService.getMonthlyIncomeCalendar("test@naver.com",
+                    LocalDate.of(2022, 10, 1),
+                    LocalDate.of(2022, 10, 31))
+            );
+
+            //then
+            assertEquals(exception.getErrorCode(), NO_MEMBER);
+        }
+
     }
 
 }

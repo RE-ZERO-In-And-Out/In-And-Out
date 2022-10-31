@@ -1,8 +1,10 @@
 package com.rezero.inandout.expense.repository;
 
+import static com.rezero.inandout.expense.entity.QExpense.expense;
+
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.rezero.inandout.expense.entity.QExpense;
+import com.rezero.inandout.calendar.model.CalendarExpenseDto;
 import com.rezero.inandout.member.entity.Member;
 import com.rezero.inandout.report.model.ReportDto;
 import lombok.RequiredArgsConstructor;
@@ -18,8 +20,6 @@ public class ExpenseQueryRepository {
     private final JPAQueryFactory jpaQueryFactory;
 
     public List<ReportDto> getMonthlyExpenseReport(Member member, LocalDate startDt, LocalDate endDt) {
-
-        QExpense expense = QExpense.expense;
 
         List<ReportDto> result = jpaQueryFactory
                 .select(Projections.constructor(
@@ -44,13 +44,26 @@ public class ExpenseQueryRepository {
 
     public Integer getTotalSum(Member member, LocalDate startDt, LocalDate endDt) {
 
-        QExpense expense = QExpense.expense;
-
         return jpaQueryFactory.select(expense.expenseCard.add(expense.expenseCash).sum())
                 .from(expense)
                 .where(expense.member.eq(member),
                         expense.expenseDt.between(startDt, endDt))
                 .fetchOne();
+    }
+
+    public List<CalendarExpenseDto> getMonthlyExpenseCalendar(Long id, LocalDate startDt, LocalDate endDt) {
+
+        return jpaQueryFactory
+            .select(Projections.constructor(CalendarExpenseDto.class,
+                expense.expenseDt, expense.expenseItem,
+                expense.expenseCard.add(expense.expenseCash).sum()))
+            .from(expense)
+            .where(expense.member.memberId.eq(id)
+                .and(expense.expenseDt.between(startDt, endDt)))
+            .groupBy(expense.expenseDt)
+            .orderBy(expense.expenseDt.asc())
+            .fetch();
+
     }
 
 }

@@ -1,5 +1,15 @@
 package com.rezero.inandout.expense.service.impl;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
+import com.rezero.inandout.calendar.model.CalendarExpenseDto;
 import com.rezero.inandout.exception.ExpenseException;
 import com.rezero.inandout.exception.errorcode.ExpenseErrorCode;
 import com.rezero.inandout.expense.entity.DetailExpenseCategory;
@@ -18,6 +28,11 @@ import com.rezero.inandout.member.entity.Member;
 import com.rezero.inandout.member.repository.MemberRepository;
 import com.rezero.inandout.report.model.ReportDto;
 import com.rezero.inandout.report.model.YearlyExpenseReportDto;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -25,18 +40,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("ExpenseServiceImpl 테스트")
@@ -645,4 +648,65 @@ class ExpenseServiceImplTest {
             assertEquals(exception.getErrorCode(), ExpenseErrorCode.NO_MEMBER);
         }
     }
+
+    @Nested
+    @DisplayName("달력 수입 조회 서비스 테스트")
+    class getMonthlyExpenseCalendarMethod {
+
+        Member member = Member.builder()
+            .memberId(1L)
+            .password("1234")
+            .email("test@naver.com")
+            .build();
+
+        List<CalendarExpenseDto> calendarExpenseDtoList = new ArrayList<>(Arrays.asList(
+            CalendarExpenseDto.builder().expenseDt(LocalDate.of(2022, 10, 2))
+                .item("지출1").amount(98765).build(),
+            CalendarExpenseDto.builder().expenseDt(LocalDate.of(2022, 10, 16))
+                .item("지출2").amount(45678).build()
+        ));
+
+        @Test
+        @DisplayName("성공")
+        void getMonthlyExpenseCalendar_success() {
+            //given
+            given(memberRepository.findByEmail(any()))
+                .willReturn(Optional.of(member));
+
+            given(expenseQueryRepository.getMonthlyExpenseCalendar(any(), any(), any()))
+                .willReturn(calendarExpenseDtoList);
+
+            //when
+            List<CalendarExpenseDto> getMonthlyExpenseCalendar
+                = expenseServiceImpl.getMonthlyExpenseCalendar("test@naver.com",
+                LocalDate.of(2022, 10, 1),
+                LocalDate.of(2022, 10, 31));
+
+            //then
+            verify(expenseQueryRepository, times(1))
+                .getMonthlyExpenseCalendar(any(), any(), any());
+            assertEquals(getMonthlyExpenseCalendar.get(0).getItem(),
+                calendarExpenseDtoList.get(0).getItem());
+        }
+
+        @Test
+        @DisplayName("실패 - 맴버 없음")
+        void getMonthlyExpenseCalendar_no_member() {
+            //given
+            given(memberRepository.findByEmail(any()))
+                .willReturn(Optional.empty());
+
+            //when
+            ExpenseException exception = assertThrows(ExpenseException.class,
+                () -> expenseServiceImpl.getMonthlyExpenseCalendar("test@naver.com",
+                    LocalDate.of(2022, 10, 1),
+                    LocalDate.of(2022, 10, 31))
+            );
+
+            //then
+            assertEquals(exception.getErrorCode(), ExpenseErrorCode.NO_MEMBER);
+        }
+
+    }
+
 }
