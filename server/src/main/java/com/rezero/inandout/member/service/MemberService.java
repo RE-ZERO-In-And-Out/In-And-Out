@@ -4,6 +4,7 @@ import com.rezero.inandout.member.model.ChangePasswordInput;
 import com.rezero.inandout.member.model.JoinMemberInput;
 import com.rezero.inandout.member.model.LoginMemberInput;
 import com.rezero.inandout.member.model.MemberDto;
+import com.rezero.inandout.member.model.ResetPasswordInput;
 import com.rezero.inandout.member.model.UpdateMemberInput;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
@@ -50,6 +51,12 @@ public interface MemberService extends UserDetailsService {
 
 
     /**
+     * 회원 비밀번호 초기화 - 이전 비밀번호는 확인하지 않고 이메일 인증으로 대체
+     */
+    void resetPassword(String uuid, ResetPasswordInput input);
+
+
+    /**
      * 회원 조회
      */
     MemberDto getInfo(String email);
@@ -60,8 +67,9 @@ public interface MemberService extends UserDetailsService {
      */
     void updateInfo(String email, UpdateMemberInput input);
 
+
     /**
-     * 회원 비밀번호 수정
+     * 회원 비밀번호 수정 - 이전 비밀번호를 확인
      */
     void changePassword(String email, ChangePasswordInput input);
 

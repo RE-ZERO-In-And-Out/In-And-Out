@@ -6,6 +6,7 @@ import com.rezero.inandout.member.model.FindPasswordMemberInput;
 import com.rezero.inandout.member.model.JoinMemberInput;
 import com.rezero.inandout.member.model.LoginMemberInput;
 import com.rezero.inandout.member.model.MemberDto;
+import com.rezero.inandout.member.model.ResetPasswordInput;
 import com.rezero.inandout.member.model.UpdateMemberInput;
 import com.rezero.inandout.member.model.WithdrawMemberInput;
 import com.rezero.inandout.member.service.MemberService;
@@ -117,7 +118,17 @@ public class MemberController {
         @ApiParam(value = "연락처 입력") @RequestBody FindPasswordMemberInput findPasswordMemberInput) {
         memberService.validatePhone(findPasswordMemberInput.getEmail(),
             findPasswordMemberInput.getPhone());
-        String message = "비밀번호 찾기 완료";
+        String message = "이메일로 비밀번호 초기화 링크를 전송했습니다.";
+        return new ResponseEntity(message, HttpStatus.OK);
+    }
+
+
+    @PostMapping("/password/email/phone/sending")
+    @ApiOperation(value = "비밀번호 초기화 API", notes = "이메일 인증을 완료하면 새롭게 비밀번호를 설정 가능하다.")
+    public ResponseEntity<?> resetPassword(HttpServletRequest request, @ApiParam(value = "새로운 비밀번호를 입력") @RequestBody ResetPasswordInput input){
+        String uuid = request.getParameter("id");
+        memberService.resetPassword(uuid, input);
+        String message = "비밀번호 초기화가 완료됐습니다.";
         return new ResponseEntity(message, HttpStatus.OK);
     }
 

@@ -18,6 +18,8 @@ import static com.rezero.inandout.exception.errorcode.MemberErrorCode.PASSWORD_N
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.PASSWORD_NOT_MATCH;
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.PHONE_EXIST;
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.PHONE_NOT_EXIST;
+import static com.rezero.inandout.exception.errorcode.MemberErrorCode.RESET_PASSWORD_KEY_EXPIRED;
+import static com.rezero.inandout.exception.errorcode.MemberErrorCode.RESET_PASSWORD_KEY_NOT_EXIST;
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.WITHDRAWAL_MEMBER;
 
 import com.rezero.inandout.exception.MemberException;
@@ -29,6 +31,7 @@ import com.rezero.inandout.member.model.JoinMemberInput;
 import com.rezero.inandout.member.model.LoginMemberInput;
 import com.rezero.inandout.member.model.MemberDto;
 import com.rezero.inandout.member.model.MemberStatus;
+import com.rezero.inandout.member.model.ResetPasswordInput;
 import com.rezero.inandout.member.model.UpdateMemberInput;
 import com.rezero.inandout.member.repository.MemberRepository;
 import java.time.LocalDateTime;
@@ -64,9 +67,6 @@ public class MemberServiceImpl implements MemberService {
         }
 
         Member member = optionalMember.get();
-
-
-
         return new User(member.getEmail(), member.getPassword(), AuthorityUtils.NO_AUTHORITIES);
     }
 
@@ -115,10 +115,9 @@ public class MemberServiceImpl implements MemberService {
         Optional<Member> existsMember = memberRepository.findByEmail(input.getEmail());
         if (existsMember.isPresent()) {
 
-            if(existsMember.get().getStatus().equals(MemberStatus.WITHDRAW)){
+            if(existsMember.get().getStatus().equals(MemberStatus.WITHDRAW)) {
                 throw new MemberException(WITHDRAWAL_MEMBER);
             }
-
             throw new MemberException(EMAIL_EXIST);
         }
 
@@ -242,8 +241,45 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     public void validatePhone(String email, String phone) {
-        memberRepository.findByEmailAndPhone(email, phone)
+
+        Member member = memberRepository.findByEmailAndPhone(email, phone)
             .orElseThrow(() -> new MemberException(PHONE_NOT_EXIST));
+
+        String uuid = UUID.randomUUID().toString();
+        String subject = "In and Out 비밀번호 초기화";
+        String text = "<p>안녕하세요. In And Out 입니다.</p><p>아래 링크를 누르시면 비밀번호 초기화가 완료됩니다.</p>"
+            + "<div><a href='http://localhost:8080/api/password/email/phone/sending?id=" + uuid
+            + "'>비밀번호 초기화</a></div>";
+        mailComponent.send(email, subject, text);
+
+        member.setResetPasswordLimitDt(LocalDateTime.now().plusDays(1));
+        member.setResetPasswordKey(uuid);
+        memberRepository.save(member);
+
+    }
+
+
+    @Override
+    public void resetPassword(String uuid, ResetPasswordInput input) {
+
+        Optional<Member> optionalMember = memberRepository.findByResetPasswordKey(uuid);
+        if (!optionalMember.isPresent()) {
+            throw new MemberException(RESET_PASSWORD_KEY_NOT_EXIST);
+        }
+
+        if (!input.getNewPassword().equals(input.getConfirmNewPassword())) {
+            throw new MemberException(MemberErrorCode.CONFIRM_PASSWORD);
+        }
+
+        Member member = optionalMember.get();
+        if (member.getResetPasswordLimitDt().isBefore(LocalDateTime.now())) {
+            throw new MemberException(RESET_PASSWORD_KEY_EXPIRED);
+        }
+
+        validatePassword(input.getNewPassword());
+        String encPassword = bCryptPasswordEncoder.encode(input.getNewPassword());
+        member.setPassword(encPassword);
+        memberRepository.save(member);
 
     }
 
@@ -267,8 +303,7 @@ public class MemberServiceImpl implements MemberService {
         String previousUsedNickname = member.getNickName();
 
         if (input.getNickName().contains(" ") || input.getPhone().contains(" ")
-            || input.getAddress().contains(" ") || input.getMemberPhotoUrl().contains(" ")
-            || input.getGender().contains(" ")) {
+            || input.getMemberPhotoUrl().contains(" ") || input.getGender().contains(" ")) {
             throw new MemberException(CONTAINS_BLANK);
         }
 
