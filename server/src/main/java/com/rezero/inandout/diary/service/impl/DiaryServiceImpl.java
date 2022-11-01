@@ -83,8 +83,7 @@ public class DiaryServiceImpl implements DiaryService {
     public void updateDiary(String email, Long diaryId, LocalDate diaryDt, String text, MultipartFile file) {
         Member member = findMemberByEmail(email);
 
-        Diary updateDiary = diaryRepository.findByDiaryIdAndMember(diaryId, member)
-                .orElseThrow(() -> new DiaryException(DiaryErrorCode.NOT_EXIST_DIARY));
+        Diary updateDiary = findDiaryByDiaryIdAndMember(diaryId, member);
 
         Optional<Diary> optionalDateExistDiary = diaryRepository.findByMemberAndDiaryDt(member, diaryDt);
 
@@ -96,7 +95,7 @@ public class DiaryServiceImpl implements DiaryService {
             }
         }
 
-        if (!member.getMemberS3ImageKey().isEmpty() || member.getMemberS3ImageKey() != "") {
+        if (!updateDiary.getDiaryS3ImageKey().isEmpty() || updateDiary.getDiaryS3ImageKey() != "") {
             awsS3Service.deleteImage(member.getMemberS3ImageKey());
         }
 
@@ -111,6 +110,24 @@ public class DiaryServiceImpl implements DiaryService {
         updateDiary.setDiaryS3ImageKey(s3ImageKey);
 
         diaryRepository.save(updateDiary);
+    }
+
+    @Override
+    public void deleteDiary(String email, Long diaryId) {
+        Member member = findMemberByEmail(email);
+
+        Diary deleteDiary = findDiaryByDiaryIdAndMember(diaryId, member);
+
+        if (!deleteDiary.getDiaryS3ImageKey().isEmpty() || deleteDiary.getDiaryS3ImageKey() != "") {
+            awsS3Service.deleteImage(deleteDiary.getDiaryS3ImageKey());
+        }
+
+        diaryRepository.delete(deleteDiary);
+    }
+
+    private Diary findDiaryByDiaryIdAndMember(Long diaryId, Member member) {
+        return diaryRepository.findByDiaryIdAndMember(diaryId, member)
+                .orElseThrow(() -> new DiaryException(DiaryErrorCode.NOT_EXIST_DIARY));
     }
 
     private Member findMemberByEmail(String email) {
