@@ -26,6 +26,7 @@ import static com.rezero.inandout.exception.errorcode.MemberErrorCode.WITHDRAWAL
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.rezero.inandout.awss3.AwsS3Service;
 import com.rezero.inandout.exception.MemberException;
 import com.rezero.inandout.exception.errorcode.MemberErrorCode;
 import com.rezero.inandout.member.component.MailComponent;
@@ -64,11 +65,9 @@ public class MemberServiceImpl implements MemberService {
 
     private final MailComponent mailComponent;
 
-    private final AmazonS3Client amazonS3Client;
+    private final AwsS3Service awsS3Service;
 
-
-    @Value(value = "${cloud.aws.bucket.name}")
-    private String S3Bucket;
+    private static final String dir = "member";
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -303,39 +302,22 @@ public class MemberServiceImpl implements MemberService {
             throw new MemberException(CANNOT_GET_INFO);
         }
         Member member = memberRepository.findByEmail(email).get();
+
+        String s3ImageUrl = "";
+        if (!member.getMemberS3ImageKey().isEmpty() || member.getMemberS3ImageKey() != "") {
+            s3ImageUrl = awsS3Service.getImageUrl(member.getMemberS3ImageKey());
+        }
+
         return MemberDto.builder()
-            .s3ImageUrl(getS3ImageUrl(member.getMemberS3ImageKey()))
             .nickName(member.getNickName())
             .phone(member.getPhone())
             .gender(member.getGender())
             .address(member.getAddress())
             .birth(member.getBirth())
+            .s3ImageUrl(s3ImageUrl)
             .build();
 
     }
-
-    private String getS3ImageUrl(String s3ImageKey) {
-        return amazonS3Client.getUrl(S3Bucket, s3ImageKey).toString();
-    }
-
-    private String addFileToS3(MultipartFile file) {
-
-        String key = LocalDateTime.now() + " member " + file.getOriginalFilename();
-        ObjectMetadata objectMetadata = new ObjectMetadata();
-        objectMetadata.setContentType(file.getContentType());
-        objectMetadata.setContentLength(file.getSize());
-
-        try {
-            amazonS3Client.putObject(
-                new PutObjectRequest(S3Bucket, key, file.getInputStream(), objectMetadata)
-            );
-        } catch (IOException e) {
-            throw new MemberException(CANNOT_UPLOAD_IMAGE);
-        }
-
-        return key;
-    }
-
 
     @Override
     public void updateInfo(String email, UpdateMemberInput input, MultipartFile file) {
@@ -365,12 +347,22 @@ public class MemberServiceImpl implements MemberService {
             }
         }
 
+        if (!member.getMemberS3ImageKey().isEmpty() || member.getMemberS3ImageKey() != "") {
+            awsS3Service.deleteImage(member.getMemberS3ImageKey());
+        }
+
+        String s3ImageKey = "";
+
+        if (file != null) {
+            s3ImageKey = awsS3Service.addImageAndGetKey(dir, file);
+        }
+
         member.setNickName(input.getNickName());
         member.setPhone(input.getPhone());
         member.setBirth(input.getBirth());
         member.setAddress(input.getAddress());
         member.setGender(input.getGender());
-        member.setMemberS3ImageKey(addFileToS3(file));
+        member.setMemberS3ImageKey(s3ImageKey);
         memberRepository.save(member);
 
     }
@@ -408,6 +400,10 @@ public class MemberServiceImpl implements MemberService {
         Member member = optionalMember.get();
         if (!bCryptPasswordEncoder.matches(password, member.getPassword())) {
             throw new MemberException(PASSWORD_NOT_MATCH);
+        }
+
+        if (!member.getMemberS3ImageKey().isEmpty() || member.getMemberS3ImageKey() != "") {
+            awsS3Service.deleteImage(member.getMemberS3ImageKey());
         }
 
         member.setStatus(MemberStatus.WITHDRAW);
