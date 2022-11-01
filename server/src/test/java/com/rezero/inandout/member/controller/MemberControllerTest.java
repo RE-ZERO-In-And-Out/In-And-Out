@@ -142,7 +142,10 @@ class MemberControllerTest {
         // given
         Member member = Member.builder().email("egg@naver.com").address("서울특별시")
             .phone("010-2222-0000").birth(LocalDate.from(LocalDate.of(2000, 9, 30))).gender("남")
-            .nickName("원빈").password("1").build();
+            .nickName("원빈").password("egg123!@")
+            .memberS3ImageKey(
+                "https://inandoutimagebucket.s3.ap-northeast-2.amazonaws.com/2022-11-01T14%3A12%3A30.514978900%20member%20%EA%B2%8C%EB%8D%94.png")
+            .build();
         String inputToJson = mapper.writeValueAsString(member);
 
         User user = new User(member.getEmail(), member.getPassword(),
@@ -160,36 +163,44 @@ class MemberControllerTest {
         Mockito.verify(memberServiceImpl, times(1)).getInfo(captor.capture());
         assertEquals(captor.getValue(), member.getEmail());
     }
-/*
 
+/*
     @Test
     @DisplayName("회원 정보 수정 - 성공")
     void updateInfo() throws Exception {
 
         // given
-        UpdateMemberInput input = UpdateMemberInput.builder().address("강원도").nickName("치킨")
-            .phone("010-1111-2313").birth(LocalDate.now()).gender("여")
-            .address("강원도").build();
-        String inputToJson = mapper.writeValueAsString(input);
-        String email = "egg@naver.com";
-        String pwd = "123abc?!";
-
-        User user = new User(email, pwd, AuthorityUtils.NO_AUTHORITIES);
+        Member member = Member.builder().email("egg@naver.com")
+            .password("123abc?!")
+            .build();
+        User user = new User(member.getEmail(), member.getPassword(), AuthorityUtils.NO_AUTHORITIES);
         TestingAuthenticationToken testingAuthenticationToken = new TestingAuthenticationToken(user,
             null);
 
-        // when
-        mockMvc.perform(put("/api/member/info").contentType(MediaType.APPLICATION_JSON)
-                .principal(testingAuthenticationToken).content(inputToJson)).andExpect(status().isOk())
-            .andDo(print());
-        ArgumentCaptor<UpdateMemberInput> captor = ArgumentCaptor.forClass(UpdateMemberInput.class);
+        MockMultipartFile file = new MockMultipartFile("file", "dog.png", "image/png",   "«‹png data>>".getBytes());
+        MockMultipartFile input = new MockMultipartFile("updateMemberInput",
+            "", "application/json",
+            ("{\"nickName\" : \"계란\","
+            + "\"phone\" : \"010-1111-1111\","
+            + "\"address\" : \"서울특별시\","
+            + "\"gender\" : \"여\"}").getBytes());
 
-        // then
-        Mockito.verify(memberServiceImpl, times(1)).updateInfo(anyString(), captor.capture(), any());
-        assertEquals(captor.getValue().getPhone(), input.getPhone()); //
+            mockMvc.perform(
+            multipart("/api/member/info")
+                .file(file)
+                .file(input)
+                .principal(testingAuthenticationToken)
+        ).andExpect(status().isOk())
+                .andDo(print());
+
+        ArgumentCaptor<UpdateMemberInput> captorInput = ArgumentCaptor.forClass(UpdateMemberInput.class);
+        ArgumentCaptor<MultipartFile> captorFile = ArgumentCaptor.forClass(MultipartFile.class);
+        verify(
+            memberServiceImpl, times(1)).updateInfo(anyString(), captorInput.capture(), captorFile.capture());
+
+
     }
 */
-
 
     @Test
     @DisplayName("회원 비밀번호 변경 - 성공")

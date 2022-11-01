@@ -24,6 +24,7 @@ import static com.rezero.inandout.exception.errorcode.MemberErrorCode.RESET_PASS
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.WITHDRAWAL_MEMBER;
 
 import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.rezero.inandout.exception.MemberException;
@@ -328,6 +329,7 @@ public class MemberServiceImpl implements MemberService {
         try {
             amazonS3Client.putObject(
                 new PutObjectRequest(S3Bucket, key, file.getInputStream(), objectMetadata)
+                    .withCannedAcl(CannedAccessControlList.PublicRead)
             );
         } catch (IOException e) {
             throw new MemberException(CANNOT_UPLOAD_IMAGE);

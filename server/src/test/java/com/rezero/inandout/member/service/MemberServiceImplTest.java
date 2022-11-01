@@ -11,6 +11,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import com.amazonaws.services.s3.AmazonS3Client;
 import com.rezero.inandout.exception.MemberException;
 import com.rezero.inandout.exception.errorcode.MemberErrorCode;
 import com.rezero.inandout.member.component.MailComponent;
@@ -54,6 +55,9 @@ class MemberServiceImplTest {
 
     @Mock
     private MailComponent mailComponent;
+
+    @Mock
+    private AmazonS3Client amazonS3Client;
 
     @InjectMocks
     private MemberServiceImpl memberService;
@@ -156,7 +160,6 @@ class MemberServiceImplTest {
         memberService.validatePhone(email, phone);
 
     }
-
 /*
     @Test
     @DisplayName("회원 정보 조회")
