@@ -10,4 +10,6 @@ public interface DiaryService {
     List<DiaryDto> getDiaryList(String email, LocalDate startDt, LocalDate endDt);
 
     void addDiary(String email, LocalDate diaryDt, String text, MultipartFile file);
+
+    void updateDiary(String email, Long diaryId, LocalDate diaryDt, String text, MultipartFile file);
 }

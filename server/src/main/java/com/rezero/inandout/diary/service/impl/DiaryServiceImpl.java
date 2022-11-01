@@ -18,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -74,6 +75,45 @@ public class DiaryServiceImpl implements DiaryService {
                 .text(text)
                 .diaryS3ImageKey(s3ImageKey)
                 .build();
+
+        diaryRepository.save(diary);
+    }
+
+    @Override
+    public void updateDiary(String email, Long diaryId, LocalDate diaryDt, String text, MultipartFile file) {
+        Member member = findMemberByEmail(email);
+
+        Optional<Diary> optionalDiary = diaryRepository.findByDiaryIdAndMember(diaryId, member);
+
+        if(!optionalDiary.isPresent()) {
+            throw new DiaryException(DiaryErrorCode.NOT_EXIST_DIARY);
+        }
+
+        Diary diary = optionalDiary.get();
+
+        Optional<Diary> optionalDateExistDiary = diaryRepository.findByMemberAndDiaryDt(member, diaryDt);
+
+        if (optionalDateExistDiary.isPresent()) {
+            Diary dateExistDiary = optionalDateExistDiary.get();
+
+            if (dateExistDiary.getDiaryDt() != diary.getDiaryDt()) {
+                throw new DiaryException(DiaryErrorCode.THIS_DATE_EXIST_DIARY);
+            }
+        }
+
+        if (!member.getMemberS3ImageKey().isEmpty() || member.getMemberS3ImageKey() != "") {
+            awsS3Service.deleteImage(member.getMemberS3ImageKey());
+        }
+
+        String s3ImageKey = "";
+
+        if (file != null) {
+            s3ImageKey = awsS3Service.addImageAndGetKey(dir, file);
+        }
+
+        diary.setDiaryDt(diaryDt);
+        diary.setText(text);
+        diary.setDiaryS3ImageKey(s3ImageKey);
 
         diaryRepository.save(diary);
     }

@@ -1,6 +1,7 @@
 package com.rezero.inandout.diary.controller;
 
 import com.rezero.inandout.diary.model.AddDiaryInput;
+import com.rezero.inandout.diary.model.UpdateDiaryInput;
 import com.rezero.inandout.diary.service.DiaryService;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -36,14 +37,27 @@ public class DiaryController {
 
     @PostMapping
     @ApiOperation(value = "일기 등록 API",
-            notes = "일기 을 통해 저장을 할 수 있다.")
+            notes = "일기날짜, 텍스트, 사진을 통해 저장을 할 수 있다.")
     public ResponseEntity<?> addDiary(Principal principal,
-                                      @RequestPart AddDiaryInput addDiaryInput,
+                                      @RequestPart AddDiaryInput input,
                                       MultipartFile file) {
 
-        diaryService.addDiary(principal.getName(), addDiaryInput.getDiaryDt(),
-                addDiaryInput.getText(), file);
+        diaryService.addDiary(principal.getName(), input.getDiaryDt(),
+                input.getText(), file);
 
         return ResponseEntity.ok("일기가 등록됐습니다.");
+    }
+
+    @PutMapping
+    @ApiOperation(value = "일기 수정 API",
+            notes = "일기날짜, 텍스트, 사진을 통해 수정을 할 수 있다.")
+    public ResponseEntity<?> updateDiary(Principal principal,
+                                      @RequestPart UpdateDiaryInput input,
+                                      MultipartFile file) {
+
+        diaryService.updateDiary(principal.getName(), input.getDiaryId(), input.getDiaryDt(),
+                input.getText(), file);
+
+        return ResponseEntity.ok("일기가 수정됐습니다.");
     }
 }
