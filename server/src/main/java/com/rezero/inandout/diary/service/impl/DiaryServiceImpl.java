@@ -95,7 +95,7 @@ public class DiaryServiceImpl implements DiaryService {
             }
         }
 
-        if (!member.getMemberS3ImageKey().isEmpty() || member.getMemberS3ImageKey() != "") {
+        if (!updateDiary.getDiaryS3ImageKey().isEmpty() || updateDiary.getDiaryS3ImageKey() != "") {
             awsS3Service.deleteImage(member.getMemberS3ImageKey());
         }
 
@@ -118,8 +118,8 @@ public class DiaryServiceImpl implements DiaryService {
 
         Diary deleteDiary = findDiaryByDiaryIdAndMember(diaryId, member);
 
-        if (!member.getMemberS3ImageKey().isEmpty() || member.getMemberS3ImageKey() != "") {
-            awsS3Service.deleteImage(member.getMemberS3ImageKey());
+        if (!deleteDiary.getDiaryS3ImageKey().isEmpty() || deleteDiary.getDiaryS3ImageKey() != "") {
+            awsS3Service.deleteImage(deleteDiary.getDiaryS3ImageKey());
         }
 
         diaryRepository.delete(deleteDiary);
