@@ -12,4 +12,6 @@ public interface DiaryService {
     void addDiary(String email, LocalDate diaryDt, String text, MultipartFile file);
 
     void updateDiary(String email, Long diaryId, LocalDate diaryDt, String text, MultipartFile file);
+
+    void deleteDiary(String email, Long diaryId);
 }

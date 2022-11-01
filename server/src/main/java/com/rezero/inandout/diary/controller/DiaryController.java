@@ -1,6 +1,7 @@
 package com.rezero.inandout.diary.controller;
 
 import com.rezero.inandout.diary.model.AddDiaryInput;
+import com.rezero.inandout.diary.model.DeleteDiaryInput;
 import com.rezero.inandout.diary.model.UpdateDiaryInput;
 import com.rezero.inandout.diary.service.DiaryService;
 import io.swagger.annotations.ApiOperation;
@@ -59,5 +60,16 @@ public class DiaryController {
                 input.getText(), file);
 
         return ResponseEntity.ok("일기가 수정됐습니다.");
+    }
+
+    @DeleteMapping
+    @ApiOperation(value = "일기 삭제 API",
+            notes = "일기 ID를 통해 삭제 할 수 있다.")
+    public ResponseEntity<?> deleteDiary(Principal principal,
+                                         @RequestBody DeleteDiaryInput input) {
+
+        diaryService.deleteDiary(principal.getName(), input.getDiaryId());
+
+        return ResponseEntity.ok("일기가 삭제됐습니다.");
     }
 }
