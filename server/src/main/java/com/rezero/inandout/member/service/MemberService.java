@@ -7,6 +7,7 @@ import com.rezero.inandout.member.model.MemberDto;
 import com.rezero.inandout.member.model.ResetPasswordInput;
 import com.rezero.inandout.member.model.UpdateMemberInput;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface MemberService extends UserDetailsService {
 
@@ -65,7 +66,7 @@ public interface MemberService extends UserDetailsService {
     /**
      * 회원 정보 수정
      */
-    void updateInfo(String email, UpdateMemberInput input);
+    void updateInfo(String email, UpdateMemberInput input, MultipartFile file);
 
 
     /**

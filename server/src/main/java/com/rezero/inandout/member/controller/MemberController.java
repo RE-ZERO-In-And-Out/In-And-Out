@@ -24,7 +24,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequiredArgsConstructor
@@ -63,11 +65,13 @@ public class MemberController {
 
 
     @PutMapping("/member/info")
-    @ApiOperation(value = "회원 정보 수정 API", notes = "회원이 자신의 정보를 수정한다.")
+    @ApiOperation(value = "회원 정보 수정 API", notes = "회원이 자신의 정보를 수정하거나 프로필 이미지 사진 등록 가능하다.")
     public ResponseEntity<?> updateInfo(Principal principal,
-        @ApiParam(value = "수정할 회원 정보 입력") @RequestBody UpdateMemberInput input) {
+        @ApiParam(value = "수정할 회원 정보 입력")
+        @RequestPart UpdateMemberInput input,
+        @RequestPart MultipartFile file) {
         String email = principal.getName();
-        memberService.updateInfo(email, input);
+        memberService.updateInfo(email, input, file);
         String message = "회원 정보를 변경했습니다.";
         return new ResponseEntity<>(message, HttpStatus.OK);
     }
@@ -125,7 +129,8 @@ public class MemberController {
 
     @PostMapping("/password/email/phone/sending")
     @ApiOperation(value = "비밀번호 초기화 API", notes = "이메일 인증을 완료하면 새롭게 비밀번호를 설정 가능하다.")
-    public ResponseEntity<?> resetPassword(HttpServletRequest request, @ApiParam(value = "새로운 비밀번호를 입력") @RequestBody ResetPasswordInput input){
+    public ResponseEntity<?> resetPassword(HttpServletRequest request,
+        @ApiParam(value = "새로운 비밀번호를 입력") @RequestBody ResetPasswordInput input) {
         String uuid = request.getParameter("id");
         memberService.resetPassword(uuid, input);
         String message = "비밀번호 초기화가 완료됐습니다.";

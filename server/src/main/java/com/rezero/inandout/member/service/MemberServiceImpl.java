@@ -2,6 +2,7 @@ package com.rezero.inandout.member.service;
 
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.CANNOT_GET_INFO;
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.CANNOT_LOGOUT;
+import static com.rezero.inandout.exception.errorcode.MemberErrorCode.CANNOT_UPLOAD_IMAGE;
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.CONTAINS_BLANK;
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.EMAIL_AUTH_KEY_NOT_EXIST;
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.EMAIL_EXIST;
@@ -22,6 +23,9 @@ import static com.rezero.inandout.exception.errorcode.MemberErrorCode.RESET_PASS
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.RESET_PASSWORD_KEY_NOT_EXIST;
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.WITHDRAWAL_MEMBER;
 
+import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.rezero.inandout.exception.MemberException;
 import com.rezero.inandout.exception.errorcode.MemberErrorCode;
 import com.rezero.inandout.member.component.MailComponent;
@@ -34,10 +38,12 @@ import com.rezero.inandout.member.model.MemberStatus;
 import com.rezero.inandout.member.model.ResetPasswordInput;
 import com.rezero.inandout.member.model.UpdateMemberInput;
 import com.rezero.inandout.member.repository.MemberRepository;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -46,6 +52,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
@@ -57,6 +64,11 @@ public class MemberServiceImpl implements MemberService {
 
     private final MailComponent mailComponent;
 
+    private final AmazonS3Client amazonS3Client;
+
+
+    @Value(value = "${cloud.aws.bucket.name}")
+    private String S3Bucket;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -115,7 +127,7 @@ public class MemberServiceImpl implements MemberService {
         Optional<Member> existsMember = memberRepository.findByEmail(input.getEmail());
         if (existsMember.isPresent()) {
 
-            if(existsMember.get().getStatus().equals(MemberStatus.WITHDRAW)) {
+            if (existsMember.get().getStatus().equals(MemberStatus.WITHDRAW)) {
                 throw new MemberException(WITHDRAWAL_MEMBER);
             }
             throw new MemberException(EMAIL_EXIST);
@@ -291,19 +303,49 @@ public class MemberServiceImpl implements MemberService {
             throw new MemberException(CANNOT_GET_INFO);
         }
         Member member = memberRepository.findByEmail(email).get();
-        return MemberDto.toDto(member);
+        return MemberDto.builder()
+            .s3ImageUrl(getS3ImageUrl(member.getMemberS3ImageKey()))
+            .nickName(member.getNickName())
+            .phone(member.getPhone())
+            .gender(member.getGender())
+            .address(member.getAddress())
+            .birth(member.getBirth())
+            .build();
+
+    }
+
+    private String getS3ImageUrl(String s3ImageKey) {
+        return amazonS3Client.getUrl(S3Bucket, s3ImageKey).toString();
+    }
+
+    private String addFileToS3(MultipartFile file) {
+
+        String key = LocalDateTime.now() + " member " + file.getOriginalFilename();
+        ObjectMetadata objectMetadata = new ObjectMetadata();
+        objectMetadata.setContentType(file.getContentType());
+        objectMetadata.setContentLength(file.getSize());
+
+        try {
+            amazonS3Client.putObject(
+                new PutObjectRequest(S3Bucket, key, file.getInputStream(), objectMetadata)
+            );
+        } catch (IOException e) {
+            throw new MemberException(CANNOT_UPLOAD_IMAGE);
+        }
+
+        return key;
     }
 
 
     @Override
-    public void updateInfo(String email, UpdateMemberInput input) {
+    public void updateInfo(String email, UpdateMemberInput input, MultipartFile file) {
 
         Member member = memberRepository.findByEmail(email).get();
         String previousUsedPhone = member.getPhone();
         String previousUsedNickname = member.getNickName();
 
         if (input.getNickName().contains(" ") || input.getPhone().contains(" ")
-            || input.getMemberPhotoUrl().contains(" ") || input.getGender().contains(" ")) {
+            || input.getGender().contains(" ")) {
             throw new MemberException(CONTAINS_BLANK);
         }
 
@@ -328,7 +370,7 @@ public class MemberServiceImpl implements MemberService {
         member.setBirth(input.getBirth());
         member.setAddress(input.getAddress());
         member.setGender(input.getGender());
-        member.setMemberPhotoUrl(input.getMemberPhotoUrl());
+        member.setMemberS3ImageKey(addFileToS3(file));
         memberRepository.save(member);
 
     }
@@ -376,7 +418,7 @@ public class MemberServiceImpl implements MemberService {
         member.setBirth(null);
         member.setAddress(null);
         member.setGender(null);
-        member.setMemberPhotoUrl(null);
+        member.setMemberS3ImageKey(null);
         member.setResetPasswordKey(null);
         member.setResetPasswordLimitDt(null);
         member.setEmailAuthKey(null);
