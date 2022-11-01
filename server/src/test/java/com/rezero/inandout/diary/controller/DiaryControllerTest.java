@@ -1,6 +1,7 @@
 package com.rezero.inandout.diary.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.rezero.inandout.diary.model.DeleteDiaryInput;
 import com.rezero.inandout.diary.model.DiaryDto;
 import com.rezero.inandout.diary.service.DiaryService;
 import com.rezero.inandout.member.entity.Member;
@@ -31,8 +32,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -186,5 +186,38 @@ class DiaryControllerTest {
         verify(diaryService, times(1))
                 .updateDiary(any(), any(), captorDiaryDt.capture(),
                         captorText.capture(), captor2.capture());
+    }
+
+    @Test
+    @DisplayName("일기 삭제 테스트")
+    void deleteDiary() throws Exception {
+        //given
+        Member member = Member.builder()
+                .memberId(1L)
+                .email("hgd@gmail.com")
+                .password("1234")
+                .build();
+
+        User user = new User(member.getEmail(), member.getPassword(), AuthorityUtils.NO_AUTHORITIES);
+        TestingAuthenticationToken testingAuthenticationToken = new TestingAuthenticationToken(user,null);
+
+        DeleteDiaryInput input = DeleteDiaryInput.builder()
+                .diaryId(1L)
+                .build();
+
+        //when
+        mockMvc.perform(
+                delete("/api/diary")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .principal(testingAuthenticationToken)
+                        .content(objectMapper.writeValueAsString(input))
+        ).andExpect(status().isOk())
+                .andDo(print());
+
+        ArgumentCaptor<Long> captor = ArgumentCaptor.forClass(Long.class);
+
+        //then
+        verify(diaryService, times(1))
+                .deleteDiary(any(), captor.capture());
     }
 }

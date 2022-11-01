@@ -1,7 +1,5 @@
 package com.rezero.inandout.diary.service.impl;
 
-import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.PutObjectResult;
 import com.rezero.inandout.awss3.AwsS3Service;
 import com.rezero.inandout.diary.entity.Diary;
 import com.rezero.inandout.diary.model.DiaryDto;
@@ -21,8 +19,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
@@ -332,6 +328,80 @@ class DiaryServiceImplTest {
             );
             //then
             assertEquals(DiaryErrorCode.THIS_DATE_EXIST_DIARY, exception.getErrorCode());
+        }
+    }
+
+    @Nested
+    @DisplayName("일기 삭제")
+    class deleteDiaryMethod {
+        Member member = Member.builder()
+                .memberId(1L)
+                .email("hgd@gmail.com")
+                .password("1234")
+                .memberS3ImageKey("anyKey")
+                .build();
+
+        Diary diary = Diary.builder()
+                .diaryId(1L)
+                .text("anyText")
+                .diaryDt(LocalDate.of(2022,10,1))
+                .build();
+
+        String s3ImageKey = "anyKey";
+
+        @Test
+        @DisplayName("일기 삭제 - 성공")
+        void deleteDiary_success() {
+            //given
+            given(memberRepository.findByEmail(anyString()))
+                    .willReturn(Optional.of(member));
+
+            given(diaryRepository.findByDiaryIdAndMember(any(), any()))
+                    .willReturn(Optional.of(diary));
+
+            awsS3Service.deleteImage(s3ImageKey);
+
+            //when
+            diaryServiceImpl.deleteDiary("hgd@gmail.com", 1L);
+
+            //then
+            verify(diaryRepository, times(1)).delete(any());
+
+        }
+
+        @Test
+        @DisplayName("일기 삭제 - 실패 : 멤버 없음")
+        void deleteDiary_fail_memberNotExist() {
+            //given
+            given(memberRepository.findByEmail(anyString()))
+                    .willReturn(Optional.empty());
+
+            //when
+            MemberException exception = assertThrows(MemberException.class,
+                    () -> diaryServiceImpl.deleteDiary("hgd@gmail.com", 1L));
+
+            //then
+            assertEquals(MemberErrorCode.MEMBER_NOT_EXIST, exception.getErrorCode());
+
+        }
+
+        @Test
+        @DisplayName("일기 삭제 - 실패 : 일기 없음")
+        void deleteDiary_fail_diaryNotExist() {
+            //given
+            given(memberRepository.findByEmail(anyString()))
+                    .willReturn(Optional.of(member));
+
+            given(diaryRepository.findByDiaryIdAndMember(any(), any()))
+                    .willReturn(Optional.empty());
+
+            //when
+            DiaryException exception = assertThrows(DiaryException.class,
+                    () -> diaryServiceImpl.deleteDiary("hgd@gmail.com", 1L));
+
+            //then
+            assertEquals(DiaryErrorCode.NOT_EXIST_DIARY, exception.getErrorCode());
+
         }
     }
 }
