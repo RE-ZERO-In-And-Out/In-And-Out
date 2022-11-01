@@ -20,6 +20,5 @@ public class UpdateMemberInput {
     private LocalDate birth;
     private String address;
     private String gender;
-    private String memberPhotoUrl;
 
 }
