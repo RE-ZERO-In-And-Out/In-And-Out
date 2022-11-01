@@ -69,7 +69,7 @@ public class MemberController {
     public ResponseEntity<?> updateInfo(Principal principal,
         @ApiParam(value = "수정할 회원 정보 입력")
         @RequestPart UpdateMemberInput input,
-        @RequestPart MultipartFile file) {
+        MultipartFile file) {
         String email = principal.getName();
         memberService.updateInfo(email, input, file);
         String message = "회원 정보를 변경했습니다.";

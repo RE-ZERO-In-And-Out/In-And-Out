@@ -13,6 +13,6 @@ import java.time.LocalDate;
 public class AddDiaryInput {
     @NotBlank
     private LocalDate diaryDt;
-    @NotBlank
+
     private String text;
 }
