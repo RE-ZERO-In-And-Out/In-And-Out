@@ -39,7 +39,7 @@ public class DiaryController {
             notes = "일기 을 통해 저장을 할 수 있다.")
     public ResponseEntity<?> addDiary(Principal principal,
                                       @RequestPart AddDiaryInput addDiaryInput,
-                                      @RequestPart MultipartFile file) {
+                                      MultipartFile file) {
 
         diaryService.addDiary(principal.getName(), addDiaryInput.getDiaryDt(),
                 addDiaryInput.getText(), file);
