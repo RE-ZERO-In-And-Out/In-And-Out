@@ -20,8 +20,7 @@ import org.hibernate.envers.AuditOverride;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@AuditOverride(forClass = BaseEntity.class)
-public class DetailExpenseCategory extends BaseEntity {
+public class DetailExpenseCategory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

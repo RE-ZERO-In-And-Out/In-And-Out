@@ -2,11 +2,13 @@ package com.rezero.inandout.diary.service.impl;
 
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.PutObjectResult;
+import com.rezero.inandout.awss3.AwsS3Service;
 import com.rezero.inandout.diary.entity.Diary;
 import com.rezero.inandout.diary.model.DiaryDto;
 import com.rezero.inandout.diary.repository.DiaryRepository;
 import com.rezero.inandout.exception.DiaryException;
 import com.rezero.inandout.exception.MemberException;
+import com.rezero.inandout.exception.errorcode.DiaryErrorCode;
 import com.rezero.inandout.exception.errorcode.MemberErrorCode;
 import com.rezero.inandout.member.entity.Member;
 import com.rezero.inandout.member.repository.MemberRepository;
@@ -45,14 +47,10 @@ class DiaryServiceImplTest {
     private MemberRepository memberRepository;
 
     @Mock
-    private AmazonS3Client amazonS3Client;
+    private AwsS3Service awsS3Service;
 
     @InjectMocks
     private DiaryServiceImpl diaryServiceImpl;
-
-    @Test
-    void addDiary() {
-    }
 
     @Nested
     @DisplayName("일기 목록 조회")
@@ -87,9 +85,11 @@ class DiaryServiceImplTest {
                         .build()
         );
 
+        String url = "anyUrl";
+
         @Test
         @DisplayName("일기 목록 조회 - 성공")
-        void getDiaryList_success() throws MalformedURLException {
+        void getDiaryList_success() {
             //given
             given(memberRepository.findByEmail(anyString()))
                     .willReturn(Optional.of(member));
@@ -97,11 +97,7 @@ class DiaryServiceImplTest {
             given(diaryRepository.findByMemberAndDiaryDtBetween(any(), any(), any()))
                     .willReturn(diaries);
 
-            URL url = new URL("https://inandoutimagebucket.s3.ap-northeast-2" +
-                    ".amazonaws.com/2022-10-31T17%3A36%3A50.822%20diary%20%E1%84" +
-                    "%80%E1%85%A1%E1%86%BC%E1%84%8B%E1%85%A1%E1%84%8C%E1%85%B5.jpg");
-
-            given(amazonS3Client.getUrl(any(), any()))
+            given(awsS3Service.getImageUrl(any()))
                     .willReturn(url);
 
             //when
@@ -141,12 +137,15 @@ class DiaryServiceImplTest {
                 .password("1234")
                 .build();
 
-        PutObjectResult result = new PutObjectResult();
 
         MockMultipartFile file = new MockMultipartFile("file",
                 "test.png",
                 "image/png",
                 "«‹png data>>".getBytes());
+
+        String s3ImageKey = "anyKey";
+
+        Diary diary = Diary.builder().build();
 
         @Test
         @DisplayName("일기 등록 - 성공")
@@ -155,8 +154,8 @@ class DiaryServiceImplTest {
             given(memberRepository.findByEmail(anyString()))
                     .willReturn(Optional.of(member));
 
-            given(amazonS3Client.putObject(any()))
-                    .willReturn(result);
+            given(awsS3Service.addImageAndGetKey(any(), any()))
+                    .willReturn(s3ImageKey);
             //when
             diaryServiceImpl.addDiary("hgd@gmail.com",
                     LocalDate.of(2022,10,1),
@@ -185,14 +184,14 @@ class DiaryServiceImplTest {
         }
 
         @Test
-        @DisplayName("일기 등록 - 실패 : 확인되지 않은 익셉션")
-        void addDiary_fail_no() {
+        @DisplayName("일기 등록 - 실패 : 이 날짜에는 일기가 존재합니다")
+        void addDiary_fail_thisDateExistDiary() {
             //given
             given(memberRepository.findByEmail(anyString()))
                     .willReturn(Optional.of(member));
 
-            given(amazonS3Client.putObject(any()))
-                    .willThrow(new DiaryException("??"));
+            given(diaryRepository.findByMemberAndDiaryDt(any(), any()))
+                    .willReturn(Optional.of(diary));
             //when
             DiaryException exception = assertThrows(DiaryException.class,
                     () -> diaryServiceImpl.addDiary("hgd@gmail.com",
@@ -201,7 +200,7 @@ class DiaryServiceImplTest {
             );
 
             //then
-            assertEquals("??", exception.getMessage());
+            assertEquals(DiaryErrorCode.THIS_DATE_EXIST_DIARY, exception.getErrorCode());
         }
     }
 }

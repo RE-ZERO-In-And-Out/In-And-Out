@@ -1,9 +1,6 @@
 package com.rezero.inandout.exception;
 
-import com.rezero.inandout.exception.response.DiaryErrorResponse;
-import com.rezero.inandout.exception.response.ExpenseErrorResponse;
-import com.rezero.inandout.exception.response.IncomeErrorResponse;
-import com.rezero.inandout.exception.response.MemberErrorResponse;
+import com.rezero.inandout.exception.response.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -38,7 +35,7 @@ public class CustomExceptionHandler {
             DiaryException e) {
         DiaryErrorResponse errorResponse = DiaryErrorResponse.builder()
                 .errorCode(e.getErrorCode())
-                .message(e.getMessage())
+                .message(e.getErrorCode().getDescription())
                 .build();
 
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
@@ -50,6 +47,16 @@ public class CustomExceptionHandler {
         MemberErrorResponse errorResponse = MemberErrorResponse.builder()
                 .errorCode(e.getErrorCode())
                 .message(e.getErrorCode().getDescription())
+                .build();
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(AwsS3Exception.class)
+    protected ResponseEntity<AwsS3ErrorResponse> MemberHandlerCustomException(
+            AwsS3Exception e) {
+        AwsS3ErrorResponse errorResponse = AwsS3ErrorResponse.builder()
+                .message(e.getMessage())
                 .build();
 
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
