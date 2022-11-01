@@ -1,6 +1,5 @@
 package com.rezero.inandout.member.model;
 
-import com.rezero.inandout.member.entity.Member;
 import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -21,17 +20,7 @@ public class MemberDto {
     private LocalDate birth;
     private String address;
     private String gender;
-    private String memberPhotoUrl;
+    private String s3ImageUrl;
 
-    public static MemberDto toDto(Member member) {
-        return MemberDto.builder()
-            .address(member.getAddress())
-            .birth(member.getBirth())
-            .gender(member.getGender())
-            .memberPhotoUrl(member.getMemberS3ImageKey())
-            .nickName(member.getNickName())
-            .phone(member.getPhone())
-            .build();
-    }
 
 }

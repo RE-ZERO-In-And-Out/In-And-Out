@@ -48,6 +48,7 @@ public enum MemberErrorCode {
      * 회원 정보 수정 오류
      */
     CONTAINS_BLANK("회원 정보는 공백을 포함할 수 없습니다."),
+    CANNOT_UPLOAD_IMAGE("이미지를 불러올 수 없습니다."),
 
     /**
      * 비밀번호 오류
