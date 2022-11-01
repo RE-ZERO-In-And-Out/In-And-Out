@@ -13,6 +13,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.authentication.TestingAuthenticationToken;
@@ -55,6 +56,7 @@ class DiaryControllerTest {
     ObjectMapper objectMapper;
 
     @Test
+    @DisplayName("일기 조회 테스트")
     void getDiaryList() throws Exception {
         //given
         Member member = Member.builder()
@@ -123,7 +125,7 @@ class DiaryControllerTest {
                 "image/png",
                 "«‹png data>>".getBytes());
 
-        MockMultipartFile file2 = new MockMultipartFile("addDiaryInput",
+        MockMultipartFile file2 = new MockMultipartFile("input",
                 "", "application/json",
                 ("{\"diaryDt\" : \"2022-10-01\"," + " \"text\" : \"강아지 귀엽다 ㅎㅎ\"}")
                         .getBytes(StandardCharsets.UTF_8));
@@ -143,6 +145,46 @@ class DiaryControllerTest {
         //then
         verify(diaryService, times(1))
                 .addDiary(any(), captorDiaryDt.capture(),
+                        captorText.capture(), captor2.capture());
+    }
+
+    @Test
+    @DisplayName("일기 수정 테스트")
+    void updateDiary() throws Exception {
+        //given
+        Member member = Member.builder()
+                .memberId(1L)
+                .email("hgd@gmail.com")
+                .password("1234")
+                .build();
+
+        User user = new User(member.getEmail(), member.getPassword(), AuthorityUtils.NO_AUTHORITIES);
+        TestingAuthenticationToken testingAuthenticationToken = new TestingAuthenticationToken(user,null);
+
+        MockMultipartFile file1 = new MockMultipartFile("file",
+                "test.png",
+                "image/png",
+                "«‹png data>>".getBytes());
+
+        MockMultipartFile file2 = new MockMultipartFile("input",
+                "", "application/json",
+                ("{\"diaryDt\" : \"2022-10-01\"," + " \"text\" : \"강아지 귀엽다 ㅎㅎ\"}")
+                        .getBytes(StandardCharsets.UTF_8));
+        //when
+        mockMvc.perform(
+                        multipart(HttpMethod.PUT, "/api/diary")
+                                .file(file1)
+                                .file(file2)
+                                .principal(testingAuthenticationToken)
+                ).andExpect(status().isOk())
+                .andDo(print());
+
+        ArgumentCaptor<LocalDate> captorDiaryDt = ArgumentCaptor.forClass(LocalDate.class);
+        ArgumentCaptor<String> captorText = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<MultipartFile> captor2 = ArgumentCaptor.forClass(MultipartFile.class);
+        //then
+        verify(diaryService, times(1))
+                .updateDiary(any(), any(), captorDiaryDt.capture(),
                         captorText.capture(), captor2.capture());
     }
 }

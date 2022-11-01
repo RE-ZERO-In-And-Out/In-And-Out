@@ -30,8 +30,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -199,6 +198,138 @@ class DiaryServiceImplTest {
                             "굿", file)
             );
 
+            //then
+            assertEquals(DiaryErrorCode.THIS_DATE_EXIST_DIARY, exception.getErrorCode());
+        }
+    }
+
+    @Nested
+    @DisplayName("일기 수정")
+    class updateDiaryMethod {
+        Member member = Member.builder()
+                .memberId(1L)
+                .email("hgd@gmail.com")
+                .password("1234")
+                .memberS3ImageKey("anyKey")
+                .build();
+
+
+        MockMultipartFile file = new MockMultipartFile("file",
+                "test.png",
+                "image/png",
+                "«‹png data>>".getBytes());
+
+        String s3ImageKey = "anyKey";
+
+        Diary diary = Diary.builder()
+                .diaryId(1L)
+                .text("anyText")
+                .diaryDt(LocalDate.of(2022,10,1))
+                .build();
+
+        Diary dateExistDiary = Diary.builder()
+                .diaryId(2L)
+                .diaryDt(LocalDate.of(2022,10,2))
+                .build();
+
+        @Test
+        @DisplayName("일기 수정 - 성공")
+        void updateDiary_success() {
+            //given
+            given(memberRepository.findByEmail(anyString()))
+                    .willReturn(Optional.of(member));
+
+            given(diaryRepository.findByDiaryIdAndMember(any(), any()))
+                    .willReturn(Optional.of(diary));
+
+            given(diaryRepository.findByMemberAndDiaryDt(any(), eq(LocalDate.of(2022, 10, 1))))
+                    .willReturn(Optional.of(diary));
+
+            awsS3Service.deleteImage(any());
+
+            given(awsS3Service.addImageAndGetKey(any(), any()))
+                    .willReturn(s3ImageKey);
+
+            //when
+            diaryServiceImpl.updateDiary(
+                    "hgd@gmail.com",
+                    1L,
+                    LocalDate.of(2022, 10, 1),
+                    "anyText",
+                    file
+            );
+            //then
+            verify(diaryRepository, times(1)).save(any());
+        }
+
+        @Test
+        @DisplayName("일기 수정 - 실패 : 멤버 없음")
+        void updateDiary_fail_memberNotExist() {
+            //given
+            given(memberRepository.findByEmail(anyString()))
+                    .willReturn(Optional.empty());
+
+            //when
+            MemberException exception = assertThrows(MemberException.class,
+                    () -> diaryServiceImpl.updateDiary(
+                            "hgd@gmail.com",
+                            1L,
+                            LocalDate.of(2022, 10, 1),
+                            "anyText",
+                            file
+                    )
+            );
+            //then
+            assertEquals(MemberErrorCode.MEMBER_NOT_EXIST, exception.getErrorCode());
+        }
+
+        @Test
+        @DisplayName("일기 수정 - 실패 : 일기 없음")
+        void updateDiary_fail_notExistDiary() {
+            //given
+            given(memberRepository.findByEmail(anyString()))
+                    .willReturn(Optional.of(member));
+
+            given(diaryRepository.findByDiaryIdAndMember(any(), any()))
+                    .willReturn(Optional.empty());
+
+            //when
+            DiaryException exception = assertThrows(DiaryException.class,
+                    () -> diaryServiceImpl.updateDiary(
+                            "hgd@gmail.com",
+                            1L,
+                            LocalDate.of(2022, 10, 1),
+                            "anyText",
+                            file
+                    )
+            );
+            //then
+            assertEquals(DiaryErrorCode.NOT_EXIST_DIARY, exception.getErrorCode());
+        }
+
+        @Test
+        @DisplayName("일기 수정 - 수정하려는 날짜에 존재하는 일기")
+        void updateDiary_fail_thisDateExistDiary() {
+            //given
+            given(memberRepository.findByEmail(anyString()))
+                    .willReturn(Optional.of(member));
+
+            given(diaryRepository.findByDiaryIdAndMember(any(), any()))
+                    .willReturn(Optional.of(diary));
+
+            given(diaryRepository.findByMemberAndDiaryDt(any(), eq(LocalDate.of(2022, 10, 2))))
+                    .willReturn(Optional.of(dateExistDiary));
+
+            //when
+            DiaryException exception = assertThrows(DiaryException.class,
+                    () -> diaryServiceImpl.updateDiary(
+                            "hgd@gmail.com",
+                            1L,
+                            LocalDate.of(2022, 10, 2),
+                            "anyText",
+                            file
+                    )
+            );
             //then
             assertEquals(DiaryErrorCode.THIS_DATE_EXIST_DIARY, exception.getErrorCode());
         }
