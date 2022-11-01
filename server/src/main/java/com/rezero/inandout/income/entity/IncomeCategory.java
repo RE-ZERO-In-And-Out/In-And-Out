@@ -20,8 +20,7 @@ import org.hibernate.envers.AuditOverride;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@AuditOverride(forClass = BaseEntity.class)
-public class IncomeCategory extends BaseEntity {
+public class IncomeCategory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
