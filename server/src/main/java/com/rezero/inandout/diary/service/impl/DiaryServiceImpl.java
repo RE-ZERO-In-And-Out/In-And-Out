@@ -83,20 +83,15 @@ public class DiaryServiceImpl implements DiaryService {
     public void updateDiary(String email, Long diaryId, LocalDate diaryDt, String text, MultipartFile file) {
         Member member = findMemberByEmail(email);
 
-        Optional<Diary> optionalDiary = diaryRepository.findByDiaryIdAndMember(diaryId, member);
-
-        if(!optionalDiary.isPresent()) {
-            throw new DiaryException(DiaryErrorCode.NOT_EXIST_DIARY);
-        }
-
-        Diary diary = optionalDiary.get();
+        Diary updateDiary = diaryRepository.findByDiaryIdAndMember(diaryId, member)
+                .orElseThrow(() -> new DiaryException(DiaryErrorCode.NOT_EXIST_DIARY));
 
         Optional<Diary> optionalDateExistDiary = diaryRepository.findByMemberAndDiaryDt(member, diaryDt);
 
         if (optionalDateExistDiary.isPresent()) {
             Diary dateExistDiary = optionalDateExistDiary.get();
 
-            if (dateExistDiary.getDiaryDt() != diary.getDiaryDt()) {
+            if (dateExistDiary.getDiaryDt() != updateDiary.getDiaryDt()) {
                 throw new DiaryException(DiaryErrorCode.THIS_DATE_EXIST_DIARY);
             }
         }
@@ -111,11 +106,11 @@ public class DiaryServiceImpl implements DiaryService {
             s3ImageKey = awsS3Service.addImageAndGetKey(dir, file);
         }
 
-        diary.setDiaryDt(diaryDt);
-        diary.setText(text);
-        diary.setDiaryS3ImageKey(s3ImageKey);
+        updateDiary.setDiaryDt(diaryDt);
+        updateDiary.setText(text);
+        updateDiary.setDiaryS3ImageKey(s3ImageKey);
 
-        diaryRepository.save(diary);
+        diaryRepository.save(updateDiary);
     }
 
     private Member findMemberByEmail(String email) {
