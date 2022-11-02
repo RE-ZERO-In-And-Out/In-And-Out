@@ -61,4 +61,14 @@ public class CustomExceptionHandler {
 
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(RedisException.class)
+    protected ResponseEntity<RedisErrorResponse> MemberHandlerCustomException(
+            RedisException e) {
+        RedisErrorResponse errorResponse = RedisErrorResponse.builder()
+                .message(e.getMessage())
+                .build();
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
 }
