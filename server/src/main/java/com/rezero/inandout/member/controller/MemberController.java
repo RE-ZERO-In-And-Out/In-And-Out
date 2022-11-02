@@ -1,5 +1,6 @@
 package com.rezero.inandout.member.controller;
 
+import com.rezero.inandout.exception.MemberException;
 import com.rezero.inandout.member.model.ChangePasswordInput;
 import com.rezero.inandout.member.model.FindEmailMemberInput;
 import com.rezero.inandout.member.model.FindPasswordMemberInput;
@@ -39,7 +40,13 @@ public class MemberController {
     @ApiOperation(value = "회원 가입 API", notes = "이메일을 아이디로 사용하여 가입할 수 있다.")
     public ResponseEntity<?> signUp(
         @ApiParam(value = "회원 가입 정보 입력") @RequestBody JoinMemberInput memberInput) {
-        memberService.join(memberInput);
+
+        try {
+            memberService.join(memberInput);
+        } catch (MemberException e) {
+            return new ResponseEntity(e.getErrorCode().getDescription(),
+                HttpStatus.BAD_REQUEST);       // BAD가 맞을까?
+        }
         String message = "이메일 인증을 하시면 회원가입이 완료됩니다.";
         return new ResponseEntity(message, HttpStatus.OK);
     }
@@ -49,7 +56,13 @@ public class MemberController {
     @ApiOperation(value = "회원 가입을 위한 이메일 인증 API", notes = "이메일을 인증하여 회원 가입 가능하다.")
     public ResponseEntity<?> emailAuth(HttpServletRequest request) {
         String uuid = request.getParameter("id");
-        memberService.emailAuth(uuid);
+
+        try {
+            memberService.emailAuth(uuid);
+        } catch (MemberException e) {
+            return new ResponseEntity(e.getErrorCode().getDescription(), HttpStatus.BAD_REQUEST);
+        }
+
         String message = "회원가입이 완료되었습니다.";
         return new ResponseEntity(message, HttpStatus.OK);
     }
@@ -59,7 +72,15 @@ public class MemberController {
     @ApiOperation(value = "회원 정보 조회 API", notes = "회원이 자신의 정보를 조회한다.")
     public ResponseEntity<?> getInfo(Principal principal) {
         String email = principal.getName();
-        MemberDto memberDto = memberService.getInfo(email);
+
+        MemberDto memberDto = new MemberDto();
+        try {
+            memberDto = memberService.getInfo(email);
+
+        } catch (MemberException e) {
+            return new ResponseEntity(e.getErrorCode().getDescription(), HttpStatus.BAD_REQUEST);
+        }
+
         return new ResponseEntity<>(memberDto, HttpStatus.OK);
     }
 
@@ -67,11 +88,17 @@ public class MemberController {
     @PutMapping("/member/info")
     @ApiOperation(value = "회원 정보 수정 API", notes = "회원이 자신의 정보를 수정하거나 프로필 이미지 사진 등록 가능하다.")
     public ResponseEntity<?> updateInfo(Principal principal,
-        @ApiParam(value = "수정할 회원 정보 입력")
-        @RequestPart UpdateMemberInput input,
+        @ApiParam(value = "수정할 회원 정보 입력") @RequestPart UpdateMemberInput input,
         MultipartFile file) {
         String email = principal.getName();
-        memberService.updateInfo(email, input, file);
+
+        try {
+            memberService.updateInfo(email, input, file);
+
+        } catch (MemberException e) {
+            return new ResponseEntity(e.getErrorCode().getDescription(), HttpStatus.BAD_REQUEST);
+        }
+
         String message = "회원 정보를 변경했습니다.";
         return new ResponseEntity<>(message, HttpStatus.OK);
     }
@@ -82,7 +109,14 @@ public class MemberController {
     public ResponseEntity<?> updatePassword(Principal principal,
         @ApiParam(value = "기존 비밀번호, 새로운 비밀번호 입력") @RequestBody ChangePasswordInput input) {
         String email = principal.getName();
-        memberService.changePassword(email, input);
+
+        try {
+            memberService.changePassword(email, input);
+
+        } catch (MemberException e) {
+            return new ResponseEntity(e.getErrorCode().getDescription(), HttpStatus.BAD_REQUEST);
+        }
+
         String message = "비밀 번호가 변경되었습니다.";
         return new ResponseEntity<>(message, HttpStatus.OK);
     }
@@ -92,7 +126,14 @@ public class MemberController {
     @ApiOperation(value = "회원 로그인 API", notes = "아이디(이메일)와 비밀번호를 입력해서 로그인한다.")
     public ResponseEntity<?> signin(
         @ApiParam(value = "로그인 정보 입력") @RequestBody LoginMemberInput input) {
-        memberService.login(input);
+
+        try {
+            memberService.login(input);
+
+        } catch (MemberException e) {
+            return new ResponseEntity(e.getErrorCode().getDescription(), HttpStatus.BAD_REQUEST);
+        }
+
         String message = "정상적으로 로그인 완료했습니다.";
         return new ResponseEntity(message, HttpStatus.OK);
     }
@@ -101,7 +142,14 @@ public class MemberController {
     @PostMapping("/signout")
     @ApiOperation(value = "회원 로그아웃 API")
     public ResponseEntity<?> signout() {
-        memberService.logout();
+
+        try {
+            memberService.logout();
+
+        } catch (MemberException e) {
+            return new ResponseEntity(e.getErrorCode().getDescription(), HttpStatus.BAD_REQUEST);
+        }
+
         String message = "정상적으로 로그아웃을 완료했습니다.";
         return new ResponseEntity<>(message, HttpStatus.OK);
     }
@@ -111,7 +159,14 @@ public class MemberController {
     @ApiOperation(value = "아이디(이메일) 찾기 API", notes = "아이디(이메일)를 입력해서 존재하는 회원인지 확인한다.")
     public ResponseEntity<?> checkEmail(
         @ApiParam(value = "아이디(이메일) 입력") @RequestBody FindEmailMemberInput input) {
-        memberService.validateEmail(input.getEmail());
+
+        try {
+            memberService.validateEmail(input.getEmail());
+
+        } catch (MemberException e) {
+            return new ResponseEntity(e.getErrorCode().getDescription(), HttpStatus.BAD_REQUEST);
+        }
+
         return new ResponseEntity(input.getEmail(), HttpStatus.OK);
     }
 
@@ -120,8 +175,15 @@ public class MemberController {
     @ApiOperation(value = "비밀번호 찾기 API", notes = "연락처를 입력하여 비밀번호를 찾을 수 있도록 한다.")
     public ResponseEntity<?> checkPhone(
         @ApiParam(value = "연락처 입력") @RequestBody FindPasswordMemberInput findPasswordMemberInput) {
-        memberService.validatePhone(findPasswordMemberInput.getEmail(),
-            findPasswordMemberInput.getPhone());
+
+        try {
+            memberService.validatePhone(findPasswordMemberInput.getEmail(),
+                findPasswordMemberInput.getPhone());
+
+        } catch (MemberException e) {
+            return new ResponseEntity(e.getErrorCode().getDescription(), HttpStatus.BAD_REQUEST);
+        }
+
         String message = "이메일로 비밀번호 초기화 링크를 전송했습니다.";
         return new ResponseEntity(message, HttpStatus.OK);
     }
@@ -132,7 +194,13 @@ public class MemberController {
     public ResponseEntity<?> resetPassword(HttpServletRequest request,
         @ApiParam(value = "새로운 비밀번호를 입력") @RequestBody ResetPasswordInput input) {
         String uuid = request.getParameter("id");
-        memberService.resetPassword(uuid, input);
+
+        try {
+            memberService.resetPassword(uuid, input);
+        } catch (MemberException e) {
+            return new ResponseEntity(e.getErrorCode().getDescription(), HttpStatus.BAD_REQUEST);
+        }
+
         String message = "비밀번호 초기화가 완료됐습니다.";
         return new ResponseEntity(message, HttpStatus.OK);
     }
@@ -143,7 +211,15 @@ public class MemberController {
     public ResponseEntity<?> delete(
         @ApiParam(value = "비밀번호 입력") @RequestBody WithdrawMemberInput input, Principal principal) {
         String email = principal.getName();
-        memberService.withdraw(email, input.getPassword());
+
+        try {
+
+            memberService.withdraw(email, input.getPassword());
+
+        } catch (MemberException e) {
+            return new ResponseEntity(e.getErrorCode().getDescription(), HttpStatus.BAD_REQUEST);
+        }
+
         String message = "회원 탈퇴 완료";
         return new ResponseEntity(message, HttpStatus.OK);
     }
