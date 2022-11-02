@@ -6,12 +6,14 @@ import static com.rezero.inandout.exception.errorcode.MemberErrorCode.RESET_PASS
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.RESET_PASSWORD_KEY_NOT_EXIST;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.amazonaws.services.s3.AmazonS3Client;
+import com.rezero.inandout.awss3.AwsS3Service;
 import com.rezero.inandout.exception.MemberException;
 import com.rezero.inandout.exception.errorcode.MemberErrorCode;
 import com.rezero.inandout.member.component.MailComponent;
@@ -19,8 +21,10 @@ import com.rezero.inandout.member.entity.Member;
 import com.rezero.inandout.member.model.ChangePasswordInput;
 import com.rezero.inandout.member.model.JoinMemberInput;
 import com.rezero.inandout.member.model.LoginMemberInput;
+import com.rezero.inandout.member.model.MemberDto;
 import com.rezero.inandout.member.model.MemberStatus;
 import com.rezero.inandout.member.model.ResetPasswordInput;
+import com.rezero.inandout.member.model.UpdateMemberInput;
 import com.rezero.inandout.member.repository.MemberRepository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -33,6 +37,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -55,6 +60,9 @@ class MemberServiceImplTest {
 
     @Mock
     private MailComponent mailComponent;
+
+    @Mock
+    private AwsS3Service awsS3Service;
 
     @Mock
     private AmazonS3Client amazonS3Client;
@@ -160,7 +168,7 @@ class MemberServiceImplTest {
         memberService.validatePhone(email, phone);
 
     }
-/*
+
     @Test
     @DisplayName("회원 정보 조회")
     void getInfo() {
@@ -168,7 +176,8 @@ class MemberServiceImplTest {
         // given
         Member member = Member.builder().email("egg@naver.com").address("서울특별시")
             .phone("010-2222-0000").birth(LocalDate.from(LocalDate.of(2000, 9, 30))).gender("남")
-            .nickName("강동원").password("abc!@#12").build();
+            .nickName("강동원").password("abc!@#12").memberS3ImageKey("key") .build();
+
         given(memberRepository.findByEmail(anyString())).willReturn(Optional.of(member));
 
         // when
@@ -185,18 +194,29 @@ class MemberServiceImplTest {
     void updateInfo() {
 
         // given
+        String s3ImageKey = "imageKey";
         Member member = Member.builder().email("egg@naver.com").address("서울특별시")
             .phone("010-2222-0000").birth(LocalDate.from(LocalDate.of(2000, 9, 30))).gender("남")
-            .nickName("강동원").password("abc!@#12").build();
+            .nickName("강동원").password("abc!@#12").memberS3ImageKey("2022-10-31T17:36:50.822 diary 강아지.jpg").build();
+
         given(memberRepository.findByEmail(anyString())).willReturn(Optional.of(member));
+
+        given(awsS3Service.addImageAndGetKey(any(), any()))
+            .willReturn(s3ImageKey);
+
 
         // when
         UpdateMemberInput input = UpdateMemberInput.builder().address("강원도").nickName("치킨")
             .phone("010-1111-2313").birth(LocalDate.now()).gender("여")
             .address("강원도").build();
 
+        MockMultipartFile file = new MockMultipartFile("file",
+            "test.png",
+            "image/png",
+            "«‹png data>>".getBytes());
+
         // then
-        memberService.updateInfo("egg@naver.com", input, any());
+        memberService.updateInfo(member.getEmail(), input, file);
 
     }
 
@@ -206,24 +226,31 @@ class MemberServiceImplTest {
     void updateInfo_fail_blank() {
 
         // given
+        String s3ImageKey = "imageKey";
         Member member = Member.builder().email("egg@naver.com").address("서울특별시")
             .phone("010-2222-0000").birth(LocalDate.from(LocalDate.of(2000, 9, 30))).gender("남")
-            .nickName("강동원").password("abc!@#12").build();
-        given(memberRepository.findByEmail(anyString())).willReturn(Optional.of(member));
+            .nickName("강동원").password("abc!@#12").memberS3ImageKey(s3ImageKey).build();
+
+        given(memberRepository.findByEmail(anyString())).willReturn(Optional.of(member));       // 이메일로 회원을 조회한다.
+
         UpdateMemberInput input = UpdateMemberInput.builder().address("강원도").nickName("치킨")
             .phone("010-11 11-2313").birth(LocalDate.now()).gender("여")
             .address("강원도").build();
 
+        MockMultipartFile file = new MockMultipartFile("file",
+            "test.png",
+            "image/png",
+            "«‹png data>>".getBytes());
+
         // when
         MemberException exception = assertThrows(MemberException.class,
-            () -> memberService.updateInfo(member.getEmail(), input, any()));
+            () -> memberService.updateInfo(member.getEmail(), input, file));
 
         // then
         assertEquals(MemberErrorCode.CONTAINS_BLANK.getDescription(),
             exception.getErrorCode().getDescription());
 
     }
-
 
     @Test
     @DisplayName("회원 정보 수정(같은 폰번호가 존재하는 경우) - 실패 (2)")
@@ -233,13 +260,11 @@ class MemberServiceImplTest {
         Member memberA = Member.builder().email("egg@naver.com").address("서울특별시")
             .phone("010-2222-0000").birth(LocalDate.from(LocalDate.of(2000, 9, 30))).gender("남")
             .nickName("강동원").password("abc!@#12").build();
-
         given(memberRepository.findByEmail(any())).willReturn(Optional.of(memberA));
 
         Member memberB = Member.builder().email("ogh@naver.com").address("인천광역시")
             .phone("010-9999-0000").birth(LocalDate.from(LocalDate.of(1998, 9, 30))).gender("남")
             .nickName("소지섭").password("abc!@#12").build();
-
         given(memberRepository.findByPhone(any())).willReturn(Optional.of(memberB));
 
         UpdateMemberInput input = UpdateMemberInput.builder().address("강원도").nickName("강동원")
@@ -253,7 +278,9 @@ class MemberServiceImplTest {
         // then
         assertEquals(MemberErrorCode.PHONE_EXIST.getDescription(),
             exception.getErrorCode().getDescription());
+
     }
+
 
 
     @Test
@@ -269,7 +296,6 @@ class MemberServiceImplTest {
         Member memberB = Member.builder().email("ogh@naver.com").address("인천광역시")
             .phone("010-9999-0000").birth(LocalDate.from(LocalDate.of(1998, 9, 30))).gender("남")
             .nickName("소지섭").password("abc!@#12").build();
-
         given(memberRepository.findByNickName(any())).willReturn(Optional.of(memberB));
 
         UpdateMemberInput input = UpdateMemberInput.builder().address("강원도").nickName("소지섭")
@@ -285,7 +311,7 @@ class MemberServiceImplTest {
             exception.getErrorCode().getDescription());
 
     }
-*/
+
 
     @Test
     @DisplayName("비밀번호 변경 - 성공")
@@ -439,7 +465,7 @@ class MemberServiceImplTest {
     void withdraw() {
 
         // given
-        Member member = Member.builder().email("egg@naver.com").status(MemberStatus.ING).build();
+        Member member = Member.builder().email("egg@naver.com").status(MemberStatus.ING).memberS3ImageKey("").build();
         String rawPassword = "abc123!@";
         member.setPassword(bCryptPasswordEncoder.encode(rawPassword));
 
@@ -447,10 +473,12 @@ class MemberServiceImplTest {
         given(memberRepository.findByEmail(anyString())).willReturn(Optional.of(member));
         memberService.withdraw(member.getEmail(), rawPassword);
 
+
         // then
         assertEquals(MemberStatus.WITHDRAW,
             memberRepository.findByEmail(member.getEmail()).get().getStatus());
     }
+
 
     @Test
     @DisplayName("회원 탈퇴 (이메일 오류) - 실패")
