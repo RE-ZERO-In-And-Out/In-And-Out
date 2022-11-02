@@ -2,7 +2,6 @@ package com.rezero.inandout.member.service;
 
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.CANNOT_GET_INFO;
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.CANNOT_LOGOUT;
-import static com.rezero.inandout.exception.errorcode.MemberErrorCode.CANNOT_UPLOAD_IMAGE;
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.CONTAINS_BLANK;
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.EMAIL_AUTH_KEY_NOT_EXIST;
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.EMAIL_EXIST;
@@ -23,9 +22,6 @@ import static com.rezero.inandout.exception.errorcode.MemberErrorCode.RESET_PASS
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.RESET_PASSWORD_KEY_NOT_EXIST;
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.WITHDRAWAL_MEMBER;
 
-import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.rezero.inandout.awss3.AwsS3Service;
 import com.rezero.inandout.exception.MemberException;
 import com.rezero.inandout.exception.errorcode.MemberErrorCode;
@@ -39,12 +35,10 @@ import com.rezero.inandout.member.model.MemberStatus;
 import com.rezero.inandout.member.model.ResetPasswordInput;
 import com.rezero.inandout.member.model.UpdateMemberInput;
 import com.rezero.inandout.member.repository.MemberRepository;
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -214,7 +208,7 @@ public class MemberServiceImpl implements MemberService {
         Member member = Member.builder().email(input.getEmail()).address(input.getAddress())
             .birth(input.getBirth()).gender(input.getGender()).password(encPassword)
             .nickName(input.getNickName()).phone(input.getPhone()).status(MemberStatus.REQ)
-            .emailAuthKey(uuid).build();
+            .emailAuthKey(uuid).memberS3ImageKey("").build();
         memberRepository.save(member);
 
         String subject = "In and Out 회원 가입을 축하드립니다.";
@@ -223,6 +217,7 @@ public class MemberServiceImpl implements MemberService {
             + "'>가입 완료</a></div>";
         mailComponent.send(input.getEmail(), subject, text);
 
+        // 링크는 프론트 서버의 url로 변경 예정
     }
 
 
@@ -267,6 +262,7 @@ public class MemberServiceImpl implements MemberService {
         member.setResetPasswordKey(uuid);
         memberRepository.save(member);
 
+        // 링크는 프론트 서버의 url로 변경 예정
     }
 
 
@@ -304,18 +300,14 @@ public class MemberServiceImpl implements MemberService {
         Member member = memberRepository.findByEmail(email).get();
 
         String s3ImageUrl = "";
-        if (!member.getMemberS3ImageKey().isEmpty() || member.getMemberS3ImageKey() != "") {
+        if (!member.getMemberS3ImageKey().isEmpty() || member.getMemberS3ImageKey() != null
+            || member.getMemberS3ImageKey() != "") {
             s3ImageUrl = awsS3Service.getImageUrl(member.getMemberS3ImageKey());
         }
 
-        return MemberDto.builder()
-            .nickName(member.getNickName())
-            .phone(member.getPhone())
-            .gender(member.getGender())
-            .address(member.getAddress())
-            .birth(member.getBirth())
-            .s3ImageUrl(s3ImageUrl)
-            .build();
+        return MemberDto.builder().nickName(member.getNickName()).phone(member.getPhone())
+            .gender(member.getGender()).address(member.getAddress()).birth(member.getBirth())
+            .s3ImageUrl(s3ImageUrl).build();
 
     }
 
@@ -326,8 +318,8 @@ public class MemberServiceImpl implements MemberService {
         String previousUsedPhone = member.getPhone();
         String previousUsedNickname = member.getNickName();
 
-        if (input.getNickName().contains(" ") || input.getPhone().contains(" ")
-            || input.getGender().contains(" ")) {
+        if (input.getNickName().contains(" ") || input.getPhone().contains(" ") ||
+            input.getGender().contains(" ")) {
             throw new MemberException(CONTAINS_BLANK);
         }
 

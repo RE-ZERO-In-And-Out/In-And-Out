@@ -3,7 +3,9 @@ package com.rezero.inandout.member.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -17,8 +19,10 @@ import com.rezero.inandout.member.model.JoinMemberInput;
 import com.rezero.inandout.member.model.LoginMemberInput;
 import com.rezero.inandout.member.model.MemberStatus;
 import com.rezero.inandout.member.model.ResetPasswordInput;
+import com.rezero.inandout.member.model.UpdateMemberInput;
 import com.rezero.inandout.member.model.WithdrawMemberInput;
 import com.rezero.inandout.member.service.MemberServiceImpl;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
@@ -30,12 +34,15 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.web.multipart.MultipartFile;
 
 @MockBean(JpaMetamodelMappingContext.class)
 @WebMvcTest(MemberController.class)
@@ -71,7 +78,7 @@ class MemberControllerTest {
         ArgumentCaptor<JoinMemberInput> captor = ArgumentCaptor.forClass(JoinMemberInput.class);
 
         //then
-        Mockito.verify(memberServiceImpl, times(1)).join(captor.capture());
+        verify(memberServiceImpl, times(1)).join(captor.capture());
         assertEquals(captor.getValue().getEmail(), memberInput.getEmail());
 
     }
@@ -91,7 +98,7 @@ class MemberControllerTest {
         ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
 
         // then
-        Mockito.verify(memberServiceImpl, times(1)).emailAuth(captor.capture());
+        verify(memberServiceImpl, times(1)).emailAuth(captor.capture());
         assertEquals(uuid, captor.getValue());
 
     }
@@ -112,7 +119,7 @@ class MemberControllerTest {
         ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
 
         // then
-        Mockito.verify(memberServiceImpl, times(1)).validateEmail(captor.capture());
+        verify(memberServiceImpl, times(1)).validateEmail(captor.capture());
         assertEquals(captor.getValue(), memberInput.getEmail());
     }
 
@@ -131,7 +138,7 @@ class MemberControllerTest {
         ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
 
         //then
-        Mockito.verify(memberServiceImpl, times(1)).validatePhone(anyString(), captor.capture());
+        verify(memberServiceImpl, times(1)).validatePhone(anyString(), captor.capture());
         assertEquals(captor.getValue(), memberInput.getPhone());
     }
 
@@ -142,7 +149,10 @@ class MemberControllerTest {
         // given
         Member member = Member.builder().email("egg@naver.com").address("서울특별시")
             .phone("010-2222-0000").birth(LocalDate.from(LocalDate.of(2000, 9, 30))).gender("남")
-            .nickName("원빈").password("1").build();
+            .nickName("원빈").password("egg123!@")
+            .memberS3ImageKey(
+                "https://inandoutimagebucket.s3.ap-northeast-2.amazonaws.com/2022-11-01T14%3A12%3A30.514978900%20member%20%EA%B2%8C%EB%8D%94.png")
+            .build();
         String inputToJson = mapper.writeValueAsString(member);
 
         User user = new User(member.getEmail(), member.getPassword(),
@@ -157,38 +167,50 @@ class MemberControllerTest {
         ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
 
         // then
-        Mockito.verify(memberServiceImpl, times(1)).getInfo(captor.capture());
+        verify(memberServiceImpl, times(1)).getInfo(captor.capture());
         assertEquals(captor.getValue(), member.getEmail());
     }
-/*
+
 
     @Test
     @DisplayName("회원 정보 수정 - 성공")
     void updateInfo() throws Exception {
 
         // given
-        UpdateMemberInput input = UpdateMemberInput.builder().address("강원도").nickName("치킨")
-            .phone("010-1111-2313").birth(LocalDate.now()).gender("여")
-            .address("강원도").build();
-        String inputToJson = mapper.writeValueAsString(input);
-        String email = "egg@naver.com";
-        String pwd = "123abc?!";
-
-        User user = new User(email, pwd, AuthorityUtils.NO_AUTHORITIES);
+        Member member = Member.builder().email("egg@naver.com")
+            .password("123abc?!")
+            .build();
+        User user = new User(member.getEmail(), member.getPassword(),
+            AuthorityUtils.NO_AUTHORITIES);
         TestingAuthenticationToken testingAuthenticationToken = new TestingAuthenticationToken(user,
             null);
 
-        // when
-        mockMvc.perform(put("/api/member/info").contentType(MediaType.APPLICATION_JSON)
-                .principal(testingAuthenticationToken).content(inputToJson)).andExpect(status().isOk())
-            .andDo(print());
-        ArgumentCaptor<UpdateMemberInput> captor = ArgumentCaptor.forClass(UpdateMemberInput.class);
+        MockMultipartFile file = new MockMultipartFile("file",
+            "dog.png",
+            "image/png",
+            "«‹png data>>".getBytes());
 
-        // then
-        Mockito.verify(memberServiceImpl, times(1)).updateInfo(anyString(), captor.capture(), any());
-        assertEquals(captor.getValue().getPhone(), input.getPhone()); //
+        MockMultipartFile input = new MockMultipartFile("input",
+            "", "application/json",
+            ("{ \"nickName\" : \"계란\","
+                + " \"phone\" : \"010-1111-1111\","
+                + " \"address\" : \"서울특별시\","
+                + " \"gender\" : \"여\"}").getBytes(StandardCharsets.UTF_8));
+
+        mockMvc.perform(
+            multipart(HttpMethod.PUT, "/api/member/info")
+                .file(file)
+                .file(input)
+                .principal(testingAuthenticationToken)
+        ).andExpect(status().isOk()).andDo(print());
+
+        ArgumentCaptor<UpdateMemberInput> captorInput = ArgumentCaptor.forClass(
+            UpdateMemberInput.class);
+        ArgumentCaptor<MultipartFile> captorFile = ArgumentCaptor.forClass(MultipartFile.class);
+        verify(memberServiceImpl, times(1)).updateInfo(anyString(), captorInput.capture(),
+            captorFile.capture());
+
     }
-*/
 
 
     @Test
@@ -199,7 +221,6 @@ class MemberControllerTest {
         ChangePasswordInput input = ChangePasswordInput.builder().password("abc123!@")
             .newPassword("xyz098?!").build();
         String inputToJson = mapper.writeValueAsString(input);
-
         String email = "egg@naver.com";
         String pwd = "123abc?!";
 
@@ -215,7 +236,7 @@ class MemberControllerTest {
             ChangePasswordInput.class);
 
         // then
-        Mockito.verify(memberServiceImpl, times(1)).changePassword(anyString(), captor.capture());
+        verify(memberServiceImpl, times(1)).changePassword(anyString(), captor.capture());
         assertEquals(captor.getValue().getNewPassword(), input.getNewPassword());
 
     }
@@ -238,7 +259,7 @@ class MemberControllerTest {
         ArgumentCaptor<LoginMemberInput> captor = ArgumentCaptor.forClass(LoginMemberInput.class);
 
         // then
-        Mockito.verify(memberServiceImpl, times(1)).login(captor.capture());
+        verify(memberServiceImpl, times(1)).login(captor.capture());
         assertEquals(captor.getValue().getPassword(), input.getPassword());
 
     }
@@ -262,7 +283,7 @@ class MemberControllerTest {
                 .principal(testingAuthenticationToken)).andExpect(status().isOk()).andDo(print());
 
         // then
-        Mockito.verify(memberServiceImpl, times(1)).logout();
+        verify(memberServiceImpl, times(1)).logout();
 
     }
 
@@ -288,7 +309,7 @@ class MemberControllerTest {
         ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
 
         // then
-        Mockito.verify(memberServiceImpl, times(1)).withdraw(anyString(), captor.capture());
+        verify(memberServiceImpl, times(1)).withdraw(anyString(), captor.capture());
         assertEquals(input.getPassword(), captor.getValue());
 
     }
@@ -312,7 +333,7 @@ class MemberControllerTest {
             ResetPasswordInput.class);
 
         // then
-        Mockito.verify(memberServiceImpl, times(1)).resetPassword(anyString(), captor.capture());
+        verify(memberServiceImpl, times(1)).resetPassword(anyString(), captor.capture());
         assertEquals(input.getNewPassword(), captor.getValue().getNewPassword());
 
     }
