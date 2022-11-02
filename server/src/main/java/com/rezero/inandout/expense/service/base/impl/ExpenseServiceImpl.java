@@ -6,7 +6,11 @@ import com.rezero.inandout.exception.errorcode.ExpenseErrorCode;
 import com.rezero.inandout.expense.entity.DetailExpenseCategory;
 import com.rezero.inandout.expense.entity.Expense;
 import com.rezero.inandout.expense.entity.ExpenseCategory;
-import com.rezero.inandout.expense.model.*;
+import com.rezero.inandout.expense.model.DeleteExpenseInput;
+import com.rezero.inandout.expense.model.DetailExpenseCategoryDto;
+import com.rezero.inandout.expense.model.ExpenseCategoryDto;
+import com.rezero.inandout.expense.model.ExpenseDto;
+import com.rezero.inandout.expense.model.ExpenseInput;
 import com.rezero.inandout.expense.repository.DetailExpenseCategoryRepository;
 import com.rezero.inandout.expense.repository.ExpenseCategoryRepository;
 import com.rezero.inandout.expense.repository.ExpenseQueryRepository;
@@ -16,13 +20,12 @@ import com.rezero.inandout.member.entity.Member;
 import com.rezero.inandout.member.repository.MemberRepository;
 import com.rezero.inandout.report.model.ReportDto;
 import com.rezero.inandout.report.model.YearlyExpenseReportDto;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -204,6 +207,14 @@ public class ExpenseServiceImpl implements ExpenseService {
         Member member = findMemberByEmail(email);
 
         return expenseQueryRepository.getMonthlyExpenseCalendar(member.getMemberId(), startDt, endDt);
+    }
+
+    @Override
+    public List<DetailExpenseCategoryDto> getDetailExpenseCategory() {
+        List<DetailExpenseCategory> detailExpenseCategoryList
+            = detailExpenseCategoryRepository.findAll();
+
+        return DetailExpenseCategoryDto.toDtos(detailExpenseCategoryList);
     }
 
     private Expense findExpenseByExpenseId(Long expenseId) {

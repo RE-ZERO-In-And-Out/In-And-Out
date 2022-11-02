@@ -1,5 +1,6 @@
 package com.rezero.inandout.expense.model;
 
+import com.rezero.inandout.excel.model.ExpenseExcelDto;
 import com.rezero.inandout.expense.entity.Expense;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -43,5 +44,15 @@ public class ExpenseDto {
             dtos.add(toDto(expense));
         }
         return dtos;
+    }
+
+    public static ExpenseExcelDto toExcelDto(ExpenseDto expenseDto) {
+        return ExpenseExcelDto.builder()
+            .expenseDt(expenseDto.getExpenseDt())
+            .expenseItem(expenseDto.getExpenseItem())
+            .expenseCard(expenseDto.getExpenseCard())
+            .expenseCash(expenseDto.getExpenseCash())
+            .expenseMemo(expenseDto.getExpenseMemo())
+            .build();
     }
 }
