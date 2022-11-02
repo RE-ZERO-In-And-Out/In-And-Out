@@ -26,6 +26,7 @@ import com.rezero.inandout.member.model.MemberStatus;
 import com.rezero.inandout.member.model.ResetPasswordInput;
 import com.rezero.inandout.member.model.UpdateMemberInput;
 import com.rezero.inandout.member.repository.MemberRepository;
+import com.rezero.inandout.member.service.impl.MemberServiceImpl;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -215,7 +216,7 @@ class MemberServiceImplTest {
             "image/png",
             "«‹png data>>".getBytes());
 
-        // then
+        // then새 메일함 (1)
         memberService.updateInfo(member.getEmail(), input, file);
 
     }

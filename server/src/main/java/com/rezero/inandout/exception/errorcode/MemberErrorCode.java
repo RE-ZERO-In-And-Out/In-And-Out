@@ -14,6 +14,7 @@ public enum MemberErrorCode {
     PHONE_EXIST("동일한 휴대폰 번호가 존재합니다. 다른 번호를 입력하세요."),
     NICKNAME_EXIST("동일한 닉네임이 존재합니다. 다른 닉네임을 입력하세요"),
     WITHDRAWAL_MEMBER("이미 탈퇴한 아이디(이메일)입니다. 다른 이메일로 회원 가입하시길 바랍니다."),
+    REQUIRED_INPUT("아이디(이메일), 닉네임, 연락처는 필수 입력 사항입니다. 정확하게 입력 바랍니다."),
 
     /**
      * 회원가입 - 비밀번호 오류
