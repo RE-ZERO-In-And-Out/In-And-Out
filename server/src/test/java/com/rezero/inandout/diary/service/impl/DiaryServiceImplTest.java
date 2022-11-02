@@ -206,7 +206,6 @@ class DiaryServiceImplTest {
                 .memberId(1L)
                 .email("hgd@gmail.com")
                 .password("1234")
-                .memberS3ImageKey("anyKey")
                 .build();
 
 
@@ -221,6 +220,7 @@ class DiaryServiceImplTest {
                 .diaryId(1L)
                 .text("anyText")
                 .diaryDt(LocalDate.of(2022,10,1))
+                .diaryS3ImageKey("anyKey")
                 .build();
 
         Diary dateExistDiary = Diary.builder()
@@ -338,13 +338,13 @@ class DiaryServiceImplTest {
                 .memberId(1L)
                 .email("hgd@gmail.com")
                 .password("1234")
-                .memberS3ImageKey("anyKey")
                 .build();
 
         Diary diary = Diary.builder()
                 .diaryId(1L)
                 .text("anyText")
                 .diaryDt(LocalDate.of(2022,10,1))
+                .diaryS3ImageKey("anyKey")
                 .build();
 
         String s3ImageKey = "anyKey";
