@@ -15,7 +15,7 @@ import com.rezero.inandout.calendar.model.CalendarIncomeDto;
 import com.rezero.inandout.calendar.model.CalendarMonthlyDto;
 import com.rezero.inandout.calendar.service.Impl.CalendarServiceImpl;
 import com.rezero.inandout.member.entity.Member;
-import com.rezero.inandout.member.service.MemberService;
+import com.rezero.inandout.member.service.impl.MemberServiceImpl;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,7 +42,7 @@ class CalendarControllerTest {
     CalendarServiceImpl calendarService;
 
     @MockBean
-    MemberService memberService;
+    MemberServiceImpl memberService;
 
     @Autowired
     MockMvc mockMvc;
@@ -62,7 +62,8 @@ class CalendarControllerTest {
 
         User user = new User(member.getEmail(), member.getPassword(),
             AuthorityUtils.createAuthorityList("ROLE_USER"));
-        TestingAuthenticationToken testingAuthenticationToken = new TestingAuthenticationToken(user,null);
+        TestingAuthenticationToken testingAuthenticationToken = new TestingAuthenticationToken(user,
+            null);
 
         List<CalendarIncomeDto> calendarIncomeDtoList = new ArrayList<>(Arrays.asList(
             CalendarIncomeDto.builder().incomeDt(LocalDate.of(2022, 10, 2))
@@ -92,13 +93,13 @@ class CalendarControllerTest {
                 .principal(testingAuthenticationToken))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.year")
-                                .value(calendarMonthlyDto.getYear()))
+                .value(calendarMonthlyDto.getYear()))
             .andExpect(jsonPath("$.month")
-                                .value(calendarMonthlyDto.getMonth()))
+                .value(calendarMonthlyDto.getMonth()))
             .andExpect(jsonPath("$.calendarIncomeDtoList[0].item")
-                                .value(calendarIncomeDtoList.get(0).getItem()))
+                .value(calendarIncomeDtoList.get(0).getItem()))
             .andExpect(jsonPath("$.calendarExpenseDtoList[1].amount")
-                                .value(calendarExpenseDtoList.get(1).getAmount()))
+                .value(calendarExpenseDtoList.get(1).getAmount()))
             .andDo(print());
 
         //then

@@ -2,6 +2,7 @@ package com.rezero.inandout.report.controller;
 
 import com.rezero.inandout.member.entity.Member;
 import com.rezero.inandout.member.service.MemberService;
+import com.rezero.inandout.member.service.impl.MemberServiceImpl;
 import com.rezero.inandout.report.model.ReportDto;
 import com.rezero.inandout.report.model.YearlyExpenseReportDto;
 import com.rezero.inandout.report.model.YearlyIncomeReportDto;
@@ -40,7 +41,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class ReportControllerTest {
 
     @MockBean
-    private MemberService memberService;
+    private MemberServiceImpl memberService;
     
     @Autowired
     private MockMvc mockMvc;

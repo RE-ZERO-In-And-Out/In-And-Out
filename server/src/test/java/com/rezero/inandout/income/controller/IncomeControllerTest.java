@@ -13,14 +13,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rezero.inandout.income.model.*;
+import com.rezero.inandout.income.model.CategoryAndIncomeDto;
+import com.rezero.inandout.income.model.DeleteIncomeInput;
+import com.rezero.inandout.income.model.DetailIncomeCategoryDto;
+import com.rezero.inandout.income.model.IncomeCategoryDto;
+import com.rezero.inandout.income.model.IncomeDto;
+import com.rezero.inandout.income.model.IncomeInput;
 import com.rezero.inandout.income.repository.DetailIncomeCategoryRepository;
 import com.rezero.inandout.income.repository.IncomeRepository;
-import com.rezero.inandout.income.service.table.IncomeTableService;
 import com.rezero.inandout.income.service.base.impl.IncomeServiceImpl;
+import com.rezero.inandout.income.service.table.IncomeTableService;
 import com.rezero.inandout.member.entity.Member;
 import com.rezero.inandout.member.repository.MemberRepository;
-import com.rezero.inandout.member.service.MemberService;
+import com.rezero.inandout.member.service.impl.MemberServiceImpl;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -60,7 +65,7 @@ class IncomeControllerTest {
     private DetailIncomeCategoryRepository detailIncomeCategoryRepository;
 
     @MockBean
-    private MemberService memberService;
+    private MemberServiceImpl memberService;
 
     @Autowired
     private MockMvc mockMvc;
@@ -80,33 +85,34 @@ class IncomeControllerTest {
 
         List<IncomeInput> incomeInputList = new ArrayList<>();
         incomeInputList.add(IncomeInput.builder()
-                .detailIncomeCategoryId(99L)
-                .incomeDt(LocalDate.now())
-                .incomeItem("당근마켓판매")
-                .incomeAmount(2000)
-                .incomeMemo("TestMemo")
+            .detailIncomeCategoryId(99L)
+            .incomeDt(LocalDate.now())
+            .incomeItem("당근마켓판매")
+            .incomeAmount(2000)
+            .incomeMemo("TestMemo")
             .build());
         incomeInputList.add(IncomeInput.builder()
-                .incomeId(1L)
-                .detailIncomeCategoryId(99L)
-                .incomeDt(LocalDate.now())
-                .incomeItem("중고나라판매")
-                .incomeAmount(13000)
-                .incomeMemo("TestMemo2")
+            .incomeId(1L)
+            .detailIncomeCategoryId(99L)
+            .incomeDt(LocalDate.now())
+            .incomeItem("중고나라판매")
+            .incomeAmount(13000)
+            .incomeMemo("TestMemo2")
             .build());
 
         String incomeInputListJson = objectMapper.writeValueAsString(incomeInputList);
 
-        User user = new User(member.getEmail(), member.getPassword(), AuthorityUtils.createAuthorityList("ROLE_USER"));
+        User user = new User(member.getEmail(), member.getPassword(),
+            AuthorityUtils.createAuthorityList("ROLE_USER"));
         TestingAuthenticationToken testingAuthenticationToken
-            = new TestingAuthenticationToken(user,null);
+            = new TestingAuthenticationToken(user, null);
 
         //when
         mockMvc.perform(
-            post("/api/income")
-                .contentType(MediaType.APPLICATION_JSON)
-                .principal(testingAuthenticationToken)
-                .content(incomeInputListJson))
+                post("/api/income")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .principal(testingAuthenticationToken)
+                    .content(incomeInputListJson))
             .andExpect(status().isOk())
             .andDo(print());
         ArgumentCaptor<List<IncomeInput>> captor = ArgumentCaptor.forClass(List.class);
@@ -128,17 +134,18 @@ class IncomeControllerTest {
             .password("1234")
             .build();
 
-        User user = new User(member.getEmail(), member.getPassword(), AuthorityUtils.createAuthorityList("ROLE_USER"));
+        User user = new User(member.getEmail(), member.getPassword(),
+            AuthorityUtils.createAuthorityList("ROLE_USER"));
         TestingAuthenticationToken testingAuthenticationToken
-            = new TestingAuthenticationToken(user,null);
+            = new TestingAuthenticationToken(user, null);
 
         List<IncomeDto> incomeDtoList = new ArrayList<>();
         incomeDtoList.add(IncomeDto.builder()
-                .incomeId(99L)
-                .incomeDt(LocalDate.now())
-                .incomeItem("당근마켓판매")
-                .incomeAmount(2000)
-                .incomeMemo("TestMemo")
+            .incomeId(99L)
+            .incomeDt(LocalDate.now())
+            .incomeItem("당근마켓판매")
+            .incomeAmount(2000)
+            .incomeMemo("TestMemo")
             .build());
         incomeDtoList.add(IncomeDto.builder()
             .incomeId(98L)
@@ -150,37 +157,39 @@ class IncomeControllerTest {
 
         List<DetailIncomeCategoryDto> detailIncomeCategoryDtoList = new ArrayList<>();
         detailIncomeCategoryDtoList.add(DetailIncomeCategoryDto.builder()
-                .detailIncomeCategoryId(10L)
-                .detailIncomeCategoryName("월급")
+            .detailIncomeCategoryId(10L)
+            .detailIncomeCategoryName("월급")
             .build());
         detailIncomeCategoryDtoList.add(DetailIncomeCategoryDto.builder()
-                .detailIncomeCategoryId(11L)
-                .detailIncomeCategoryName("아르바이트")
+            .detailIncomeCategoryId(11L)
+            .detailIncomeCategoryName("아르바이트")
             .build());
 
         List<IncomeCategoryDto> incomeCategoryDtoList = new ArrayList<>();
         incomeCategoryDtoList.add(IncomeCategoryDto.builder()
-                .incomeCategoryId(1L)
-                .incomeCategoryName("주수입")
-                .detailIncomeCategoryDtoList(detailIncomeCategoryDtoList)
+            .incomeCategoryId(1L)
+            .incomeCategoryName("주수입")
+            .detailIncomeCategoryDtoList(detailIncomeCategoryDtoList)
             .build());
 
         CategoryAndIncomeDto categoryAndIncomeDto = CategoryAndIncomeDto.builder()
-                .incomeCategoryDtoList(incomeCategoryDtoList)
-                .incomeDtoList(incomeDtoList)
-                .build();
+            .incomeCategoryDtoList(incomeCategoryDtoList)
+            .incomeDtoList(incomeDtoList)
+            .build();
 
         given(incomeTableService.getCategoryAndIncomeDto(any(), any(), any()))
             .willReturn(categoryAndIncomeDto);
 
         //when
         mockMvc.perform(
-            get("/api/income?startDt=2022-10-01&endDt=2022-10-30")
-                .principal(testingAuthenticationToken))
+                get("/api/income?startDt=2022-10-01&endDt=2022-10-30")
+                    .principal(testingAuthenticationToken))
             .andDo(print())
-                .andExpect(jsonPath("$.incomeCategoryDtoList[0].incomeCategoryName").value("주수입"))
-                .andExpect(jsonPath("$.incomeCategoryDtoList[0].detailIncomeCategoryDtoList[0].detailIncomeCategoryName").value("월급"))
-                .andExpect(jsonPath("$.incomeDtoList[0].incomeItem").value("당근마켓판매"));
+            .andExpect(jsonPath("$.incomeCategoryDtoList[0].incomeCategoryName").value("주수입"))
+            .andExpect(jsonPath(
+                "$.incomeCategoryDtoList[0].detailIncomeCategoryDtoList[0].detailIncomeCategoryName").value(
+                "월급"))
+            .andExpect(jsonPath("$.incomeDtoList[0].incomeItem").value("당근마켓판매"));
 
 
     }
@@ -206,9 +215,10 @@ class IncomeControllerTest {
 
         String deleteIdListJson = objectMapper.writeValueAsString(deleteIncomeInputList);
 
-        User user = new User(member.getEmail(), member.getPassword(), AuthorityUtils.createAuthorityList("ROLE_USER"));
+        User user = new User(member.getEmail(), member.getPassword(),
+            AuthorityUtils.createAuthorityList("ROLE_USER"));
         TestingAuthenticationToken testingAuthenticationToken
-            = new TestingAuthenticationToken(user,null);
+            = new TestingAuthenticationToken(user, null);
 
         //when
         mockMvc.perform(
