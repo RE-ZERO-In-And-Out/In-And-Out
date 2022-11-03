@@ -18,9 +18,11 @@ import static com.rezero.inandout.exception.errorcode.MemberErrorCode.PASSWORD_N
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.PASSWORD_NOT_MATCH;
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.PHONE_EXIST;
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.PHONE_NOT_EXIST;
+import static com.rezero.inandout.exception.errorcode.MemberErrorCode.REQ_MEMBER_CANNOT_JOIN;
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.RESET_PASSWORD_KEY_EXPIRED;
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.RESET_PASSWORD_KEY_NOT_EXIST;
-import static com.rezero.inandout.exception.errorcode.MemberErrorCode.WITHDRAWAL_MEMBER;
+import static com.rezero.inandout.exception.errorcode.MemberErrorCode.STOP_MEMBER_CANNOT_JOIN;
+import static com.rezero.inandout.exception.errorcode.MemberErrorCode.WITHDRAWAL_MEMBER_CANNOT_JOIN;
 
 import com.rezero.inandout.awss3.AwsS3Service;
 import com.rezero.inandout.exception.MemberException;
@@ -47,6 +49,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
@@ -83,17 +86,18 @@ public class MemberServiceImpl implements MemberService {
         Optional<Member> optionalMember = memberRepository.findByEmail(input.getEmail());
         Member member = optionalMember.get();
 
+        if (member.getStatus().equals(MemberStatus.WITHDRAW)) {
+            throw new MemberException(MemberErrorCode.WITHDRAWAL_MEMBER_CANNOT_LOGIN);
+
+        } else if (member.getStatus().equals(MemberStatus.STOP)) {
+            throw new MemberException(MemberErrorCode.STOP_MEMBER_CANNOT_LOGIN);
+
+        } else if (member.getStatus().equals(MemberStatus.REQ)) {
+            throw new MemberException(MemberErrorCode.REQ_MEMBER_CANNOT_LOGIN);
+
+        }
         if (!bCryptPasswordEncoder.matches(input.getPassword(), member.getPassword())) {
             throw new MemberException(PASSWORD_NOT_MATCH);
-        }
-        if (member.getStatus().equals(MemberStatus.REQ)) {
-            throw new MemberException(MemberErrorCode.CANNOT_LOGIN_REQ);
-        }
-        if (member.getStatus().equals(MemberStatus.WITHDRAW)) {
-            throw new MemberException(MemberErrorCode.CANNOT_LOGIN_WITHDRAW);
-        }
-        if (member.getStatus().equals(MemberStatus.STOP)) {
-            throw new MemberException(MemberErrorCode.CANNOT_LOGIN_STOP);
         }
 
         UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
@@ -121,8 +125,15 @@ public class MemberServiceImpl implements MemberService {
         if (existsMember.isPresent()) {
 
             if (existsMember.get().getStatus().equals(MemberStatus.WITHDRAW)) {
-                throw new MemberException(WITHDRAWAL_MEMBER);
+                throw new MemberException(WITHDRAWAL_MEMBER_CANNOT_JOIN);
+
+            } else if (existsMember.get().getStatus().equals(MemberStatus.REQ)) {
+                throw new MemberException(REQ_MEMBER_CANNOT_JOIN);
+
+            } else if (existsMember.get().getStatus().equals(MemberStatus.STOP)) {
+                throw new MemberException(STOP_MEMBER_CANNOT_JOIN);
             }
+
             throw new MemberException(EMAIL_EXIST);
         }
 
@@ -197,6 +208,7 @@ public class MemberServiceImpl implements MemberService {
 
 
     @Override
+    @Transactional
     public void join(JoinMemberInput input) {
 
         validateInput(input);
@@ -205,17 +217,17 @@ public class MemberServiceImpl implements MemberService {
         String password = input.getPassword();
         String encPassword = bCryptPasswordEncoder.encode(password);
         String uuid = UUID.randomUUID().toString();
-        Member member = Member.builder().email(input.getEmail()).address(input.getAddress())
-            .birth(input.getBirth()).gender(input.getGender()).password(encPassword)
-            .nickName(input.getNickName()).phone(input.getPhone()).status(MemberStatus.REQ)
-            .emailAuthKey(uuid).memberS3ImageKey("").build();
-        memberRepository.save(member);
-
         String subject = "In and Out 회원 가입을 축하드립니다.";
         String text = "<p>안녕하세요. In And Out 입니다.</p><p>아래 링크를 누르시면 회원 가입이 완료됩니다.</p>"
             + "<div><a href='http://localhost:8080/api/signup/sending?id=" + uuid
             + "'>가입 완료</a></div>";
         mailComponent.send(input.getEmail(), subject, text);
+
+        Member member = Member.builder().email(input.getEmail()).address(input.getAddress())
+            .birth(input.getBirth()).gender(input.getGender()).password(encPassword)
+            .nickName(input.getNickName()).phone(input.getPhone()).status(MemberStatus.REQ)
+            .emailAuthKey(uuid).memberS3ImageKey("").build();
+        memberRepository.save(member);
 
         // 링크는 프론트 서버의 url로 변경 예정
     }
