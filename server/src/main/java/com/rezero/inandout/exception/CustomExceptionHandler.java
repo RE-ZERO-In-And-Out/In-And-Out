@@ -20,7 +20,7 @@ public class CustomExceptionHandler {
     }
 
     @ExceptionHandler(ExpenseException.class)
-    protected ResponseEntity<ExpenseErrorResponse> incomeHandlerCustomException(
+    protected ResponseEntity<ExpenseErrorResponse> expenseHandlerCustomException(
         ExpenseException e) {
         ExpenseErrorResponse errorResponse = ExpenseErrorResponse.builder()
             .errorCode(e.getErrorCode())
@@ -31,7 +31,7 @@ public class CustomExceptionHandler {
     }
 
     @ExceptionHandler(DiaryException.class)
-    protected ResponseEntity<DiaryErrorResponse> MemberHandlerCustomException(
+    protected ResponseEntity<DiaryErrorResponse> diaryHandlerCustomException(
             DiaryException e) {
         DiaryErrorResponse errorResponse = DiaryErrorResponse.builder()
                 .errorCode(e.getErrorCode())
@@ -42,7 +42,7 @@ public class CustomExceptionHandler {
     }
 
     @ExceptionHandler(MemberException.class)
-    protected ResponseEntity<MemberErrorResponse> MemberHandlerCustomException(
+    protected ResponseEntity<MemberErrorResponse> memberHandlerCustomException(
             MemberException e) {
         MemberErrorResponse errorResponse = MemberErrorResponse.builder()
                 .errorCode(e.getErrorCode())
@@ -53,7 +53,7 @@ public class CustomExceptionHandler {
     }
 
     @ExceptionHandler(AwsS3Exception.class)
-    protected ResponseEntity<AwsS3ErrorResponse> MemberHandlerCustomException(
+    protected ResponseEntity<AwsS3ErrorResponse> awsS3HandlerCustomException(
             AwsS3Exception e) {
         AwsS3ErrorResponse errorResponse = AwsS3ErrorResponse.builder()
                 .message(e.getMessage())
@@ -63,7 +63,7 @@ public class CustomExceptionHandler {
     }
 
     @ExceptionHandler(RedisException.class)
-    protected ResponseEntity<RedisErrorResponse> MemberHandlerCustomException(
+    protected ResponseEntity<RedisErrorResponse> redisHandlerCustomException(
             RedisException e) {
         RedisErrorResponse errorResponse = RedisErrorResponse.builder()
                 .message(e.getMessage())
