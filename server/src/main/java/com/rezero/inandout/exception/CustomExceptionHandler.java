@@ -5,11 +5,13 @@ import com.rezero.inandout.exception.response.DiaryErrorResponse;
 import com.rezero.inandout.exception.response.ExpenseErrorResponse;
 import com.rezero.inandout.exception.response.IncomeErrorResponse;
 import com.rezero.inandout.exception.response.MemberErrorResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+@Slf4j
 @RestControllerAdvice
 public class CustomExceptionHandler {
 
@@ -19,6 +21,8 @@ public class CustomExceptionHandler {
             .errorCode(e.getErrorCode())
             .message(e.getErrorCode().getDescription())
             .build();
+
+        log.error(errorResponse.getErrorCode().toString() + " / " + errorResponse.getMessage());
 
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
@@ -31,6 +35,8 @@ public class CustomExceptionHandler {
             .message(e.getErrorCode().getDescription())
             .build();
 
+        log.error(errorResponse.getErrorCode().toString() + " / " + errorResponse.getMessage());
+
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
@@ -41,6 +47,8 @@ public class CustomExceptionHandler {
             .errorCode(e.getErrorCode())
             .message(e.getErrorCode().getDescription())
             .build();
+
+        log.error(errorResponse.getErrorCode().toString() + " / " + errorResponse.getMessage());
 
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
@@ -53,6 +61,8 @@ public class CustomExceptionHandler {
             .message(e.getErrorCode().getDescription())
             .build();
 
+        log.error(errorResponse.getErrorCode().toString() + " / " + errorResponse.getMessage());
+
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
@@ -62,6 +72,8 @@ public class CustomExceptionHandler {
         AwsS3ErrorResponse errorResponse = AwsS3ErrorResponse.builder()
             .message(e.getMessage())
             .build();
+
+        log.error(errorResponse.getMessage());
 
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }

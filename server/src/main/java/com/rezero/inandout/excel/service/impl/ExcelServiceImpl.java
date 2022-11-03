@@ -60,7 +60,8 @@ public class ExcelServiceImpl implements ExcelService {
             new ColConfig("세부카테고리", 4000),
             new ColConfig("내역", 8000),
             new ColConfig("금액", 3000),
-            new ColConfig("메모", 5000)));
+            new ColConfig("메모", 5000))
+        );
 
         try {
             return excelDownloadComponent.downloadIncomeExcelFile(request, email, startDt, endDt,
@@ -87,7 +88,8 @@ public class ExcelServiceImpl implements ExcelService {
             new ColConfig("내역", 8000),
             new ColConfig("카드금액", 3000),
             new ColConfig("현금액", 3000),
-            new ColConfig("메모", 5000)));
+            new ColConfig("메모", 5000))
+        );
 
         try {
             return excelDownloadComponent.downloadExpenseExcelFile(

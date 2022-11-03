@@ -91,7 +91,7 @@ public class ExcelDownloadComponent {
                 }
             };
 
-            log.info("Export Income Excel: " + email + ", " + startDt + "~" + endDt);
+            log.info("[Excel Export Income] member: " + email + " / period: " + startDt + " ~ " + endDt);
 
             return ResponseEntity.ok()
                 .contentLength(tmpFile.length())
@@ -159,7 +159,7 @@ public class ExcelDownloadComponent {
                 }
             };
 
-            log.info("Export Expense Excel: " + email + ", " + startDt + "~" + endDt);
+            log.info("[Excel Export Expense] member: " + email + " / period: " + startDt + " ~ " + endDt);
 
             return ResponseEntity.ok()
                 .contentLength(tmpFile.length())
