@@ -52,7 +52,7 @@ public class RedisServiceImpl implements RedisService{
     public <T> void putList(String key, List<T> categories) {
         for (T category : categories) {
             try {
-                redisTemplate.opsForList().rightPush("key", mapper.writeValueAsString(category));
+                redisTemplate.opsForList().rightPush(key, mapper.writeValueAsString(category));
             } catch (JsonProcessingException e) {
                 throw new RedisException(e.getMessage());
             }
