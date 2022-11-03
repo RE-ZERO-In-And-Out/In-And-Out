@@ -5,9 +5,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rezero.inandout.exception.RedisException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.ListOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ObjectUtils;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -19,27 +23,40 @@ public class RedisServiceImpl implements RedisService{
 
 
     @Override
-    public <T> T get(String key, Class<T> classType) {
-        String redisValue = (String) redisTemplate.opsForValue().get(key);
+    @Transactional
+    public <T> List<T> getList(String key, Class<T> classType) {
+        List<T> returnList = new ArrayList<>();
 
-        if (ObjectUtils.isEmpty(redisValue)) {
-            return null;
-        } else {
+        Long size = redisTemplate.opsForList().size(key);
+
+        if (size == null) {
+            size = 0L;
+        }
+
+        if (size > 0) {
+            for (int i = 0; i < size; i++) {
+                try {
+                    T t = mapper.readValue((String)redisTemplate.opsForList().index(key, i), classType);
+                    returnList.add(t);
+                } catch (JsonProcessingException e) {
+                    throw new RedisException(e.getMessage());
+                }
+            }
+        }
+
+        return returnList;
+    }
+
+    @Override
+    @Transactional
+    public <T> void putList(String key, List<T> categories) {
+        for (T category : categories) {
             try {
-                return mapper.readValue(redisValue, classType);
+                redisTemplate.opsForList().rightPush("key", mapper.writeValueAsString(category));
             } catch (JsonProcessingException e) {
-                log.error("Parsing error", e);
-                return null;
+                throw new RedisException(e.getMessage());
             }
         }
     }
 
-    @Override
-    public void put(String key, Object object) {
-        try {
-            redisTemplate.opsForValue().set(key, mapper.writeValueAsString(object));
-        } catch (JsonProcessingException e) {
-            throw new RedisException(e.getMessage());
-        }
-    }
 }
