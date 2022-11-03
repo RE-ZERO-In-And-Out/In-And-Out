@@ -46,7 +46,7 @@ public class CustomExceptionHandler {
     }
 
     @ExceptionHandler(MemberException.class)
-    protected ResponseEntity<?> memberHandlerCustomException(
+    protected ResponseEntity<MemberErrorResponse> memberHandlerCustomException(
         MemberException e) {
         MemberErrorResponse errorResponse = MemberErrorResponse.builder()
             .errorCode(e.getErrorCode())
@@ -62,6 +62,16 @@ public class CustomExceptionHandler {
         AwsS3ErrorResponse errorResponse = AwsS3ErrorResponse.builder()
             .message(e.getMessage())
             .build();
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(RedisException.class)
+    protected ResponseEntity<RedisErrorResponse> redisHandlerCustomException(
+            RedisException e) {
+        RedisErrorResponse errorResponse = RedisErrorResponse.builder()
+                .message(e.getMessage())
+                .build();
 
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
