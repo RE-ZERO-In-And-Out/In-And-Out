@@ -18,6 +18,7 @@ import com.rezero.inandout.expense.repository.ExpenseRepository;
 import com.rezero.inandout.expense.service.base.ExpenseService;
 import com.rezero.inandout.member.entity.Member;
 import com.rezero.inandout.member.repository.MemberRepository;
+import com.rezero.inandout.redis.RedisService;
 import com.rezero.inandout.report.model.ReportDto;
 import com.rezero.inandout.report.model.YearlyExpenseReportDto;
 import java.time.LocalDate;
@@ -36,6 +37,9 @@ public class ExpenseServiceImpl implements ExpenseService {
     private final ExpenseCategoryRepository expenseCategoryRepository;
     private final MemberRepository memberRepository;
     private final ExpenseQueryRepository expenseQueryRepository;
+    private final RedisService redisService;
+
+    private static final String EXPENSE_CATEGORY_REDIS_KEY = "지출카테고리";
 
     @Override
     @Transactional
@@ -78,20 +82,47 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
+    @Transactional
     public List<ExpenseCategoryDto> getExpenseCategories() {
-        List<ExpenseCategory> expenseCategories = expenseCategoryRepository.findAll();
-
         List<ExpenseCategoryDto> expenseCategoryDtos = new ArrayList<>();
 
-        for (ExpenseCategory expenseCategory : expenseCategories) {
-            ExpenseCategoryDto expenseCategoryDto = ExpenseCategoryDto.toDto(expenseCategory);
+        List<ExpenseCategory> expenseCategories =
+                redisService.getList(EXPENSE_CATEGORY_REDIS_KEY, ExpenseCategory.class);
 
-            List<DetailExpenseCategory> detailExpenseCategories =
-                detailExpenseCategoryRepository.findAllByExpenseCategory(expenseCategory);
+        if (expenseCategories.size() > 0) {
+            for (ExpenseCategory expenseCategory : expenseCategories) {
+                ExpenseCategoryDto expenseCategoryDto =
+                        ExpenseCategoryDto.toDto(expenseCategory);
 
-            expenseCategoryDto.setDetailExpenseCategoryDtos(DetailExpenseCategoryDto.toDtos(detailExpenseCategories));
+                List<DetailExpenseCategory> detailExpenseCategories =
+                        redisService.getList(
+                                expenseCategory.getExpenseCategoryName(),
+                                DetailExpenseCategory.class);
 
-            expenseCategoryDtos.add(expenseCategoryDto);
+                expenseCategoryDto.setDetailExpenseCategoryDtos(
+                        DetailExpenseCategoryDto.toDtos(detailExpenseCategories));
+
+                expenseCategoryDtos.add(expenseCategoryDto);
+            }
+        } else {
+            expenseCategories = expenseCategoryRepository.findAll();
+
+            redisService.putList(EXPENSE_CATEGORY_REDIS_KEY, expenseCategories);
+
+            for (ExpenseCategory expenseCategory : expenseCategories) {
+                ExpenseCategoryDto expenseCategoryDto = ExpenseCategoryDto.toDto(expenseCategory);
+
+                List<DetailExpenseCategory> detailExpenseCategories =
+                        detailExpenseCategoryRepository
+                                .findAllByExpenseCategory(expenseCategory);
+
+                redisService.putList(expenseCategory.getExpenseCategoryName(), detailExpenseCategories);
+
+                expenseCategoryDto.setDetailExpenseCategoryDtos(
+                        DetailExpenseCategoryDto.toDtos(detailExpenseCategories));
+
+                expenseCategoryDtos.add(expenseCategoryDto);
+            }
         }
 
         return expenseCategoryDtos;
