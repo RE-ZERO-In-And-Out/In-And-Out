@@ -67,7 +67,8 @@ public class MemberServiceImpl extends DefaultOAuth2UserService implements Membe
 
     private static final String dir = "member";
 
-    @Value(value = "${ip.address}")
+    // 프론트 테스트 버전
+    @Value(value = "${front.local.ip.address}")
     private String ipAddress;
 
 
@@ -231,12 +232,26 @@ public class MemberServiceImpl extends DefaultOAuth2UserService implements Membe
         memberRepository.save(member);
 
         String subject = "In and Out 회원 가입을 축하드립니다.";
+
+// back 테스트
+        /*
         String text = "<p>안녕하세요. In And Out 입니다.</p><p>아래 링크를 누르시면 회원 가입이 완료됩니다.</p>"
             + "<div><a href='http://"
             + ipAddress
             + "/api/signup/sending?id="
             + uuid
             + "'>가입 완료</a></div>";
+        */
+
+// front 테스트 버전 ex) http://localhost:3000/signup_check/sending?id=591390c9-4eb9-49ef-b606-df17c601d6f0
+        String text = "<p>안녕하세요. In And Out 입니다.</p><p>아래 링크를 누르시면 회원 가입이 완료됩니다.</p>"
+            + "<div><a href='http://"
+            + ipAddress
+            + "/signup_check/sending?id="
+            + uuid
+            + "'>가입 완료</a></div>";
+
+
         mailComponent.send(input.getEmail(), subject, text);
 
         // 링크는 프론트 서버의 url로 변경 예정
@@ -275,11 +290,23 @@ public class MemberServiceImpl extends DefaultOAuth2UserService implements Membe
 
         String uuid = UUID.randomUUID().toString();
         String subject = "In and Out 비밀번호 초기화";
+
+// back 테스트
+        /*
         String text = "<p>안녕하세요. In And Out 입니다.</p><p>아래 링크를 누르시면 비밀번호 초기화가 완료됩니다.</p>"
             + "<div><a href='http://"
             + ipAddress
             + "/api/password/email/phone/sending?id=" + uuid
             + "'>비밀번호 초기화</a></div>";
+        */
+
+// front 테스트 버전 ex) http://localhost:3000/password_reset/sending?id=5c1072a1-6800-4d33-aed0-badd83505bfd
+        String text = "<p>안녕하세요. In And Out 입니다.</p><p>아래 링크를 누르시면 비밀번호 초기화가 완료됩니다.</p>"
+            + "<div><a href='http://"
+            + ipAddress
+            + "/password_reset/sending?id=" + uuid
+            + "'>비밀번호 초기화</a></div>";
+
 
         mailComponent.send(email, subject, text);
 
