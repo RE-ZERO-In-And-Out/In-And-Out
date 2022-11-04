@@ -41,7 +41,7 @@ public class MemberController {
         @ApiParam(value = "회원 가입 정보 입력") @RequestBody JoinMemberInput memberInput) {
         memberService.join(memberInput);
         String message = "이메일 인증을 하시면 회원가입이 완료됩니다.";
-        return new ResponseEntity(message, HttpStatus.OK);
+        return new ResponseEntity<>(message, HttpStatus.OK);
     }
 
 
@@ -51,7 +51,7 @@ public class MemberController {
         String uuid = request.getParameter("id");
         memberService.emailAuth(uuid);
         String message = "회원가입이 완료되었습니다.";
-        return new ResponseEntity(message, HttpStatus.OK);
+        return new ResponseEntity<>(message, HttpStatus.OK);
     }
 
 
@@ -67,7 +67,7 @@ public class MemberController {
     @PutMapping("/member/info")
     @ApiOperation(value = "회원 정보 수정 API", notes = "회원이 자신의 정보를 수정하거나 프로필 이미지 사진 등록 가능하다.")
     public ResponseEntity<?> updateInfo(Principal principal,
-        @ApiParam(value = "수정할 회원 정보 입력 또는 회원 프로필 이미지 등록")
+        @ApiParam(value =  "수정할 회원 정보 입력 또는 회원 프로필 이미지 등록")
         @RequestPart UpdateMemberInput input,
         MultipartFile file) {
         String email = principal.getName();
@@ -94,7 +94,7 @@ public class MemberController {
         @ApiParam(value = "로그인 정보 입력") @RequestBody LoginMemberInput input) {
         memberService.login(input);
         String message = "정상적으로 로그인 완료했습니다.";
-        return new ResponseEntity(message, HttpStatus.OK);
+        return new ResponseEntity<>(message, HttpStatus.OK);
     }
 
 
@@ -112,7 +112,7 @@ public class MemberController {
     public ResponseEntity<?> checkEmail(
         @ApiParam(value = "아이디(이메일) 입력") @RequestBody FindEmailMemberInput input) {
         memberService.validateEmail(input.getEmail());
-        return new ResponseEntity(input.getEmail(), HttpStatus.OK);
+        return new ResponseEntity<>(input.getEmail(), HttpStatus.OK);
     }
 
 
@@ -123,7 +123,7 @@ public class MemberController {
         memberService.validatePhone(findPasswordMemberInput.getEmail(),
             findPasswordMemberInput.getPhone());
         String message = "이메일로 비밀번호 초기화 링크를 전송했습니다.";
-        return new ResponseEntity(message, HttpStatus.OK);
+        return new ResponseEntity<>(message, HttpStatus.OK);
     }
 
 
@@ -134,7 +134,7 @@ public class MemberController {
         String uuid = request.getParameter("id");
         memberService.resetPassword(uuid, input);
         String message = "비밀번호 초기화가 완료됐습니다.";
-        return new ResponseEntity(message, HttpStatus.OK);
+        return new ResponseEntity<>(message, HttpStatus.OK);
     }
 
 
@@ -145,7 +145,7 @@ public class MemberController {
         String email = principal.getName();
         memberService.withdraw(email, input.getPassword());
         String message = "회원 탈퇴 완료";
-        return new ResponseEntity(message, HttpStatus.OK);
+        return new ResponseEntity<>(message, HttpStatus.OK);
     }
 
 }

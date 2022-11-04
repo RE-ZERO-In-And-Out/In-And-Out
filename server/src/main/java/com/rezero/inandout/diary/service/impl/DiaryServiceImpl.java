@@ -12,6 +12,7 @@ import com.rezero.inandout.exception.errorcode.MemberErrorCode;
 import com.rezero.inandout.member.entity.Member;
 import com.rezero.inandout.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -20,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class DiaryServiceImpl implements DiaryService {
@@ -67,6 +69,7 @@ public class DiaryServiceImpl implements DiaryService {
 
         if (file != null) {
             s3ImageKey = awsS3Service.addImageAndGetKey(dir, file);
+            log.info("[S3 Image save] dir: " + dir + "/ member: " + email);
         }
 
         Diary diary = Diary.builder()
@@ -97,12 +100,14 @@ public class DiaryServiceImpl implements DiaryService {
 
         if (!updateDiary.getDiaryS3ImageKey().isEmpty() || updateDiary.getDiaryS3ImageKey() != "") {
             awsS3Service.deleteImage(member.getMemberS3ImageKey());
+            log.info("[S3 Image delete] dir: " + dir + "/ member: " + email);
         }
 
         String s3ImageKey = "";
 
         if (file != null) {
             s3ImageKey = awsS3Service.addImageAndGetKey(dir, file);
+            log.info("[S3 Image save] dir: " + dir + "/ member: " + email);
         }
 
         updateDiary.setDiaryDt(diaryDt);
@@ -120,6 +125,7 @@ public class DiaryServiceImpl implements DiaryService {
 
         if (!deleteDiary.getDiaryS3ImageKey().isEmpty() || deleteDiary.getDiaryS3ImageKey() != "") {
             awsS3Service.deleteImage(deleteDiary.getDiaryS3ImageKey());
+            log.info("[S3 Image delete] dir: " + dir + "/ member: " + email);
         }
 
         diaryRepository.delete(deleteDiary);

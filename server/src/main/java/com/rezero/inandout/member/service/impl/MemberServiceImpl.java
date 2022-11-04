@@ -1,4 +1,4 @@
-package com.rezero.inandout.member.service.impl;
+package com.rezero.inandout.member.service;
 
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.CANNOT_GET_INFO;
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.CANNOT_LOGOUT;
@@ -44,6 +44,7 @@ import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -51,8 +52,10 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MemberServiceImpl extends DefaultOAuth2UserService implements MemberService {
@@ -82,7 +85,6 @@ public class MemberServiceImpl extends DefaultOAuth2UserService implements Membe
         }
 
         Member member = optionalMember.get();
-//        return new User(member.getEmail(), member.getPassword(), AuthorityUtils.NO_AUTHORITIES);
         return new PrincipalDetails(member);
     }
 
@@ -112,6 +114,8 @@ public class MemberServiceImpl extends DefaultOAuth2UserService implements Membe
         UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
             userDetails, null, userDetails.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(token);
+
+        log.info("[Member Login] member: " + input.getEmail());
 
     }
 
@@ -217,6 +221,7 @@ public class MemberServiceImpl extends DefaultOAuth2UserService implements Membe
 
 
     @Override
+    @Transactional
     public void join(JoinMemberInput input) {
 
         validateInput(input);
@@ -225,12 +230,6 @@ public class MemberServiceImpl extends DefaultOAuth2UserService implements Membe
         String password = input.getPassword();
         String encPassword = bCryptPasswordEncoder.encode(password);
         String uuid = UUID.randomUUID().toString();
-        Member member = Member.builder().email(input.getEmail()).address(input.getAddress())
-            .birth(input.getBirth()).gender(input.getGender()).password(encPassword)
-            .nickName(input.getNickName()).phone(input.getPhone()).status(MemberStatus.REQ)
-            .emailAuthKey(uuid).memberS3ImageKey("").build();
-        memberRepository.save(member);
-
         String subject = "In and Out 회원 가입을 축하드립니다.";
 
 // back 테스트
@@ -254,6 +253,14 @@ public class MemberServiceImpl extends DefaultOAuth2UserService implements Membe
 
         mailComponent.send(input.getEmail(), subject, text);
 
+        Member member = Member.builder().email(input.getEmail()).address(input.getAddress())
+            .birth(input.getBirth()).gender(input.getGender()).password(encPassword)
+            .nickName(input.getNickName()).phone(input.getPhone()).status(MemberStatus.REQ)
+            .emailAuthKey(uuid).memberS3ImageKey("").build();
+        memberRepository.save(member);
+
+        log.info("[Member SignUp] member: " + member.getEmail());
+
         // 링크는 프론트 서버의 url로 변경 예정
     }
 
@@ -269,6 +276,7 @@ public class MemberServiceImpl extends DefaultOAuth2UserService implements Membe
         member.setStatus(MemberStatus.ING);
         memberRepository.save(member);
 
+        log.info("[Member Activate] member: " + member.getEmail());
     }
 
 
@@ -340,6 +348,7 @@ public class MemberServiceImpl extends DefaultOAuth2UserService implements Membe
         member.setPassword(encPassword);
         memberRepository.save(member);
 
+        log.info("[Member Password Reset] member: " + member.getEmail());
     }
 
 
@@ -409,6 +418,8 @@ public class MemberServiceImpl extends DefaultOAuth2UserService implements Membe
         member.setMemberS3ImageKey(s3ImageKey);
         memberRepository.save(member);
 
+        log.info("[Member Update Info] member: " + member.getEmail());
+
     }
 
 
@@ -430,6 +441,8 @@ public class MemberServiceImpl extends DefaultOAuth2UserService implements Membe
         member.setPassword(bCryptPasswordEncoder.encode(input.getNewPassword()));
         memberRepository.save(member);
 
+        log.info("[Member Password Change] member: " + member.getEmail());
+
     }
 
 
@@ -449,6 +462,8 @@ public class MemberServiceImpl extends DefaultOAuth2UserService implements Membe
         if (!member.getMemberS3ImageKey().isEmpty() || member.getMemberS3ImageKey() != "") {
             awsS3Service.deleteImage(member.getMemberS3ImageKey());
         }
+
+        log.info("[Member Withdraw] member: " + member.getEmail());
 
         member.setStatus(MemberStatus.WITHDRAW);
         member.setDeleteDt(LocalDateTime.now());

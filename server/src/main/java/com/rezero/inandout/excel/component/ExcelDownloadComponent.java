@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.hssf.util.HSSFColor.HSSFColorPredefined;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.FillPatternType;
@@ -29,6 +30,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class ExcelDownloadComponent {
@@ -84,11 +86,12 @@ public class ExcelDownloadComponent {
                 public void close() throws IOException {
                     super.close();
                     if (tmpFile.delete()) {
-                        // 추후 로그기록으로 바꿔야 함
-                        System.out.println("임시 파일 삭제 완료");
+                        log.info("임시 파일 삭제 완료");
                     }
                 }
             };
+
+            log.info("[Excel Export Income] member: " + email + " / period: " + startDt + " ~ " + endDt);
 
             return ResponseEntity.ok()
                 .contentLength(tmpFile.length())
@@ -151,11 +154,12 @@ public class ExcelDownloadComponent {
                 public void close() throws IOException {
                     super.close();
                     if (tmpFile.delete()) {
-                        // 추후 로그기록으로 바꿔야 함
-                        System.out.println("임시 파일 삭제 완료");
+                        log.info("임시 파일 삭제 완료");
                     }
                 }
             };
+
+            log.info("[Excel Export Expense] member: " + email + " / period: " + startDt + " ~ " + endDt);
 
             return ResponseEntity.ok()
                 .contentLength(tmpFile.length())
