@@ -7,10 +7,9 @@ import com.rezero.inandout.member.model.MemberDto;
 import com.rezero.inandout.member.model.ResetPasswordInput;
 import com.rezero.inandout.member.model.UpdateMemberInput;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.web.multipart.MultipartFile;
 
-public interface MemberService extends UserDetailsService  {
+public interface MemberService extends UserDetailsService {
 
     /**
      * 회원 가입
