@@ -41,6 +41,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -52,6 +53,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MemberServiceImpl implements MemberService {
@@ -103,6 +105,8 @@ public class MemberServiceImpl implements MemberService {
         UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
             userDetails, null, userDetails.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(token);
+
+        log.info("[Member Login] member: " + input.getEmail());
 
     }
 
@@ -229,6 +233,8 @@ public class MemberServiceImpl implements MemberService {
             .emailAuthKey(uuid).memberS3ImageKey("").build();
         memberRepository.save(member);
 
+        log.info("[Member SignUp] member: " + member.getEmail());
+
         // 링크는 프론트 서버의 url로 변경 예정
     }
 
@@ -244,6 +250,7 @@ public class MemberServiceImpl implements MemberService {
         member.setStatus(MemberStatus.ING);
         memberRepository.save(member);
 
+        log.info("[Member Activate] member: " + member.getEmail());
     }
 
 
@@ -300,6 +307,7 @@ public class MemberServiceImpl implements MemberService {
         member.setPassword(encPassword);
         memberRepository.save(member);
 
+        log.info("[Member Password Reset] member: " + member.getEmail());
     }
 
 
@@ -369,6 +377,8 @@ public class MemberServiceImpl implements MemberService {
         member.setMemberS3ImageKey(s3ImageKey);
         memberRepository.save(member);
 
+        log.info("[Member Update Info] member: " + member.getEmail());
+
     }
 
 
@@ -390,6 +400,8 @@ public class MemberServiceImpl implements MemberService {
         member.setPassword(bCryptPasswordEncoder.encode(input.getNewPassword()));
         memberRepository.save(member);
 
+        log.info("[Member Password Change] member: " + member.getEmail());
+
     }
 
 
@@ -409,6 +421,8 @@ public class MemberServiceImpl implements MemberService {
         if (!member.getMemberS3ImageKey().isEmpty() || member.getMemberS3ImageKey() != "") {
             awsS3Service.deleteImage(member.getMemberS3ImageKey());
         }
+
+        log.info("[Member Withdraw] member: " + member.getEmail());
 
         member.setStatus(MemberStatus.WITHDRAW);
         member.setDeleteDt(LocalDateTime.now());

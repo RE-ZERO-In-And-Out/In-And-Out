@@ -1,11 +1,14 @@
 package com.rezero.inandout.exception;
 
+
+import lombok.extern.slf4j.Slf4j;
 import com.rezero.inandout.exception.response.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+@Slf4j
 @RestControllerAdvice
 public class CustomExceptionHandler {
 
@@ -15,6 +18,8 @@ public class CustomExceptionHandler {
             .errorCode(e.getErrorCode())
             .message(e.getErrorCode().getDescription())
             .build();
+
+        log.error(errorResponse.getErrorCode().toString() + " / " + errorResponse.getMessage());
 
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
@@ -27,6 +32,8 @@ public class CustomExceptionHandler {
             .message(e.getErrorCode().getDescription())
             .build();
 
+        log.error(errorResponse.getErrorCode().toString() + " / " + errorResponse.getMessage());
+
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
@@ -37,6 +44,8 @@ public class CustomExceptionHandler {
             .errorCode(e.getErrorCode())
             .message(e.getErrorCode().getDescription())
             .build();
+
+        log.error(errorResponse.getErrorCode().toString() + " / " + errorResponse.getMessage());
 
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
@@ -49,6 +58,8 @@ public class CustomExceptionHandler {
             .message(e.getErrorCode().getDescription())
             .build();
 
+        log.error(errorResponse.getErrorCode().toString() + " / " + errorResponse.getMessage());
+
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
@@ -59,6 +70,8 @@ public class CustomExceptionHandler {
             .message(e.getMessage())
             .build();
 
+        log.error(errorResponse.getMessage());
+
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
@@ -68,6 +81,8 @@ public class CustomExceptionHandler {
         RedisErrorResponse errorResponse = RedisErrorResponse.builder()
                 .message(e.getMessage())
                 .build();
+
+        log.error(errorResponse.getMessage());
 
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
