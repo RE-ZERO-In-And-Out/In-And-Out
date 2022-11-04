@@ -7,10 +7,6 @@ import static com.rezero.inandout.exception.errorcode.IncomeErrorCode.NO_MEMBER;
 
 import com.rezero.inandout.calendar.model.CalendarIncomeDto;
 import com.rezero.inandout.exception.IncomeException;
-import com.rezero.inandout.expense.entity.DetailExpenseCategory;
-import com.rezero.inandout.expense.entity.ExpenseCategory;
-import com.rezero.inandout.expense.model.DetailExpenseCategoryDto;
-import com.rezero.inandout.expense.model.ExpenseCategoryDto;
 import com.rezero.inandout.income.entity.DetailIncomeCategory;
 import com.rezero.inandout.income.entity.Income;
 import com.rezero.inandout.income.entity.IncomeCategory;
@@ -26,7 +22,6 @@ import com.rezero.inandout.income.repository.IncomeRepository;
 import com.rezero.inandout.income.service.base.IncomeService;
 import com.rezero.inandout.member.entity.Member;
 import com.rezero.inandout.member.repository.MemberRepository;
-import com.rezero.inandout.redis.RedisService;
 import com.rezero.inandout.report.model.ReportDto;
 import com.rezero.inandout.report.model.YearlyIncomeReportDto;
 import java.time.LocalDate;
@@ -46,9 +41,6 @@ public class IncomeServiceImpl implements IncomeService {
     private final IncomeCategoryRepository incomeCategoryRepository;
     private final DetailIncomeCategoryRepository detailIncomeCategoryRepository;
     private final IncomeQueryRepository incomeQueryRepository;
-    private final RedisService redisService;
-
-    private static final String INCOME_CATEGORY_REDIS_KEY = "수입카테고리";
 
 
     @Override
@@ -88,44 +80,20 @@ public class IncomeServiceImpl implements IncomeService {
 
     @Override
     public List<IncomeCategoryDto> getIncomeCategoryList() {
+        List<IncomeCategory> incomeCategoryList = incomeCategoryRepository.findAll();
+
         List<IncomeCategoryDto> incomeCategoryDtoList = new ArrayList<>();
 
-        List<IncomeCategory> incomeCategoryList =
-                redisService.getList(INCOME_CATEGORY_REDIS_KEY, IncomeCategory.class);
+        for (IncomeCategory item : incomeCategoryList) {
+            IncomeCategoryDto incomeCategoryDto = IncomeCategory.toDto(item);
 
-        if (incomeCategoryList.size() > 0) {
-            for (IncomeCategory incomeCategory : incomeCategoryList) {
-                IncomeCategoryDto incomeCategoryDto =
-                        IncomeCategory.toDto(incomeCategory);
+            List<DetailIncomeCategory> detailIncomeCategoryList
+                = detailIncomeCategoryRepository.findAllByIncomeCategory(item);
 
-                List<DetailIncomeCategory> detailIncomeCategories =
-                        redisService.getList(
-                                incomeCategory.getIncomeCategoryName(),
-                                DetailIncomeCategory.class);
+            incomeCategoryDto.setDetailIncomeCategoryDtoList(
+                DetailIncomeCategory.toDtoList(detailIncomeCategoryList));
 
-                incomeCategoryDto.setDetailIncomeCategoryDtoList(
-                        DetailIncomeCategory.toDtoList(detailIncomeCategories));
-
-                incomeCategoryDtoList.add(incomeCategoryDto);
-            }
-        } else {
-            incomeCategoryList = incomeCategoryRepository.findAll();
-
-            redisService.putList(INCOME_CATEGORY_REDIS_KEY, incomeCategoryList);
-
-            for (IncomeCategory incomeCategory : incomeCategoryList) {
-                IncomeCategoryDto incomeCategoryDto = IncomeCategory.toDto(incomeCategory);
-
-                List<DetailIncomeCategory> detailIncomeCategoryList
-                        = detailIncomeCategoryRepository.findAllByIncomeCategory(incomeCategory);
-
-                redisService.putList(incomeCategory.getIncomeCategoryName(), detailIncomeCategoryList);
-
-                incomeCategoryDto.setDetailIncomeCategoryDtoList(
-                        DetailIncomeCategory.toDtoList(detailIncomeCategoryList));
-
-                incomeCategoryDtoList.add(incomeCategoryDto);
-            }
+            incomeCategoryDtoList.add(incomeCategoryDto);
         }
 
         return incomeCategoryDtoList;
