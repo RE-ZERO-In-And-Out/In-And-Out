@@ -17,7 +17,7 @@ import com.rezero.inandout.diary.model.DeleteDiaryInput;
 import com.rezero.inandout.diary.model.DiaryDto;
 import com.rezero.inandout.diary.service.DiaryService;
 import com.rezero.inandout.member.entity.Member;
-import com.rezero.inandout.member.service.impl.MemberServiceImpl;
+import com.rezero.inandout.member.service.MemberServiceImpl;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.Arrays;

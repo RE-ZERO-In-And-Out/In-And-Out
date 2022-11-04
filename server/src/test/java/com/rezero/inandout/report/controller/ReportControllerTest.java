@@ -11,7 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.rezero.inandout.configuration.oauth.PrincipalOauth2UserService;
 import com.rezero.inandout.member.entity.Member;
-import com.rezero.inandout.member.service.impl.MemberServiceImpl;
+import com.rezero.inandout.member.service.MemberServiceImpl;
 import com.rezero.inandout.report.model.ReportDto;
 import com.rezero.inandout.report.model.YearlyExpenseReportDto;
 import com.rezero.inandout.report.model.YearlyIncomeReportDto;

@@ -27,7 +27,6 @@ import com.rezero.inandout.member.model.MemberStatus;
 import com.rezero.inandout.member.model.ResetPasswordInput;
 import com.rezero.inandout.member.model.UpdateMemberInput;
 import com.rezero.inandout.member.repository.MemberRepository;
-import com.rezero.inandout.member.service.impl.MemberServiceImpl;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -70,7 +69,7 @@ class MemberServiceImplTest {
     private AmazonS3Client amazonS3Client;
 
     @InjectMocks
-    private MemberServiceImpl memberService;
+    private com.rezero.inandout.member.service.MemberServiceImpl memberService;
 
     @InjectMocks
     PrincipalOauth2UserService principalOauth2UserService;

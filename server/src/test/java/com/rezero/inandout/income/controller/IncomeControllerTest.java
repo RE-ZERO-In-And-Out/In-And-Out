@@ -26,7 +26,7 @@ import com.rezero.inandout.income.service.base.impl.IncomeServiceImpl;
 import com.rezero.inandout.income.service.table.IncomeTableService;
 import com.rezero.inandout.member.entity.Member;
 import com.rezero.inandout.member.repository.MemberRepository;
-import com.rezero.inandout.member.service.impl.MemberServiceImpl;
+import com.rezero.inandout.member.service.MemberServiceImpl;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;

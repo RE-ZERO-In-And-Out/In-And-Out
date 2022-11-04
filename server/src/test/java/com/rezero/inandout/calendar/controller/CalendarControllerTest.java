@@ -16,7 +16,7 @@ import com.rezero.inandout.calendar.model.CalendarMonthlyDto;
 import com.rezero.inandout.calendar.service.Impl.CalendarServiceImpl;
 import com.rezero.inandout.configuration.oauth.PrincipalOauth2UserService;
 import com.rezero.inandout.member.entity.Member;
-import com.rezero.inandout.member.service.impl.MemberServiceImpl;
+import com.rezero.inandout.member.service.MemberServiceImpl;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
