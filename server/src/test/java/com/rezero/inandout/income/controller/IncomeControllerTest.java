@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.rezero.inandout.configuration.oauth.PrincipalOauth2UserService;
 import com.rezero.inandout.income.model.CategoryAndIncomeDto;
 import com.rezero.inandout.income.model.DeleteIncomeInput;
 import com.rezero.inandout.income.model.DetailIncomeCategoryDto;
@@ -66,6 +67,11 @@ class IncomeControllerTest {
 
     @MockBean
     private MemberServiceImpl memberService;
+
+
+    @MockBean
+    PrincipalOauth2UserService principalOauth2UserService;
+
 
     @Autowired
     private MockMvc mockMvc;

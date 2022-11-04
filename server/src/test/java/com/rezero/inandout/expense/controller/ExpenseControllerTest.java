@@ -14,6 +14,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.rezero.inandout.configuration.oauth.PrincipalOauth2UserService;
 import com.rezero.inandout.expense.model.CategoryAndExpenseDto;
 import com.rezero.inandout.expense.model.DeleteExpenseInput;
 import com.rezero.inandout.expense.model.DetailExpenseCategoryDto;
@@ -54,6 +55,9 @@ class ExpenseControllerTest {
 
     @MockBean
     private MemberServiceImpl memberService;
+
+    @MockBean
+    PrincipalOauth2UserService principalOauth2UserService;
 
     @Autowired
     MockMvc mockMvc;

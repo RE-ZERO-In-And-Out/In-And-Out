@@ -12,6 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.rezero.inandout.configuration.oauth.PrincipalOauth2UserService;
 import com.rezero.inandout.member.entity.Member;
 import com.rezero.inandout.member.model.ChangePasswordInput;
 import com.rezero.inandout.member.model.FindPasswordMemberInput;
@@ -21,7 +22,7 @@ import com.rezero.inandout.member.model.MemberStatus;
 import com.rezero.inandout.member.model.ResetPasswordInput;
 import com.rezero.inandout.member.model.UpdateMemberInput;
 import com.rezero.inandout.member.model.WithdrawMemberInput;
-import com.rezero.inandout.member.service.impl.MemberServiceImpl;
+import com.rezero.inandout.member.service.MemberService;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.UUID;
@@ -56,8 +57,11 @@ class MemberControllerTest {
     ObjectMapper mapper;
 
     @MockBean
-    private MemberServiceImpl memberServiceImpl;
+    private MemberService memberServiceImpl;
 
+
+    @MockBean
+    PrincipalOauth2UserService principalOauth2UserService;
 
     @Test
     @DisplayName("회원가입")

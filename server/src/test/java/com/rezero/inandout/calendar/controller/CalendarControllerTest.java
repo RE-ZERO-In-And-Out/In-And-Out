@@ -14,6 +14,7 @@ import com.rezero.inandout.calendar.model.CalendarExpenseDto;
 import com.rezero.inandout.calendar.model.CalendarIncomeDto;
 import com.rezero.inandout.calendar.model.CalendarMonthlyDto;
 import com.rezero.inandout.calendar.service.Impl.CalendarServiceImpl;
+import com.rezero.inandout.configuration.oauth.PrincipalOauth2UserService;
 import com.rezero.inandout.member.entity.Member;
 import com.rezero.inandout.member.service.impl.MemberServiceImpl;
 import java.time.LocalDate;
@@ -43,6 +44,9 @@ class CalendarControllerTest {
 
     @MockBean
     MemberServiceImpl memberService;
+
+    @MockBean
+    PrincipalOauth2UserService principalOauth2UserService;
 
     @Autowired
     MockMvc mockMvc;
