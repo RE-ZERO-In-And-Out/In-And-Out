@@ -18,16 +18,14 @@ import static com.rezero.inandout.exception.errorcode.MemberErrorCode.PASSWORD_N
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.PASSWORD_NOT_MATCH;
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.PHONE_EXIST;
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.PHONE_NOT_EXIST;
-import static com.rezero.inandout.exception.errorcode.MemberErrorCode.REQUIRED_INPUT;
+import static com.rezero.inandout.exception.errorcode.MemberErrorCode.REQ_MEMBER_CANNOT_JOIN;
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.RESET_PASSWORD_KEY_EXPIRED;
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.RESET_PASSWORD_KEY_NOT_EXIST;
-import static com.rezero.inandout.exception.errorcode.MemberErrorCode.WITHDRAWAL_MEMBER;
+import static com.rezero.inandout.exception.errorcode.MemberErrorCode.STOP_MEMBER_CANNOT_JOIN;
+import static com.rezero.inandout.exception.errorcode.MemberErrorCode.WITHDRAWAL_MEMBER_CANNOT_JOIN;
 
 import com.rezero.inandout.awss3.AwsS3Service;
 import com.rezero.inandout.configuration.auth.PrincipalDetails;
-import com.rezero.inandout.configuration.oauth.provider.GoogleUserInfo;
-import com.rezero.inandout.configuration.oauth.provider.NaverUserInfo;
-import com.rezero.inandout.configuration.oauth.provider.OAuth2UserInfo;
 import com.rezero.inandout.exception.MemberException;
 import com.rezero.inandout.exception.errorcode.MemberErrorCode;
 import com.rezero.inandout.member.component.MailComponent;
@@ -42,11 +40,9 @@ import com.rezero.inandout.member.model.UpdateMemberInput;
 import com.rezero.inandout.member.repository.MemberRepository;
 import com.rezero.inandout.member.service.MemberService;
 import java.time.LocalDateTime;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.mapping.Join;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -54,15 +50,12 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
-import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
-import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
-public class MemberServiceImpl  extends DefaultOAuth2UserService  implements MemberService{
+public class MemberServiceImpl extends DefaultOAuth2UserService implements MemberService {
 
     private final MemberRepository memberRepository;
 
@@ -78,9 +71,7 @@ public class MemberServiceImpl  extends DefaultOAuth2UserService  implements Mem
     private String ipAddress;
 
 
-//    @Value(value = "${cloud.aws.credentials.access-key}")
-//    private String iamAccessKey; // IAM Access Key
-
+    // 일반 로그인
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
@@ -95,74 +86,6 @@ public class MemberServiceImpl  extends DefaultOAuth2UserService  implements Mem
     }
 
 
-    // 구글과 네이버로 부터 받은 userRequest 데이터 대한 후, 처리 함수이다. 이 부분에서 강제로 회원가입 시킨다.
-    @Override
-    public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
-
-        OAuth2User oAuth2User = super.loadUser(userRequest);
-        OAuth2UserInfo oAuth2UserInfo = null;   // 네이버 또는 구글
-
-        if (userRequest.getClientRegistration().getRegistrationId().equals("google")) {
-            oAuth2UserInfo = new GoogleUserInfo(oAuth2User.getAttributes());
-            System.out.println("구글 로그인 시도 " + oAuth2UserInfo.getEmail());
-
-        } else if (userRequest.getClientRegistration().getRegistrationId().equals("naver")) {
-            oAuth2UserInfo = new NaverUserInfo((Map) oAuth2User.getAttributes().get("response"));
-            System.out.println("네이버 로그인 시도 " + oAuth2UserInfo.getEmail());
-
-        }
-
-        // oauth로 로그인되어 있는 회원을 찾는다.
-        String provider = oAuth2UserInfo.getProvider();
-        String providerId = oAuth2UserInfo.getProviderId();
-        Optional<Member> optionalMember = memberRepository.findByProviderAndProviderId(provider, providerId);
-        Member member = new Member();
-
-
-        // 네이버 API에서 변수명 확인하고 아래에 인풋을추가한다.
-        // 유효한지 검사하는 validateInput, validatePassword도 확인한다.
-
-//        JoinMemberInput input = JoinMemberInput.builder()
-//            .email()
-//            .nickName( )
-//            .phone()
-//            .password()
-//            .gender()
-//            .build();
-
-
-        // oauth로 로그인된 회원이 존재하면? 이게 무슨 소리지? 회원 정보가 있다는 소리??
-        // 이미 존재하는 회원의 이메일을 바꿀 수도 있음....;;;;;;;
-        // 아마 필요없을 듯하다!!
-//        if(optionalMember.isPresent()){
-//            member = optionalMember.get();
-//            member.setEmail(oAuth2UserInfo.getEmail());     // 이 부분 이메일이 맞는지 다시 확인하기
-//            memberRepository.save(member);
-//        }else
-
-
-        if(!optionalMember.isPresent()){
-
-            // 강제 회원가입
-            // 오어스로 가입해도 필수 값인 닉네임, 폰번호를 입력받을 수 있나?
-            // 안된다면 가입 후, 회원 수정에서 반드시 설정해야할듯.
-            member = Member.builder()
-                .oauthUsername(oAuth2UserInfo.getProvider() +"_" + oAuth2UserInfo.getProviderId())
-                .email(oAuth2UserInfo.getEmail())   // 이게 구글은 잘들어가는데/./ ㅜㅠㅠㅠ
-                .provider(provider)
-                .providerId(providerId)
-                .status(MemberStatus.ING)   // 가입 요청할 필요없으니까 ing
-                .password(oAuth2UserInfo.getProvider() +"_" + oAuth2UserInfo.getProviderId())   // 임시로 username과 똑같이 한다.
-                .nickName(oAuth2UserInfo.getProvider() +"_" + oAuth2UserInfo.getProviderId())
-                .phone("010-0000-0000")     // 필수니까 임시로 넣는 값
-                .build();
-            memberRepository.save(member);
-        }
-
-        return new PrincipalDetails(member, oAuth2User.getAttributes());
-    }
-
-
     @Override
     public void login(LoginMemberInput input) {
 
@@ -170,17 +93,19 @@ public class MemberServiceImpl  extends DefaultOAuth2UserService  implements Mem
         Optional<Member> optionalMember = memberRepository.findByEmail(input.getEmail());
         Member member = optionalMember.get();
 
+        if (member.getStatus().equals(MemberStatus.WITHDRAW)) {
+            throw new MemberException(MemberErrorCode.WITHDRAWAL_MEMBER_CANNOT_LOGIN);
+
+        } else if (member.getStatus().equals(MemberStatus.STOP)) {
+            throw new MemberException(MemberErrorCode.STOP_MEMBER_CANNOT_LOGIN);
+
+        } else if (member.getStatus().equals(MemberStatus.REQ)) {
+            throw new MemberException(MemberErrorCode.REQ_MEMBER_CANNOT_LOGIN);
+
+        }
+
         if (!bCryptPasswordEncoder.matches(input.getPassword(), member.getPassword())) {
             throw new MemberException(PASSWORD_NOT_MATCH);
-        }
-        if (member.getStatus().equals(MemberStatus.REQ)) {
-            throw new MemberException(MemberErrorCode.CANNOT_LOGIN_REQ);
-        }
-        if (member.getStatus().equals(MemberStatus.WITHDRAW)) {
-            throw new MemberException(MemberErrorCode.CANNOT_LOGIN_WITHDRAW);
-        }
-        if (member.getStatus().equals(MemberStatus.STOP)) {
-            throw new MemberException(MemberErrorCode.CANNOT_LOGIN_STOP);
         }
 
         UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
@@ -204,21 +129,19 @@ public class MemberServiceImpl  extends DefaultOAuth2UserService  implements Mem
 
     public void validateInput(JoinMemberInput input) {
 
-        /**
-         * 이메일, 닉네임, phone 은 공백일 수 없다
-         * 이메일: @ 포함
-         *
-         */
-        if(input.getEmail().length() == 0 || input.getPhone().length() == 0 || input.getNickName().length() == 0){
-            throw new MemberException(REQUIRED_INPUT);
-        }
-
         Optional<Member> existsMember = memberRepository.findByEmail(input.getEmail());
         if (existsMember.isPresent()) {
 
             if (existsMember.get().getStatus().equals(MemberStatus.WITHDRAW)) {
-                throw new MemberException(WITHDRAWAL_MEMBER);
+                throw new MemberException(WITHDRAWAL_MEMBER_CANNOT_JOIN);
+
+            } else if (existsMember.get().getStatus().equals(MemberStatus.REQ)) {
+                throw new MemberException(REQ_MEMBER_CANNOT_JOIN);
+
+            } else if (existsMember.get().getStatus().equals(MemberStatus.STOP)) {
+                throw new MemberException(STOP_MEMBER_CANNOT_JOIN);
             }
+
             throw new MemberException(EMAIL_EXIST);
         }
 
@@ -298,10 +221,6 @@ public class MemberServiceImpl  extends DefaultOAuth2UserService  implements Mem
         validateInput(input);
         validatePassword(input.getPassword());
 
-        // 여기사 만약에 아무것도 입력 안하면 가입 가능?
-        // 이메일, 폰번호, 닉네임은 필수로 입력하도ㅓ록 설정?
-
-
         String password = input.getPassword();
         String encPassword = bCryptPasswordEncoder.encode(password);
         String uuid = UUID.randomUUID().toString();
@@ -357,10 +276,10 @@ public class MemberServiceImpl  extends DefaultOAuth2UserService  implements Mem
         String uuid = UUID.randomUUID().toString();
         String subject = "In and Out 비밀번호 초기화";
         String text = "<p>안녕하세요. In And Out 입니다.</p><p>아래 링크를 누르시면 비밀번호 초기화가 완료됩니다.</p>"
-                    + "<div><a href='http://"
-                    + ipAddress
-                    + "/api/password/email/phone/sending?id=" + uuid
-                    + "'>비밀번호 초기화</a></div>";
+            + "<div><a href='http://"
+            + ipAddress
+            + "/api/password/email/phone/sending?id=" + uuid
+            + "'>비밀번호 초기화</a></div>";
 
         mailComponent.send(email, subject, text);
 
