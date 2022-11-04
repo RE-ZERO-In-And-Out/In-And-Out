@@ -24,7 +24,7 @@ import com.rezero.inandout.expense.model.ExpenseInput;
 import com.rezero.inandout.expense.service.base.ExpenseService;
 import com.rezero.inandout.expense.service.table.ExpenseTableService;
 import com.rezero.inandout.member.entity.Member;
-import com.rezero.inandout.member.service.MemberServiceImpl;
+import com.rezero.inandout.member.service.impl.MemberServiceImpl;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;

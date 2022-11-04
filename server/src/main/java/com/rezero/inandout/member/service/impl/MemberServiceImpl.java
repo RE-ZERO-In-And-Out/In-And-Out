@@ -1,4 +1,4 @@
-package com.rezero.inandout.member.service;
+package com.rezero.inandout.member.service.impl;
 
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.CANNOT_GET_INFO;
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.CANNOT_LOGOUT;
