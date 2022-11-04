@@ -1,11 +1,8 @@
 package com.rezero.inandout.exception;
 
-import com.rezero.inandout.exception.response.AwsS3ErrorResponse;
-import com.rezero.inandout.exception.response.DiaryErrorResponse;
-import com.rezero.inandout.exception.response.ExpenseErrorResponse;
-import com.rezero.inandout.exception.response.IncomeErrorResponse;
-import com.rezero.inandout.exception.response.MemberErrorResponse;
+
 import lombok.extern.slf4j.Slf4j;
+import com.rezero.inandout.exception.response.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -54,7 +51,7 @@ public class CustomExceptionHandler {
     }
 
     @ExceptionHandler(MemberException.class)
-    protected ResponseEntity<?> memberHandlerCustomException(
+    protected ResponseEntity<MemberErrorResponse> memberHandlerCustomException(
         MemberException e) {
         MemberErrorResponse errorResponse = MemberErrorResponse.builder()
             .errorCode(e.getErrorCode())
@@ -72,6 +69,18 @@ public class CustomExceptionHandler {
         AwsS3ErrorResponse errorResponse = AwsS3ErrorResponse.builder()
             .message(e.getMessage())
             .build();
+
+        log.error(errorResponse.getMessage());
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(RedisException.class)
+    protected ResponseEntity<RedisErrorResponse> redisHandlerCustomException(
+            RedisException e) {
+        RedisErrorResponse errorResponse = RedisErrorResponse.builder()
+                .message(e.getMessage())
+                .build();
 
         log.error(errorResponse.getMessage());
 
