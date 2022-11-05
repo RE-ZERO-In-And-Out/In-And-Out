@@ -3,6 +3,7 @@ package com.rezero.inandout.excel.service.impl;
 import com.rezero.inandout.excel.component.ExcelDownloadComponent;
 import com.rezero.inandout.excel.model.ExpenseExcelDto;
 import com.rezero.inandout.excel.model.IncomeExcelDto;
+import com.rezero.inandout.excel.model.YearlyExcelDto;
 import com.rezero.inandout.excel.service.ExcelService;
 import com.rezero.inandout.exception.MemberException;
 import com.rezero.inandout.exception.errorcode.MemberErrorCode;
@@ -94,6 +95,45 @@ public class ExcelServiceImpl implements ExcelService {
         try {
             return excelDownloadComponent.downloadExpenseExcelFile(
                 request, email, startDt, endDt, expenseExcelDtoList, headColumn);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    @Override
+    public ResponseEntity<InputStreamResource> downloadYearlyReportExcelFile(
+        HttpServletRequest request, String email, LocalDate startDt,
+        List<YearlyExcelDto> yearlyExcelDtoList) throws IOException {
+
+        Member member = findMemberByEmail(email);
+
+        ArrayList<String> period = new ArrayList<>();
+        for (int i = 0; i < 12; i++) {
+            LocalDate cur = startDt.plusMonths(i);
+            period.add(String.format("%4d-%02d", cur.getYear(), cur.getMonthValue()));
+        }
+
+        final ArrayList<ColConfig> headColumn = new ArrayList<>(Arrays.asList(
+            new ColConfig("항목", 5000),
+            new ColConfig(period.get(0), 3000),
+            new ColConfig(period.get(1), 3000),
+            new ColConfig(period.get(2), 3000),
+            new ColConfig(period.get(3), 3000),
+            new ColConfig(period.get(4), 3000),
+            new ColConfig(period.get(5), 3000),
+            new ColConfig(period.get(6), 3000),
+            new ColConfig(period.get(7), 3000),
+            new ColConfig(period.get(8), 3000),
+            new ColConfig(period.get(9), 3000),
+            new ColConfig(period.get(10), 3000),
+            new ColConfig(period.get(11), 3000))
+        );
+
+        try {
+            return excelDownloadComponent.downloadYearlyReport(
+                request, email, startDt, startDt.plusMonths(12).minusDays(1),
+                yearlyExcelDtoList, headColumn);
         } catch (Exception e) {
             e.printStackTrace();
             return null;
