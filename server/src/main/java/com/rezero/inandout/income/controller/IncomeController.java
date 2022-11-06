@@ -10,6 +10,7 @@ import io.swagger.annotations.ApiParam;
 import java.security.Principal;
 import java.time.LocalDate;
 import java.util.List;
+import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+@Validated
 @RestController
 @RequestMapping("/api/income")
 @RequiredArgsConstructor
@@ -33,7 +35,7 @@ public class IncomeController {
     @ApiOperation(value = "수입 등록 API", notes = "수입내용을 입력하면 저장됩니다.")
     @PostMapping
     public ResponseEntity<?> addIncome(Principal principal,
-                                        @RequestBody @Validated List<IncomeInput> incomeInputList) {
+                                        @RequestBody @Valid List<IncomeInput> incomeInputList) {
 
         incomeTableService.addAndUpdateIncome(principal.getName(), incomeInputList);
 
@@ -57,7 +59,7 @@ public class IncomeController {
     @ApiOperation(value = "수입 삭제 API", notes = "삭제할 내역의 아이디값을 입력하면 해당 내역이 삭제됩니다.")
     @DeleteMapping
     public ResponseEntity<?> deleteIncome(Principal principal,
-                             @RequestBody List<DeleteIncomeInput> deleteIncomeInputList) {
+                             @RequestBody @Valid List<DeleteIncomeInput> deleteIncomeInputList) {
 
         incomeService.deleteIncome(principal.getName(), deleteIncomeInputList);
 
