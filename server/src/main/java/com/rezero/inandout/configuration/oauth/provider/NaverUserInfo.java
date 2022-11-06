@@ -30,7 +30,6 @@ public class NaverUserInfo implements OAuth2UserInfo {
         return "naver";
     }
 
-
     public String getGender() {
         return (String) attributes.get("gender");
     }
@@ -40,26 +39,16 @@ public class NaverUserInfo implements OAuth2UserInfo {
     }
 
     public String getBirthYear() {
-        return (String) attributes.get("birthyear");    // 네 자리
+        return (String) attributes.get("birthyear");    // 네 자리 String
     }
-
 
     public String getBirthday() {
-        return (String) attributes.get("birthday"); // MM-dd 같은 식
+        return (String) attributes.get("birthday"); // MM-dd
     }
-
 
     public String getPhone() {
         return (String) attributes.get("mobile");
     }
-
-
-
-
-    /**
-     *
-     * 닉네임, 폰번호, 생년월일, 성별을 추가해서 넣을 예정
-     */
 
 
 }
