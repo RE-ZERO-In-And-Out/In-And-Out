@@ -7,6 +7,7 @@ import static com.rezero.inandout.exception.errorcode.IncomeErrorCode.NO_MEMBER;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -28,6 +29,7 @@ import com.rezero.inandout.income.repository.IncomeRepository;
 import com.rezero.inandout.income.service.base.impl.IncomeServiceImpl;
 import com.rezero.inandout.member.entity.Member;
 import com.rezero.inandout.member.repository.MemberRepository;
+import com.rezero.inandout.redis.RedisService;
 import com.rezero.inandout.report.model.ReportDto;
 import com.rezero.inandout.report.model.YearlyIncomeReportDto;
 import java.time.LocalDate;
@@ -61,6 +63,9 @@ class IncomeServiceImplTest {
 
     @Mock
     private IncomeQueryRepository incomeQueryRepository;
+
+    @Mock
+    private RedisService redisService;
 
     @InjectMocks
     private IncomeServiceImpl incomeService;
@@ -232,7 +237,7 @@ class IncomeServiceImplTest {
 
 
     @Nested
-    @DisplayName("수입카테고리리스트 가져오기")
+    @DisplayName("수입 카테고리 조회")
     class getIncomeCategoryList {
 
         List<DetailIncomeCategory> detailIncomeCategoryList = Arrays.asList(
@@ -254,9 +259,14 @@ class IncomeServiceImplTest {
             );
 
         @Test
-        @DisplayName("성공")
-        void getIncomeCategoryList_success() {
+        @DisplayName("수입 카테입리 조회 - 성공 : Mysql")
+        void getIncomeCategoryList_success_mysql() {
             //given
+            List<IncomeCategory> redisIncomeCategoryList = new ArrayList<>();
+
+            given(redisService.getList(any(), eq(IncomeCategory.class)))
+                    .willReturn(redisIncomeCategoryList);
+
             given(incomeCategoryRepository.findAll())
                 .willReturn(incomeCategoryList);
 
@@ -270,6 +280,26 @@ class IncomeServiceImplTest {
             assertEquals(incomeCategoryDtoList.get(0).getIncomeCategoryName(), "주수입");
             assertEquals(incomeCategoryDtoList.get(0).getDetailIncomeCategoryDtoList()
                 .get(1).getDetailIncomeCategoryName(), "아르바이트");
+
+        }
+
+        @Test
+        @DisplayName("수입 카테입리 조회 - 성공 : Redis")
+        void getIncomeCategoryList_success_redis() {
+            //given
+            given(redisService.getList(any(), eq(IncomeCategory.class)))
+                    .willReturn(incomeCategoryList);
+
+            given(redisService.getList(any(), eq(DetailIncomeCategory.class)))
+                    .willReturn(detailIncomeCategoryList);
+
+            //when
+            List<IncomeCategoryDto> incomeCategoryDtoList = incomeService.getIncomeCategoryList();
+
+            //then
+            assertEquals(incomeCategoryDtoList.get(0).getIncomeCategoryName(), "주수입");
+            assertEquals(incomeCategoryDtoList.get(0).getDetailIncomeCategoryDtoList()
+                    .get(1).getDetailIncomeCategoryName(), "아르바이트");
 
         }
     }

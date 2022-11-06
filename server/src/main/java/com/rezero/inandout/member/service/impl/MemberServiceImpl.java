@@ -43,8 +43,8 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -127,7 +127,8 @@ public class MemberServiceImpl extends DefaultOAuth2UserService implements Membe
             throw new MemberException(CANNOT_LOGOUT);
         }
 
-        log.info("[Member Logout] member: " + SecurityContextHolder.getContext().getAuthentication().getName());
+        log.info("[Member Logout] member: " + SecurityContextHolder.getContext().getAuthentication()
+            .getName());
         SecurityContextHolder.clearContext();
 
     }
@@ -251,8 +252,6 @@ public class MemberServiceImpl extends DefaultOAuth2UserService implements Membe
             + "/signup_check/sending?id="
             + uuid
             + "'>가입 완료</a></div>";
-
-
         mailComponent.send(input.getEmail(), subject, text);
 
         Member member = Member.builder().email(input.getEmail()).address(input.getAddress())
@@ -260,10 +259,10 @@ public class MemberServiceImpl extends DefaultOAuth2UserService implements Membe
             .nickName(input.getNickName()).phone(input.getPhone()).status(MemberStatus.REQ)
             .emailAuthKey(uuid).memberS3ImageKey("").build();
         memberRepository.save(member);
+        // 링크는 프론트 서버의 url로 변경 예정
 
         log.info("[Member SignUp] member: " + member.getEmail());
 
-        // 링크는 프론트 서버의 url로 변경 예정
     }
 
 
@@ -293,6 +292,7 @@ public class MemberServiceImpl extends DefaultOAuth2UserService implements Membe
 
 
     @Override
+    @Transactional
     public void validatePhone(String email, String phone) {
 
         Member member = memberRepository.findByEmailAndPhone(email, phone)
@@ -317,14 +317,11 @@ public class MemberServiceImpl extends DefaultOAuth2UserService implements Membe
             + "/In-And-Out"
             + "/password_reset/sending?id=" + uuid
             + "'>비밀번호 초기화</a></div>";
-
-
         mailComponent.send(email, subject, text);
 
         member.setResetPasswordLimitDt(LocalDateTime.now().plusDays(1));
         member.setResetPasswordKey(uuid);
         memberRepository.save(member);
-
         // 링크는 프론트 서버의 url로 변경 예정
     }
 
