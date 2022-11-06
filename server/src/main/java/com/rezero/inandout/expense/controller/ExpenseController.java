@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.format.annotation.DateTimeFormat.ISO;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -20,6 +21,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
+@Validated
 @RequestMapping("/api/expense")
 public class ExpenseController {
 
@@ -31,7 +33,7 @@ public class ExpenseController {
     notes = "지출내역 목록을 통해 저장과 수정을 할 수 있다.")
     public ResponseEntity<?> writeExpense(Principal principal,
             @ApiParam(value = "지출내역 목록 (저장은 expenseId 빼고 하면 됨)")
-            @Valid @RequestBody List<ExpenseInput> inputs) {
+            @RequestBody @Valid List<ExpenseInput> inputs) {
 
         expenseTableService.addAndUpdateExpense(principal.getName(), inputs);
 
@@ -59,7 +61,7 @@ public class ExpenseController {
     notes = "지출내역 Id 목록을 통해 지출내역 목록을 삭제할 수 있다.")
     public ResponseEntity<?> deleteExpense(Principal principal,
         @ApiParam(value = "지출내역 Id 목록")
-        @RequestBody List<DeleteExpenseInput> inputs) {
+        @RequestBody @Valid List<DeleteExpenseInput> inputs) {
 
         expenseService.deleteExpense(principal.getName(), inputs);
         return ResponseEntity.ok("지출이 정상적으로 삭제되었습니다.");
