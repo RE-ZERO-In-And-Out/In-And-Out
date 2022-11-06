@@ -71,7 +71,7 @@ public class MemberServiceImpl extends DefaultOAuth2UserService implements Membe
     private static final String dir = "member";
 
     // 프론트 테스트 버전
-    @Value(value = "${front.local.ip.address}")
+    @Value(value = "${ip.address}")
     private String ipAddress;
 
 
@@ -127,6 +127,7 @@ public class MemberServiceImpl extends DefaultOAuth2UserService implements Membe
             throw new MemberException(CANNOT_LOGOUT);
         }
 
+        log.info("[Member Logout] member: " + SecurityContextHolder.getContext().getAuthentication().getName());
         SecurityContextHolder.clearContext();
 
     }
@@ -242,10 +243,11 @@ public class MemberServiceImpl extends DefaultOAuth2UserService implements Membe
             + "'>가입 완료</a></div>";
         */
 
-// front 테스트 버전 ex) http://localhost:3000/signup_check/sending?id=591390c9-4eb9-49ef-b606-df17c601d6f0
+// front 테스트 버전 ex) http://localhost:3000/In-And-Out/password_reset/sending?id=068e4252-2f68-45c3-9d7c-4ff5d02760a5
         String text = "<p>안녕하세요. In And Out 입니다.</p><p>아래 링크를 누르시면 회원 가입이 완료됩니다.</p>"
             + "<div><a href='http://"
             + ipAddress
+            + "/In-And-Out"
             + "/signup_check/sending?id="
             + uuid
             + "'>가입 완료</a></div>";
@@ -308,10 +310,11 @@ public class MemberServiceImpl extends DefaultOAuth2UserService implements Membe
             + "'>비밀번호 초기화</a></div>";
         */
 
-// front 테스트 버전 ex) http://localhost:3000/password_reset/sending?id=5c1072a1-6800-4d33-aed0-badd83505bfd
+// front 테스트 버전 ex) http://localhost:3000/In-And-Out/signup_check/sending?id=591390c9-4eb9-49ef-b606-df17c601d6f0
         String text = "<p>안녕하세요. In And Out 입니다.</p><p>아래 링크를 누르시면 비밀번호 초기화가 완료됩니다.</p>"
             + "<div><a href='http://"
             + ipAddress
+            + "/In-And-Out"
             + "/password_reset/sending?id=" + uuid
             + "'>비밀번호 초기화</a></div>";
 

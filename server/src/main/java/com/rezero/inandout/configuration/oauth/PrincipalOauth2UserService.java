@@ -12,6 +12,7 @@ import com.rezero.inandout.member.repository.MemberRepository;
 import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
@@ -19,6 +20,7 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
@@ -92,11 +94,12 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
                     .status(MemberStatus.ING).password(encPwd).build();
 
                 memberRepository.save(member);
-                System.out.println("구글로 회원가입 완료 " + googleUserInfo.getEmail());
+                log.info("[Member Signup for google] member: " + googleUserInfo.getEmail());
 
             } else {
                 member = optionalMember.get();
-                System.out.println("구글 로그인 " + googleUserInfo.getEmail());
+                log.info("[Member Login for google] member: " + googleUserInfo.getEmail());
+
             }
 
         } else if (userRequest.getClientRegistration().getRegistrationId().equals("naver")) {
@@ -127,11 +130,12 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
                     .password(encPwd).build();
 
                 memberRepository.save(member);
-                System.out.println("네이버 회원가입 완료 " + naverUserInfo.getEmail());
+                log.info("[Member Signup for naver] member: " + naverUserInfo.getEmail());
 
             } else {
                 member = optionalMember.get();
-                System.out.println("네이버 로그인  " + naverUserInfo.getEmail());
+                log.info("[Member Login for naver] member: " + naverUserInfo.getEmail());
+
             }
 
         }
