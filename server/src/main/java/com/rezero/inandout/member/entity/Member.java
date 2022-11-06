@@ -47,4 +47,16 @@ public class Member extends BaseEntity {
     private String resetPasswordKey;
     private LocalDateTime resetPasswordLimitDt;
     private String emailAuthKey;
+
+    // oauth 추가
+    private String provider;    // 구글, 네이버
+    private String providerId;  // 구글 DB 내에서 회원의 pk
+    private String oauthUsername;
+
+
+    // provider + providerId,  다른 프로젝트 security에서의 id를 의미한다.
+    // 그 프로젝트는 email, username이 따로 있음..
+
+
+
 }

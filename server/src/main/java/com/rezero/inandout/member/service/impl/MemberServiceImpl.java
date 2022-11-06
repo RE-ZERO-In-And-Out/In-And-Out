@@ -1,4 +1,4 @@
-package com.rezero.inandout.member.service;
+package com.rezero.inandout.member.service.impl;
 
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.CANNOT_GET_INFO;
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.CANNOT_LOGOUT;
@@ -25,6 +25,7 @@ import static com.rezero.inandout.exception.errorcode.MemberErrorCode.STOP_MEMBE
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.WITHDRAWAL_MEMBER_CANNOT_JOIN;
 
 import com.rezero.inandout.awss3.AwsS3Service;
+import com.rezero.inandout.configuration.auth.PrincipalDetails;
 import com.rezero.inandout.exception.MemberException;
 import com.rezero.inandout.exception.errorcode.MemberErrorCode;
 import com.rezero.inandout.member.component.MailComponent;
@@ -37,18 +38,19 @@ import com.rezero.inandout.member.model.MemberStatus;
 import com.rezero.inandout.member.model.ResetPasswordInput;
 import com.rezero.inandout.member.model.UpdateMemberInput;
 import com.rezero.inandout.member.repository.MemberRepository;
+import com.rezero.inandout.member.service.MemberService;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -56,7 +58,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class MemberServiceImpl implements MemberService {
+public class MemberServiceImpl extends DefaultOAuth2UserService implements MemberService {
 
     private final MemberRepository memberRepository;
 
@@ -68,6 +70,12 @@ public class MemberServiceImpl implements MemberService {
 
     private static final String dir = "member";
 
+    // 프론트 테스트 버전
+    @Value(value = "${ip.address}")
+    private String ipAddress;
+
+
+    // 일반 로그인
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
@@ -77,7 +85,7 @@ public class MemberServiceImpl implements MemberService {
         }
 
         Member member = optionalMember.get();
-        return new User(member.getEmail(), member.getPassword(), AuthorityUtils.NO_AUTHORITIES);
+        return new PrincipalDetails(member);
     }
 
 
@@ -98,6 +106,7 @@ public class MemberServiceImpl implements MemberService {
             throw new MemberException(MemberErrorCode.REQ_MEMBER_CANNOT_LOGIN);
 
         }
+
         if (!bCryptPasswordEncoder.matches(input.getPassword(), member.getPassword())) {
             throw new MemberException(PASSWORD_NOT_MATCH);
         }
@@ -118,6 +127,8 @@ public class MemberServiceImpl implements MemberService {
             throw new MemberException(CANNOT_LOGOUT);
         }
 
+        log.info("[Member Logout] member: " + SecurityContextHolder.getContext().getAuthentication()
+            .getName());
         SecurityContextHolder.clearContext();
 
     }
@@ -222,9 +233,24 @@ public class MemberServiceImpl implements MemberService {
         String encPassword = bCryptPasswordEncoder.encode(password);
         String uuid = UUID.randomUUID().toString();
         String subject = "In and Out 회원 가입을 축하드립니다.";
+
+// back 테스트
+        /*
         String text = "<p>안녕하세요. In And Out 입니다.</p><p>아래 링크를 누르시면 회원 가입이 완료됩니다.</p>"
-            + "<div><a href='http://localhost:8080/api/signup/sending?id=" + uuid
-//            + "<div><a href='http://localhost:3000/In-And-Out/signup_check/sending?id=" + uuid
+            + "<div><a href='http://"
+            + ipAddress
+            + "/api/signup/sending?id="
+            + uuid
+            + "'>가입 완료</a></div>";
+        */
+
+// front 테스트 버전 ex) http://localhost:3000/In-And-Out/password_reset/sending?id=068e4252-2f68-45c3-9d7c-4ff5d02760a5
+        String text = "<p>안녕하세요. In And Out 입니다.</p><p>아래 링크를 누르시면 회원 가입이 완료됩니다.</p>"
+            + "<div><a href='http://"
+            + ipAddress
+            + "/In-And-Out"
+            + "/signup_check/sending?id="
+            + uuid
             + "'>가입 완료</a></div>";
         mailComponent.send(input.getEmail(), subject, text);
 
@@ -233,10 +259,10 @@ public class MemberServiceImpl implements MemberService {
             .nickName(input.getNickName()).phone(input.getPhone()).status(MemberStatus.REQ)
             .emailAuthKey(uuid).memberS3ImageKey("").build();
         memberRepository.save(member);
+        // 링크는 프론트 서버의 url로 변경 예정
 
         log.info("[Member SignUp] member: " + member.getEmail());
 
-        // 링크는 프론트 서버의 url로 변경 예정
     }
 
 
@@ -266,6 +292,7 @@ public class MemberServiceImpl implements MemberService {
 
 
     @Override
+    @Transactional
     public void validatePhone(String email, String phone) {
 
         Member member = memberRepository.findByEmailAndPhone(email, phone)
@@ -273,16 +300,28 @@ public class MemberServiceImpl implements MemberService {
 
         String uuid = UUID.randomUUID().toString();
         String subject = "In and Out 비밀번호 초기화";
+
+// back 테스트
+        /*
         String text = "<p>안녕하세요. In And Out 입니다.</p><p>아래 링크를 누르시면 비밀번호 초기화가 완료됩니다.</p>"
-            + "<div><a href='http://localhost:8080/api/password/email/phone/sending?id=" + uuid
-//            + "<div><a href='http://localhost:3000/In-And-Out/password_reset/sending?id=" + uuid
+            + "<div><a href='http://"
+            + ipAddress
+            + "/api/password/email/phone/sending?id=" + uuid
+            + "'>비밀번호 초기화</a></div>";
+        */
+
+// front 테스트 버전 ex) http://localhost:3000/In-And-Out/signup_check/sending?id=591390c9-4eb9-49ef-b606-df17c601d6f0
+        String text = "<p>안녕하세요. In And Out 입니다.</p><p>아래 링크를 누르시면 비밀번호 초기화가 완료됩니다.</p>"
+            + "<div><a href='http://"
+            + ipAddress
+            + "/In-And-Out"
+            + "/password_reset/sending?id=" + uuid
             + "'>비밀번호 초기화</a></div>";
         mailComponent.send(email, subject, text);
 
         member.setResetPasswordLimitDt(LocalDateTime.now().plusDays(1));
         member.setResetPasswordKey(uuid);
         memberRepository.save(member);
-
         // 링크는 프론트 서버의 url로 변경 예정
     }
 
@@ -340,8 +379,8 @@ public class MemberServiceImpl implements MemberService {
         String previousUsedPhone = member.getPhone();
         String previousUsedNickname = member.getNickName();
 
-        if (input.getNickName().contains(" ") || input.getPhone().contains(" ") ||
-            input.getGender().contains(" ")) {
+        if (input.getNickName().contains(" ") || input.getPhone().contains(" ") || input.getGender()
+            .contains(" ")) {
             throw new MemberException(CONTAINS_BLANK);
         }
 

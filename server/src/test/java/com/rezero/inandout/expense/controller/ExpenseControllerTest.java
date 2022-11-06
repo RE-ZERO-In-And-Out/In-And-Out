@@ -1,11 +1,33 @@
 package com.rezero.inandout.expense.controller;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rezero.inandout.expense.model.*;
-import com.rezero.inandout.expense.service.table.ExpenseTableService;
+import com.rezero.inandout.configuration.oauth.PrincipalOauth2UserService;
+import com.rezero.inandout.expense.model.CategoryAndExpenseDto;
+import com.rezero.inandout.expense.model.DeleteExpenseInput;
+import com.rezero.inandout.expense.model.DetailExpenseCategoryDto;
+import com.rezero.inandout.expense.model.ExpenseCategoryDto;
+import com.rezero.inandout.expense.model.ExpenseDto;
+import com.rezero.inandout.expense.model.ExpenseInput;
 import com.rezero.inandout.expense.service.base.ExpenseService;
+import com.rezero.inandout.expense.service.table.ExpenseTableService;
 import com.rezero.inandout.member.entity.Member;
-import com.rezero.inandout.member.service.MemberService;
+import com.rezero.inandout.member.service.impl.MemberServiceImpl;
+import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -20,21 +42,6 @@ import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 @MockBean(JpaMetamodelMappingContext.class)
 @WebMvcTest(ExpenseController.class)
 @AutoConfigureMockMvc(addFilters = false)
@@ -47,7 +54,10 @@ class ExpenseControllerTest {
     private ExpenseTableService expenseTableService;
 
     @MockBean
-    private MemberService memberService;
+    private MemberServiceImpl memberService;
+
+    @MockBean
+    PrincipalOauth2UserService principalOauth2UserService;
 
     @Autowired
     MockMvc mockMvc;
@@ -85,8 +95,10 @@ class ExpenseControllerTest {
                 .build()
         );
 
-        User user = new User(member.getEmail(), member.getPassword(), AuthorityUtils.NO_AUTHORITIES);
-        TestingAuthenticationToken testingAuthenticationToken = new TestingAuthenticationToken(user,null);
+        User user = new User(member.getEmail(), member.getPassword(),
+            AuthorityUtils.NO_AUTHORITIES);
+        TestingAuthenticationToken testingAuthenticationToken = new TestingAuthenticationToken(user,
+            null);
 
         //when
 
@@ -115,14 +127,16 @@ class ExpenseControllerTest {
             .password("1234")
             .build();
 
-        User user = new User(member.getEmail(), member.getPassword(), AuthorityUtils.NO_AUTHORITIES);
-        TestingAuthenticationToken testingAuthenticationToken = new TestingAuthenticationToken(user,null);
+        User user = new User(member.getEmail(), member.getPassword(),
+            AuthorityUtils.NO_AUTHORITIES);
+        TestingAuthenticationToken testingAuthenticationToken = new TestingAuthenticationToken(user,
+            null);
 
         DetailExpenseCategoryDto detailExpenseCategoryDto =
             DetailExpenseCategoryDto.builder()
-            .detailExpenseCategoryId(1L)
-            .detailExpenseCategoryName("간식")
-            .build();
+                .detailExpenseCategoryId(1L)
+                .detailExpenseCategoryName("간식")
+                .build();
 
         List<DetailExpenseCategoryDto> detailExpenseCategoryDtos =
             Arrays.asList(
@@ -141,7 +155,7 @@ class ExpenseControllerTest {
         List<ExpenseDto> expenseDtos = Arrays.asList(
             ExpenseDto.builder()
                 .expenseId(1L)
-                .expenseDt(LocalDate.of(2020,10,20))
+                .expenseDt(LocalDate.of(2020, 10, 20))
                 .expenseItem("초코틴틴")
                 .expenseCash(0)
                 .expenseCard(1200)
@@ -151,9 +165,9 @@ class ExpenseControllerTest {
         );
 
         CategoryAndExpenseDto categoryAndExpenseDto = CategoryAndExpenseDto.builder()
-                .expenseCategoryDtos(expenseCategoryDtos)
-                .expenseDtos(expenseDtos)
-                .build();
+            .expenseCategoryDtos(expenseCategoryDtos)
+            .expenseDtos(expenseDtos)
+            .build();
 
         given(expenseTableService.getCategoryAndExpenseDto(anyString(), any(), any()))
             .willReturn(categoryAndExpenseDto);
@@ -161,12 +175,14 @@ class ExpenseControllerTest {
         //when
         //then
         mockMvc.perform(get("/api/expense?startDt=2020-10-01&endDt=2020-10-31")
-            .contentType(MediaType.APPLICATION_JSON)
-            .principal(testingAuthenticationToken)
-        ).andExpect(status().isOk())
+                .contentType(MediaType.APPLICATION_JSON)
+                .principal(testingAuthenticationToken)
+            ).andExpect(status().isOk())
             .andDo(print())
             .andExpect(jsonPath("$.expenseCategoryDtos[0].expenseCategoryName").value("식비"))
-            .andExpect(jsonPath("$.expenseCategoryDtos[0].detailExpenseCategoryDtos[0].detailExpenseCategoryName").value("간식"))
+            .andExpect(jsonPath(
+                "$.expenseCategoryDtos[0].detailExpenseCategoryDtos[0].detailExpenseCategoryName").value(
+                "간식"))
             .andExpect(jsonPath("$.expenseDtos[0].expenseItem").value("초코틴틴"));
     }
 
@@ -175,25 +191,27 @@ class ExpenseControllerTest {
     void deleteExpenseTest() throws Exception {
         //given
         Member member = Member.builder()
-                .memberId(1L)
-                .email("hgd@gmail.com")
-                .password("1234")
-                .build();
+            .memberId(1L)
+            .email("hgd@gmail.com")
+            .password("1234")
+            .build();
 
-        User user = new User(member.getEmail(), member.getPassword(), AuthorityUtils.NO_AUTHORITIES);
-        TestingAuthenticationToken testingAuthenticationToken = new TestingAuthenticationToken(user,null);
+        User user = new User(member.getEmail(), member.getPassword(),
+            AuthorityUtils.NO_AUTHORITIES);
+        TestingAuthenticationToken testingAuthenticationToken = new TestingAuthenticationToken(user,
+            null);
 
         List<DeleteExpenseInput> list = Arrays.asList(
-                new DeleteExpenseInput(1L)
+            new DeleteExpenseInput(1L)
         );
 
         //when
         mockMvc.perform(delete("/api/expense")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .principal(testingAuthenticationToken)
-                        .content(objectMapper.writeValueAsString(list))
-                ).andExpect(status().isOk())
-                .andDo(print());
+                .contentType(MediaType.APPLICATION_JSON)
+                .principal(testingAuthenticationToken)
+                .content(objectMapper.writeValueAsString(list))
+            ).andExpect(status().isOk())
+            .andDo(print());
 
         ArgumentCaptor<List<DeleteExpenseInput>> captor = ArgumentCaptor.forClass(List.class);
         //then

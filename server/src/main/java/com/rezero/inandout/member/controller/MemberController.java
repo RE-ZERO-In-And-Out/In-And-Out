@@ -67,7 +67,8 @@ public class MemberController {
     @PutMapping("/member/info")
     @ApiOperation(value = "회원 정보 수정 API", notes = "회원이 자신의 정보를 수정하거나 프로필 이미지 사진 등록 가능하다.")
     public ResponseEntity<?> updateInfo(Principal principal,
-        @ApiParam(value = "수정할 회원 정보 입력") @RequestPart UpdateMemberInput input,
+        @ApiParam(value =  "수정할 회원 정보 입력 또는 회원 프로필 이미지 등록")
+        @RequestPart UpdateMemberInput input,
         MultipartFile file) {
         String email = principal.getName();
         memberService.updateInfo(email, input, file);

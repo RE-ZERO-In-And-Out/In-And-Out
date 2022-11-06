@@ -14,6 +14,7 @@ import static org.mockito.Mockito.verify;
 
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.rezero.inandout.awss3.AwsS3Service;
+import com.rezero.inandout.configuration.oauth.PrincipalOauth2UserService;
 import com.rezero.inandout.exception.MemberException;
 import com.rezero.inandout.exception.errorcode.MemberErrorCode;
 import com.rezero.inandout.member.component.MailComponent;
@@ -26,6 +27,7 @@ import com.rezero.inandout.member.model.MemberStatus;
 import com.rezero.inandout.member.model.ResetPasswordInput;
 import com.rezero.inandout.member.model.UpdateMemberInput;
 import com.rezero.inandout.member.repository.MemberRepository;
+import com.rezero.inandout.member.service.impl.MemberServiceImpl;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -69,6 +71,9 @@ class MemberServiceImplTest {
 
     @InjectMocks
     private MemberServiceImpl memberService;
+
+    @InjectMocks
+    PrincipalOauth2UserService principalOauth2UserService;
 
     @Test
     @DisplayName("회원가입")
@@ -176,7 +181,7 @@ class MemberServiceImplTest {
         // given
         Member member = Member.builder().email("egg@naver.com").address("서울특별시")
             .phone("010-2222-0000").birth(LocalDate.from(LocalDate.of(2000, 9, 30))).gender("남")
-            .nickName("강동원").password("abc!@#12").memberS3ImageKey("key") .build();
+            .nickName("강동원").password("abc!@#12").memberS3ImageKey("key").build();
 
         given(memberRepository.findByEmail(anyString())).willReturn(Optional.of(member));
 
@@ -197,13 +202,13 @@ class MemberServiceImplTest {
         String s3ImageKey = "imageKey";
         Member member = Member.builder().email("egg@naver.com").address("서울특별시")
             .phone("010-2222-0000").birth(LocalDate.from(LocalDate.of(2000, 9, 30))).gender("남")
-            .nickName("강동원").password("abc!@#12").memberS3ImageKey("2022-10-31T17:36:50.822 diary 강아지.jpg").build();
+            .nickName("강동원").password("abc!@#12")
+            .memberS3ImageKey("2022-10-31T17:36:50.822 diary 강아지.jpg").build();
 
         given(memberRepository.findByEmail(anyString())).willReturn(Optional.of(member));
 
         given(awsS3Service.addImageAndGetKey(any(), any()))
             .willReturn(s3ImageKey);
-
 
         // when
         UpdateMemberInput input = UpdateMemberInput.builder().address("강원도").nickName("치킨")
@@ -231,7 +236,8 @@ class MemberServiceImplTest {
             .phone("010-2222-0000").birth(LocalDate.from(LocalDate.of(2000, 9, 30))).gender("남")
             .nickName("강동원").password("abc!@#12").memberS3ImageKey(s3ImageKey).build();
 
-        given(memberRepository.findByEmail(anyString())).willReturn(Optional.of(member));       // 이메일로 회원을 조회한다.
+        given(memberRepository.findByEmail(anyString())).willReturn(
+            Optional.of(member));       // 이메일로 회원을 조회한다.
 
         UpdateMemberInput input = UpdateMemberInput.builder().address("강원도").nickName("치킨")
             .phone("010-11 11-2313").birth(LocalDate.now()).gender("여")
@@ -280,7 +286,6 @@ class MemberServiceImplTest {
             exception.getErrorCode().getDescription());
 
     }
-
 
 
     @Test
@@ -406,7 +411,7 @@ class MemberServiceImplTest {
     void login_fail_pwd() {
 
         // given
-        Member member = Member.builder().email("egg@naver.com").build();
+        Member member = Member.builder().email("egg@naver.com").status(MemberStatus.ING).build();
         String encPassword = bCryptPasswordEncoder.encode("abc!@#12");
         member.setPassword(encPassword);
         given(memberRepository.findByEmail(member.getEmail())).willReturn(Optional.of(member));
@@ -465,14 +470,14 @@ class MemberServiceImplTest {
     void withdraw() {
 
         // given
-        Member member = Member.builder().email("egg@naver.com").status(MemberStatus.ING).memberS3ImageKey("").build();
+        Member member = Member.builder().email("egg@naver.com").status(MemberStatus.ING)
+            .memberS3ImageKey("").build();
         String rawPassword = "abc123!@";
         member.setPassword(bCryptPasswordEncoder.encode(rawPassword));
 
         // when
         given(memberRepository.findByEmail(anyString())).willReturn(Optional.of(member));
         memberService.withdraw(member.getEmail(), rawPassword);
-
 
         // then
         assertEquals(MemberStatus.WITHDRAW,
@@ -591,7 +596,8 @@ class MemberServiceImplTest {
         // when
         String uuid = UUID.randomUUID().toString();
         Member member = Member.builder().email("egg@naver.com").resetPasswordKey(uuid)
-            .resetPasswordLimitDt(LocalDateTime.now()).status(MemberStatus.ING).build();
+            .resetPasswordLimitDt(LocalDateTime.now().minusDays(1)).status(MemberStatus.ING)
+            .build();
         given(memberRepository.findByResetPasswordKey(anyString())).willReturn(Optional.of(member));
 
         // then
