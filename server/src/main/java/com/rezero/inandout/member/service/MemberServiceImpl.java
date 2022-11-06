@@ -224,7 +224,6 @@ public class MemberServiceImpl implements MemberService {
         String subject = "In and Out 회원 가입을 축하드립니다.";
         String text = "<p>안녕하세요. In And Out 입니다.</p><p>아래 링크를 누르시면 회원 가입이 완료됩니다.</p>"
             + "<div><a href='http://localhost:8080/api/signup/sending?id=" + uuid
-//            + "<div><a href='http://localhost:3000/In-And-Out/signup_check/sending?id=" + uuid
             + "'>가입 완료</a></div>";
         mailComponent.send(input.getEmail(), subject, text);
 
@@ -275,7 +274,6 @@ public class MemberServiceImpl implements MemberService {
         String subject = "In and Out 비밀번호 초기화";
         String text = "<p>안녕하세요. In And Out 입니다.</p><p>아래 링크를 누르시면 비밀번호 초기화가 완료됩니다.</p>"
             + "<div><a href='http://localhost:8080/api/password/email/phone/sending?id=" + uuid
-//            + "<div><a href='http://localhost:3000/In-And-Out/password_reset/sending?id=" + uuid
             + "'>비밀번호 초기화</a></div>";
         mailComponent.send(email, subject, text);
 
