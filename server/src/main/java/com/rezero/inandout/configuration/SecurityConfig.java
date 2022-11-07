@@ -2,9 +2,8 @@ package com.rezero.inandout.configuration;
 
 
 import com.rezero.inandout.configuration.oauth.PrincipalOauth2UserService;
+import com.rezero.inandout.member.repository.MemberRepository;
 import com.rezero.inandout.member.service.MemberService;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,41 +24,52 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final MemberService memberService;
 
+    private final MemberRepository memberRepository;
+
     @Bean
     PasswordEncoder getPasswordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+
+    @Bean
+    UserAuthenticationFailureHandler getFailureHandler() {
+        return new UserAuthenticationFailureHandler();
+    }
+
+
+    @Bean
+    UserAuthenticationSuccessHandler getSuccessHandler() {
+        return new UserAuthenticationSuccessHandler(memberRepository);
+    }
+
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
 
-        LocalDate now = LocalDate.now();
-        LocalDate startDate = LocalDate.of(now.getYear(), now.getMonth(), 1);
-        LocalDate endDate = LocalDate.of(now.getYear(), now.getMonth(), now.lengthOfMonth());
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        String start = startDate.format(formatter);
-        String end = endDate.format(formatter);
-        String mainUrl = "/api/calendar?start_dt=" + start + "&end_dt=" + end;
-        String tmpUrl = "/api/calendar";
+        String frontLoginUrl = "https://re-zero-in-and-out.github.io/In-And-Out/";
 
         http.csrf().disable();
         http.authorizeRequests()
             .antMatchers("/api/member/**", "/api/income/**", "/api/expense/**",
-            "/api/report/**", "/api/excel/**").authenticated()  // 로그인해야만 접근 가능
+                "/api/report/**", "/api/excel/**").authenticated()  // 로그인해야만 접근 가능
             .anyRequest().permitAll();
 
-        http.formLogin()
-//            .defaultSuccessUrl(mainUrl)
-            .defaultSuccessUrl(tmpUrl)
-            .failureUrl("/api/signin")
-
-            .and()
-            .logout()
-            .logoutUrl("/api/signout")
-            .logoutSuccessUrl(mainUrl);
+        /*
+         http.formLogin()
+         .defaultSuccessUrl(mainUrl)
+         .defaultSuccessUrl(tmpUrl)
+         .failureUrl("/api/signin")
+         .and()
+         .logout()
+         .logoutUrl("/api/signout")
+         .logoutSuccessUrl(mainUrl);
+         */
 
         http.oauth2Login()
-            .loginPage("/api/signin")
+            .loginPage(frontLoginUrl)        //  (프론트 url - EC2로 바뀔수도 있음)
+            .failureHandler(getFailureHandler())
+            .successHandler(getSuccessHandler())
             .userInfoEndpoint()
             .userService(principalOauth2UserService);
 

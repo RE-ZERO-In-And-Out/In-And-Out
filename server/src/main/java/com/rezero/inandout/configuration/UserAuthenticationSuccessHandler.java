@@ -1,5 +1,6 @@
 package com.rezero.inandout.configuration;
 
+import com.rezero.inandout.member.repository.MemberRepository;
 import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -13,6 +14,7 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationSu
 @RequiredArgsConstructor
 public class UserAuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
+    private final MemberRepository memberRepository;        // 나중에 로그인 정보를 DB에 저장할 수도 있음
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
