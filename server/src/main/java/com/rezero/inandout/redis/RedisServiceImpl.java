@@ -2,10 +2,8 @@ package com.rezero.inandout.redis;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rezero.inandout.exception.RedisException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.ListOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,7 +37,7 @@ public class RedisServiceImpl implements RedisService{
                     T t = mapper.readValue((String)redisTemplate.opsForList().index(key, i), classType);
                     returnList.add(t);
                 } catch (JsonProcessingException e) {
-                    throw new RedisException(e.getMessage());
+                    log.error("redis 서버가 동작하지 않거나 데이터를 불러올 수 없습니다.");
                 }
             }
         }
@@ -54,7 +52,7 @@ public class RedisServiceImpl implements RedisService{
             try {
                 redisTemplate.opsForList().rightPush(key, mapper.writeValueAsString(category));
             } catch (JsonProcessingException e) {
-                throw new RedisException(e.getMessage());
+                log.error("redis 서버가 동작하지 않거나 데이터를 삽입할 수 없습니다.");
             }
         }
     }
