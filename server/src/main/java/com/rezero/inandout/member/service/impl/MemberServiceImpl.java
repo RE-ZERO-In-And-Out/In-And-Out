@@ -123,7 +123,7 @@ public class MemberServiceImpl extends DefaultOAuth2UserService implements Membe
     @Override
     public void logout() {
 
-        if (SecurityContextHolder.getContext().getAuthentication() == null) {
+        if (SecurityContextHolder.getContext().getAuthentication() == null || SecurityContextHolder.getContext().getAuthentication().getName().equals("anonymousUser") ) {
             throw new MemberException(CANNOT_LOGOUT);
         }
 
