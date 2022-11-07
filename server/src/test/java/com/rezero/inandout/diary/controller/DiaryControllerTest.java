@@ -17,6 +17,7 @@ import com.rezero.inandout.diary.model.DeleteDiaryInput;
 import com.rezero.inandout.diary.model.DiaryDto;
 import com.rezero.inandout.diary.service.DiaryService;
 import com.rezero.inandout.member.entity.Member;
+import com.rezero.inandout.member.repository.MemberRepository;
 import com.rezero.inandout.member.service.impl.MemberServiceImpl;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
@@ -47,6 +48,9 @@ class DiaryControllerTest {
 
     @MockBean
     private DiaryService diaryService;
+
+    @MockBean
+    private MemberRepository memberRepository;
 
     @MockBean
     private MemberServiceImpl memberService;

@@ -16,6 +16,7 @@ import com.rezero.inandout.calendar.model.CalendarMonthlyDto;
 import com.rezero.inandout.calendar.service.Impl.CalendarServiceImpl;
 import com.rezero.inandout.configuration.oauth.PrincipalOauth2UserService;
 import com.rezero.inandout.member.entity.Member;
+import com.rezero.inandout.member.repository.MemberRepository;
 import com.rezero.inandout.member.service.impl.MemberServiceImpl;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -53,6 +54,9 @@ class CalendarControllerTest {
 
     @Autowired
     ObjectMapper objectMapper;
+
+    @MockBean
+    private MemberRepository memberRepository;
 
     @Test
     @DisplayName("달력화면의 수입&지출 내역 조회")
