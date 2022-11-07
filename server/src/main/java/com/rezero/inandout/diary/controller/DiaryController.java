@@ -10,14 +10,17 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.format.annotation.DateTimeFormat.ISO;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.validation.Valid;
 import java.security.Principal;
 import java.time.LocalDate;
 
 @RestController
 @RequiredArgsConstructor
+@Validated
 @RequestMapping("/api/diary")
 public class DiaryController {
 
@@ -40,7 +43,7 @@ public class DiaryController {
     @ApiOperation(value = "일기 등록 API",
             notes = "일기날짜, 텍스트, 사진을 통해 저장을 할 수 있다.")
     public ResponseEntity<?> addDiary(Principal principal,
-                                      @RequestPart AddDiaryInput input,
+                                      @RequestPart @Valid AddDiaryInput input,
                                       MultipartFile file) {
 
         diaryService.addDiary(principal.getName(), input.getDiaryDt(),
@@ -53,7 +56,7 @@ public class DiaryController {
     @ApiOperation(value = "일기 수정 API",
             notes = "일기날짜, 텍스트, 사진을 통해 수정을 할 수 있다.")
     public ResponseEntity<?> updateDiary(Principal principal,
-                                      @RequestPart UpdateDiaryInput input,
+                                      @RequestPart @Valid UpdateDiaryInput input,
                                       MultipartFile file) {
 
         diaryService.updateDiary(principal.getName(), input.getDiaryId(), input.getDiaryDt(),
@@ -66,7 +69,7 @@ public class DiaryController {
     @ApiOperation(value = "일기 삭제 API",
             notes = "일기 ID를 통해 삭제 할 수 있다.")
     public ResponseEntity<?> deleteDiary(Principal principal,
-                                         @RequestBody DeleteDiaryInput input) {
+                                         @RequestBody @Valid DeleteDiaryInput input) {
 
         diaryService.deleteDiary(principal.getName(), input.getDiaryId());
 
