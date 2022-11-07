@@ -87,8 +87,7 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
             if (!optionalMember.isPresent()) {
 
                 oauthMemberInput = validateOauthInput(oauthMemberInput);
-
-                member = Member.builder().oauthUsername(oauthUsername)
+                member = Member.builder()
                     .email(oauthMemberInput.getEmail()).nickName(oauthMemberInput.getNickName())
                     .phone(oauthMemberInput.getPhone()).provider(provider).providerId(providerId)
                     .status(MemberStatus.ING).password(encPwd).build();
@@ -123,7 +122,7 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
 
                 oauthMemberInput = validateOauthInput(oauthMemberInput);
 
-                member = Member.builder().oauthUsername(oauthUsername)
+                member = Member.builder()
                     .email(oauthMemberInput.getEmail()).nickName(oauthMemberInput.getNickName())
                     .phone(oauthMemberInput.getPhone()).gender(naverUserInfo.getGender())
                     .provider(provider).providerId(providerId).status(MemberStatus.ING)
