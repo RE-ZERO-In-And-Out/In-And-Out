@@ -30,7 +30,7 @@ public class IncomeInput {
     @NotBlank(message = "수입 항목을 입력하세요.")
     private String incomeItem;
 
-    @NotBlank
+    @NotNull(message = "수입 금액을 입력하세요.")
     private Integer incomeAmount;
     private String incomeMemo;
 
