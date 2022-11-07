@@ -1,12 +1,14 @@
 package com.rezero.inandout.exception;
 
 
-import lombok.extern.slf4j.Slf4j;
 import com.rezero.inandout.exception.response.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import javax.validation.ValidationException;
 
 @Slf4j
 @RestControllerAdvice
@@ -79,6 +81,18 @@ public class CustomExceptionHandler {
     protected ResponseEntity<RedisErrorResponse> redisHandlerCustomException(
             RedisException e) {
         RedisErrorResponse errorResponse = RedisErrorResponse.builder()
+                .message(e.getMessage())
+                .build();
+
+        log.error(errorResponse.getMessage());
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(ValidationException.class)
+    protected ResponseEntity<ValidationErrorResponse> validationHandlerCustomException(
+            ValidationException e) {
+        ValidationErrorResponse errorResponse = ValidationErrorResponse.builder()
                 .message(e.getMessage())
                 .build();
 
