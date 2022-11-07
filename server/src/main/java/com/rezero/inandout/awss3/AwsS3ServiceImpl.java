@@ -6,6 +6,7 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.rezero.inandout.exception.AwsS3Exception;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -14,6 +15,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class AwsS3ServiceImpl implements AwsS3Service{
 
@@ -24,6 +26,7 @@ public class AwsS3ServiceImpl implements AwsS3Service{
 
     @Override
     public String getImageUrl(String s3ImageKey) {
+        log.info(s3ImageKey + "에 대한 Image Url 가져옴");
         return amazonS3Client.getUrl(s3Bucket, s3ImageKey).toString();
     }
 
@@ -41,7 +44,9 @@ public class AwsS3ServiceImpl implements AwsS3Service{
                     new PutObjectRequest(s3Bucket, key, file.getInputStream(), objectMetaData)
                             .withCannedAcl(CannedAccessControlList.PublicRead)
             );
+            log.error("Image 등록 완료 : " + key);
         } catch (IOException e) {
+            log.error("Image 등록 중 익셉션 발생 : " + e.getMessage());
             throw new AwsS3Exception(e.getMessage());
         }
 
@@ -51,6 +56,7 @@ public class AwsS3ServiceImpl implements AwsS3Service{
     @Override
     public void deleteImage(String key) {
         amazonS3Client.deleteObject(s3Bucket, key);
+        log.error("Image 삭제 완료 : " + key);
     }
 
 }
