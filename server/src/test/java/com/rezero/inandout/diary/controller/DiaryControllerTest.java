@@ -179,7 +179,7 @@ class DiaryControllerTest {
 
         MockMultipartFile file2 = new MockMultipartFile("input",
             "", "application/json",
-            ("{\"diaryDt\" : \"2022-10-01\"," + " \"text\" : \"강아지 귀엽다 ㅎㅎ\"}")
+            ("{\"diaryId\" : 1," + "\"diaryDt\" : \"2022-10-01\"," + " \"text\" : \"강아지 귀엽다 ㅎㅎ\"}")
                 .getBytes(StandardCharsets.UTF_8));
         //when
         mockMvc.perform(
