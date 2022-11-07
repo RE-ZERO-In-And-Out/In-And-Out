@@ -22,6 +22,7 @@ import com.rezero.inandout.member.model.MemberStatus;
 import com.rezero.inandout.member.model.ResetPasswordInput;
 import com.rezero.inandout.member.model.UpdateMemberInput;
 import com.rezero.inandout.member.model.WithdrawMemberInput;
+import com.rezero.inandout.member.repository.MemberRepository;
 import com.rezero.inandout.member.service.MemberService;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
@@ -55,6 +56,9 @@ class MemberControllerTest {
 
     @Autowired
     ObjectMapper mapper;
+
+    @MockBean
+    private MemberRepository memberRepository;
 
     @MockBean
     private MemberService memberServiceImpl;

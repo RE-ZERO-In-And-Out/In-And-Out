@@ -24,6 +24,7 @@ import com.rezero.inandout.expense.model.ExpenseInput;
 import com.rezero.inandout.expense.service.base.ExpenseService;
 import com.rezero.inandout.expense.service.table.ExpenseTableService;
 import com.rezero.inandout.member.entity.Member;
+import com.rezero.inandout.member.repository.MemberRepository;
 import com.rezero.inandout.member.service.impl.MemberServiceImpl;
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -55,6 +56,9 @@ class ExpenseControllerTest {
 
     @MockBean
     private MemberServiceImpl memberService;
+
+    @MockBean
+    private MemberRepository memberRepository;
 
     @MockBean
     PrincipalOauth2UserService principalOauth2UserService;
