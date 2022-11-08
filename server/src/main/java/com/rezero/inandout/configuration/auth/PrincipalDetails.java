@@ -16,7 +16,7 @@ public class PrincipalDetails implements UserDetails, OAuth2User {
 
     private Map<String, Object> attributes;
 
-    // 일반 로그인 시 사용
+    // 일반 로그인
     public PrincipalDetails(Member member) {
         this.member = member;
     }
@@ -32,7 +32,14 @@ public class PrincipalDetails implements UserDetails, OAuth2User {
     public Collection<? extends GrantedAuthority> getAuthorities() {
 
         Collection<GrantedAuthority> collect = new ArrayList<>();
-        // User에 대한 권한이 있을 때 필요
+
+        collect.add(new GrantedAuthority() {
+            @Override
+            public String getAuthority() {
+                return member.getRole().toString();
+            }
+        });
+
         return collect;
     }
 

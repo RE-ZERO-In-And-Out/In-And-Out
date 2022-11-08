@@ -21,6 +21,4 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 
     Optional<Member> findByResetPasswordKey (String resetPasswordKey);
 
-    Optional<Member> findByProviderAndProviderId(String provider, String providerId);
-
 }

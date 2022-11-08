@@ -1,6 +1,7 @@
 package com.rezero.inandout.member.entity;
 
 import com.rezero.inandout.domain.BaseEntity;
+import com.rezero.inandout.member.model.MemberRole;
 import com.rezero.inandout.member.model.MemberStatus;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -48,9 +49,7 @@ public class Member extends BaseEntity {
     private LocalDateTime resetPasswordLimitDt;
     private String emailAuthKey;
 
-    // oauth 추가
-    private String provider;    // 구글, 네이버
-    private String providerId;  // 구글 DB 내에서 회원의 pk를 의미
-
+    @Enumerated(value = EnumType.STRING)
+    private MemberRole role;
 
 }
