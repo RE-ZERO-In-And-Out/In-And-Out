@@ -103,7 +103,7 @@ public class DiaryServiceImpl implements DiaryService {
             log.info("[S3 Image delete] dir: " + dir + "/ member: " + email);
         }
 
-        String s3ImageKey = "";
+        String s3ImageKey = updateDiary.getDiaryS3ImageKey();
 
         if (file != null) {
             s3ImageKey = awsS3Service.addImageAndGetKey(dir, file);
