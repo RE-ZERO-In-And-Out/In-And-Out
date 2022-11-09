@@ -153,15 +153,3 @@ public class MemberController {
 
 
 }
-
-
-//도커 에 배포
-//
-//
-//배포용 프로펄티를 따로 만든다.class
-//
-//application-prod.properties를 따로 만들어서
-//도커 파일에 설정한다.
-//우리 도커 파일은 엔트
-
-
