@@ -20,7 +20,7 @@ public class UserAuthenticationSuccessHandler extends SimpleUrlAuthenticationSuc
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
         Authentication authentication) throws IOException, ServletException {
 
-        String oauthUsername = authentication.getName();
+        String email = authentication.getName();
         String frontLoginUrl = "https://3.34.206.181/calendar";
 
         /*

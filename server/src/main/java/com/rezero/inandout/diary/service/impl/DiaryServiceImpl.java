@@ -16,8 +16,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,6 +33,7 @@ public class DiaryServiceImpl implements DiaryService {
     private final MemberRepository memberRepository;
     private final AwsS3Service awsS3Service;
     private static final String dir = "diary";
+    private static final String deleteFile = "delete";
 
     @Override
     public List<DiaryDto> getDiaryList(String email, LocalDate startDt, LocalDate endDt) {
@@ -105,7 +109,19 @@ public class DiaryServiceImpl implements DiaryService {
 
         String s3ImageKey = updateDiary.getDiaryS3ImageKey();
 
-        if (file != null) {
+        String delete;
+
+        try {
+            delete = new String(file.getBytes());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        if (deleteFile.equals(delete)) {
+            awsS3Service.deleteImage(s3ImageKey);
+            log.info("[S3 Image delete] dir: " + dir + "/ member: " + email);
+            s3ImageKey = "";
+        } else if (file != null) {
             s3ImageKey = awsS3Service.addImageAndGetKey(dir, file);
             log.info("[S3 Image save] dir: " + dir + "/ member: " + email);
         }
