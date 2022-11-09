@@ -34,6 +34,7 @@ import com.rezero.inandout.member.model.ChangePasswordInput;
 import com.rezero.inandout.member.model.JoinMemberInput;
 import com.rezero.inandout.member.model.LoginMemberInput;
 import com.rezero.inandout.member.model.MemberDto;
+import com.rezero.inandout.member.model.MemberRole;
 import com.rezero.inandout.member.model.MemberStatus;
 import com.rezero.inandout.member.model.ResetPasswordInput;
 import com.rezero.inandout.member.model.UpdateMemberInput;
@@ -257,7 +258,7 @@ public class MemberServiceImpl extends DefaultOAuth2UserService implements Membe
         Member member = Member.builder().email(input.getEmail()).address(input.getAddress())
             .birth(input.getBirth()).gender(input.getGender()).password(encPassword)
             .nickName(input.getNickName()).phone(input.getPhone()).status(MemberStatus.REQ)
-            .emailAuthKey(uuid).memberS3ImageKey("").build();
+            .emailAuthKey(uuid).memberS3ImageKey("").role(MemberRole.ROLE_MEMBER).build();
         memberRepository.save(member);
         // 링크는 프론트 서버의 url로 변경 예정
 
@@ -358,11 +359,11 @@ public class MemberServiceImpl extends DefaultOAuth2UserService implements Membe
         if (email == null) {
             throw new MemberException(CANNOT_GET_INFO);
         }
-        Member member = memberRepository.findByEmail(email).get();
 
+        Member member = memberRepository.findByEmail(email).get();
         String s3ImageUrl = "";
-        if (!member.getMemberS3ImageKey().isEmpty() || member.getMemberS3ImageKey() != null
-            || member.getMemberS3ImageKey() != "") {
+
+        if (!member.getMemberS3ImageKey().isEmpty() || member.getMemberS3ImageKey() != "") {
             s3ImageUrl = awsS3Service.getImageUrl(member.getMemberS3ImageKey());
         }
 
@@ -404,7 +405,7 @@ public class MemberServiceImpl extends DefaultOAuth2UserService implements Membe
             awsS3Service.deleteImage(member.getMemberS3ImageKey());
         }
 
-        String s3ImageKey = "";
+        String s3ImageKey = member.getMemberS3ImageKey();
 
         if (file != null) {
             s3ImageKey = awsS3Service.addImageAndGetKey(dir, file);

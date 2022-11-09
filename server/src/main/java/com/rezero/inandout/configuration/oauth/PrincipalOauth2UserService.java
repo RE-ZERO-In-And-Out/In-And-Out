@@ -3,9 +3,8 @@ package com.rezero.inandout.configuration.oauth;
 import com.rezero.inandout.configuration.auth.PrincipalDetails;
 import com.rezero.inandout.configuration.oauth.provider.GoogleUserInfo;
 import com.rezero.inandout.configuration.oauth.provider.NaverUserInfo;
-import com.rezero.inandout.exception.MemberException;
-import com.rezero.inandout.exception.errorcode.MemberErrorCode;
 import com.rezero.inandout.member.entity.Member;
+import com.rezero.inandout.member.model.MemberRole;
 import com.rezero.inandout.member.model.MemberStatus;
 import com.rezero.inandout.member.model.OauthMemberInput;
 import com.rezero.inandout.member.repository.MemberRepository;
@@ -33,15 +32,8 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
 
         OauthMemberInput oauthMember = OauthMemberInput.builder().build();
         String oauthUsername = input.getProvider() + "_" + input.getProviderId();
-        Optional<Member> optionalMember = memberRepository.findByEmail(input.getEmail());
-
-        if (optionalMember.isPresent()) {
-            oauthMember.setEmail(oauthUsername);
-            throw new MemberException(MemberErrorCode.EMAIL_EXIST);
-
-        } else {
-            oauthMember.setEmail(input.getEmail());
-        }
+        Optional<Member> optionalMember;
+        oauthMember.setOauthUsername(input.getOauthUsername());
 
         optionalMember = memberRepository.findByPhone(input.getPhone());
         if (optionalMember.isPresent()) {
@@ -78,26 +70,27 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
 
             oauthMemberInput.setProvider(provider);
             oauthMemberInput.setProviderId(providerId);
-            oauthMemberInput.setEmail(googleUserInfo.getEmail());
+            oauthMemberInput.setOauthUsername(oauthUsername);
             oauthMemberInput.setNickName(googleUserInfo.getName());
 
-            Optional<Member> optionalMember = memberRepository.findByProviderAndProviderId(provider,
-                providerId);
+            Optional<Member> optionalMember = memberRepository.findByEmail(oauthUsername);
 
             if (!optionalMember.isPresent()) {
 
                 oauthMemberInput = validateOauthInput(oauthMemberInput);
                 member = Member.builder()
-                    .email(oauthMemberInput.getEmail()).nickName(oauthMemberInput.getNickName())
-                    .phone(oauthMemberInput.getPhone()).provider(provider).providerId(providerId)
+                    .email(oauthUsername).nickName(oauthMemberInput.getNickName())
+                    .phone(oauthMemberInput.getPhone())
+                    .role(MemberRole.ROLE_OAUTH_MEMBER)
+                    .memberS3ImageKey("")
                     .status(MemberStatus.ING).password(encPwd).build();
 
                 memberRepository.save(member);
-                log.info("[Member Signup for google] member: " + googleUserInfo.getEmail());
+                log.info("[Member Signup for google] member: " + oauthUsername);
 
             } else {
                 member = optionalMember.get();
-                log.info("[Member Login for google] member: " + googleUserInfo.getEmail());
+                log.info("[Member Login for google] member: " + oauthUsername);
 
             }
 
@@ -112,28 +105,30 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
 
             oauthMemberInput.setProvider(provider);
             oauthMemberInput.setProviderId(providerId);
-            oauthMemberInput.setEmail(naverUserInfo.getEmail());
-            oauthMemberInput.setNickName(naverUserInfo.getName());
+            oauthMemberInput.setOauthUsername(oauthUsername);
+            oauthMemberInput.setNickName(naverUserInfo.getNickname());
+            oauthMemberInput.setPhone(naverUserInfo.getPhone());
 
-            Optional<Member> optionalMember = memberRepository.findByProviderAndProviderId(provider,
-                providerId);
+            Optional<Member> optionalMember = memberRepository.findByEmail(oauthUsername);
 
             if (!optionalMember.isPresent()) {
 
                 oauthMemberInput = validateOauthInput(oauthMemberInput);
 
                 member = Member.builder()
-                    .email(oauthMemberInput.getEmail()).nickName(oauthMemberInput.getNickName())
+                    .email(oauthUsername).nickName(oauthMemberInput.getNickName())
                     .phone(oauthMemberInput.getPhone()).gender(naverUserInfo.getGender())
-                    .provider(provider).providerId(providerId).status(MemberStatus.ING)
+                    .role(MemberRole.ROLE_OAUTH_MEMBER)
+                    .memberS3ImageKey("")
+                    .status(MemberStatus.ING)
                     .password(encPwd).build();
 
                 memberRepository.save(member);
-                log.info("[Member Signup for naver] member: " + naverUserInfo.getEmail());
+                log.info("[Member Signup for naver] member: " + oauthUsername);
 
             } else {
                 member = optionalMember.get();
-                log.info("[Member Login for naver] member: " + naverUserInfo.getEmail());
+                log.info("[Member Login for naver] member: " + oauthUsername);
 
             }
 

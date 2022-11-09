@@ -14,7 +14,7 @@ import lombok.Setter;
 @AllArgsConstructor
 public class OauthMemberInput {
 
-    private String email;
+    private String oauthUsername;
     private String nickName;
     private String phone;
     private String provider;

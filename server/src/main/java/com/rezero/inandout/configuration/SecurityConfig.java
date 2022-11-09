@@ -2,6 +2,7 @@ package com.rezero.inandout.configuration;
 
 
 import com.rezero.inandout.configuration.oauth.PrincipalOauth2UserService;
+import com.rezero.inandout.member.model.MemberRole;
 import com.rezero.inandout.member.repository.MemberRepository;
 import com.rezero.inandout.member.service.MemberService;
 import lombok.RequiredArgsConstructor;
@@ -50,9 +51,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         String frontLoginUrl = "http://3.34.206.181:3000";
 
         http.csrf().disable();
+
+        // 일반 유저, oauth 유저에 모두 적용
         http.authorizeRequests()
-            .antMatchers("/api/member/**", "/api/income/**", "/api/expense/**",
-                "/api/report/**", "/api/excel/**").authenticated()  // 로그인해야만 접근 가능
+            .antMatchers("/api/income/**", "/api/expense/**",
+                "/api/report/**", "/api/excel/**").authenticated();
+
+        // 일반 유저에만 적용 (oauth 유저는 아래 url 접속 불가능)
+        http.authorizeRequests().antMatchers( "/api/member/password")
+            .hasAnyAuthority(MemberRole.ROLE_MEMBER.toString())
             .anyRequest().permitAll();
 
         /*

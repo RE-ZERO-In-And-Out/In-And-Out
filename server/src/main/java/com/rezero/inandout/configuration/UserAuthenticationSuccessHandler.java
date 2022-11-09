@@ -14,7 +14,7 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationSu
 @RequiredArgsConstructor
 public class UserAuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
-    private final MemberRepository memberRepository;        // 나중에 로그인 정보를 DB에 저장할 수도 있음
+    private final MemberRepository memberRepository;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
@@ -34,7 +34,7 @@ public class UserAuthenticationSuccessHandler extends SimpleUrlAuthenticationSuc
         // ex) /api/calendar?start_dt=2022-11-01&end_dt=2022-11-30
         */
 
-        log.info("[Member Login] member: " + email);
+        log.info("[Member Authentication] member: " + oauthUsername);
         setDefaultTargetUrl(frontLoginUrl);
         super.onAuthenticationSuccess(request, response, authentication);
 
