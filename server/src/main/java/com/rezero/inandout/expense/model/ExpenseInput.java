@@ -1,11 +1,13 @@
 package com.rezero.inandout.expense.model;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.PastOrPresent;
 import java.time.LocalDate;
 
 @Getter
@@ -15,7 +17,7 @@ import java.time.LocalDate;
 public class ExpenseInput {
 
     private Long expenseId;
-    @PastOrPresent(message = "지출일(과거 또는 현재)을 입력하세요.")
+    @NotNull(message = "지출일을 입력하세요.")
     private LocalDate expenseDt;
     @NotBlank(message = "지출한 물건을 입력하세요.")
     private String expenseItem;
