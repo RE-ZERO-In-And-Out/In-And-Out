@@ -124,7 +124,8 @@ public class MemberServiceImpl extends DefaultOAuth2UserService implements Membe
     @Override
     public void logout() {
 
-        if (SecurityContextHolder.getContext().getAuthentication() == null || SecurityContextHolder.getContext().getAuthentication().getName().equals("anonymousUser") ) {
+        if (SecurityContextHolder.getContext().getAuthentication() == null
+            || SecurityContextHolder.getContext().getAuthentication().getName().equals("anonymousUser") ) {
             throw new MemberException(CANNOT_LOGOUT);
         }
 
@@ -363,7 +364,7 @@ public class MemberServiceImpl extends DefaultOAuth2UserService implements Membe
         Member member = memberRepository.findByEmail(email).get();
         String s3ImageUrl = "";
 
-        if (!member.getMemberS3ImageKey().isEmpty() || member.getMemberS3ImageKey() != "") {
+        if (!member.getMemberS3ImageKey().isEmpty()) {
             s3ImageUrl = awsS3Service.getImageUrl(member.getMemberS3ImageKey());
         }
 
@@ -401,7 +402,7 @@ public class MemberServiceImpl extends DefaultOAuth2UserService implements Membe
             }
         }
 
-        if (!member.getMemberS3ImageKey().isEmpty() || member.getMemberS3ImageKey() != "") {
+        if (!member.getMemberS3ImageKey().isEmpty()) {
             awsS3Service.deleteImage(member.getMemberS3ImageKey());
         }
 
@@ -417,6 +418,7 @@ public class MemberServiceImpl extends DefaultOAuth2UserService implements Membe
         member.setAddress(input.getAddress());
         member.setGender(input.getGender());
         member.setMemberS3ImageKey(s3ImageKey);
+        member.setRole(MemberRole.ROLE_MEMBER);
         memberRepository.save(member);
 
         log.info("[Member Update Info] member: " + member.getEmail());
@@ -460,7 +462,7 @@ public class MemberServiceImpl extends DefaultOAuth2UserService implements Membe
             throw new MemberException(PASSWORD_NOT_MATCH);
         }
 
-        if (!member.getMemberS3ImageKey().isEmpty() || member.getMemberS3ImageKey() != "") {
+        if (!member.getMemberS3ImageKey().isEmpty()) {
             awsS3Service.deleteImage(member.getMemberS3ImageKey());
         }
 
