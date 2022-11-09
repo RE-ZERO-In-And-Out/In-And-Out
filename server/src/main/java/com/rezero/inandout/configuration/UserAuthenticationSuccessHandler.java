@@ -21,7 +21,7 @@ public class UserAuthenticationSuccessHandler extends SimpleUrlAuthenticationSuc
         Authentication authentication) throws IOException, ServletException {
 
         String oauthUsername = authentication.getName();
-        String frontLoginUrl = "https://re-zero-in-and-out.github.io/In-And-Out/calendar";
+        String frontLoginUrl = "https://3.34.206.181/calendar";
 
         /*
         LocalDate now = LocalDate.now();
