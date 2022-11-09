@@ -47,7 +47,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
 
-        String frontLoginUrl = "https://re-zero-in-and-out.github.io/In-And-Out/";
+        String frontLoginUrl = "http://3.34.206.181:3000";
 
         http.csrf().disable();
         http.authorizeRequests()
