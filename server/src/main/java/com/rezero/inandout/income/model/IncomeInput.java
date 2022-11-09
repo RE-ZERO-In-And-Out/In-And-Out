@@ -24,7 +24,7 @@ public class IncomeInput {
     @Min(value = 1, message = "세부카테고리 아이디는 1 이상입니다.")
     private Long detailIncomeCategoryId;
 
-    @PastOrPresent(message = "수입일(과거 또는 현재)을 입력하세요.")
+    @NotNull(message = "수입일을 입력하세요.")
     private LocalDate incomeDt;
 
     @NotBlank(message = "수입 항목을 입력하세요.")
