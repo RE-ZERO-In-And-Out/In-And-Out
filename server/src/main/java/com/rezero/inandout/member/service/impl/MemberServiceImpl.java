@@ -417,6 +417,7 @@ public class MemberServiceImpl extends DefaultOAuth2UserService implements Membe
         member.setAddress(input.getAddress());
         member.setGender(input.getGender());
         member.setMemberS3ImageKey(s3ImageKey);
+        member.setRole(MemberRole.ROLE_MEMBER);
         memberRepository.save(member);
 
         log.info("[Member Update Info] member: " + member.getEmail());
