@@ -34,7 +34,7 @@ public class IncomeController {
 
     @ApiOperation(value = "수입 등록 API", notes = "수입내용을 입력하면 저장됩니다.")
     @PostMapping
-    public ResponseEntity<?> addIncome(Principal principal,
+    public ResponseEntity<String> addIncome(Principal principal,
                                         @RequestBody @Valid List<IncomeInput> incomeInputList) {
 
         incomeTableService.addAndUpdateIncome(principal.getName(), incomeInputList);
@@ -44,7 +44,7 @@ public class IncomeController {
 
     @ApiOperation(value = "수입 조회 API", notes = "조회할 기간을 입력하면 해당하는 수입내역이 조회됩니다.")
     @GetMapping
-    public ResponseEntity<?> getIncomeListAndDetailCategoryList(Principal principal,
+    public ResponseEntity<CategoryAndIncomeDto> getIncomeListAndDetailCategoryList(Principal principal,
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
             @ApiParam(value = "조회할 기간의 시작일", example = "2022-10-01") LocalDate startDt,
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
@@ -58,7 +58,7 @@ public class IncomeController {
 
     @ApiOperation(value = "수입 삭제 API", notes = "삭제할 내역의 아이디값을 입력하면 해당 내역이 삭제됩니다.")
     @DeleteMapping
-    public ResponseEntity<?> deleteIncome(Principal principal,
+    public ResponseEntity<String> deleteIncome(Principal principal,
                              @RequestBody @Valid List<DeleteIncomeInput> deleteIncomeInputList) {
 
         incomeService.deleteIncome(principal.getName(), deleteIncomeInputList);

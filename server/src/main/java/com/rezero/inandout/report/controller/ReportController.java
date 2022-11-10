@@ -28,7 +28,7 @@ public class ReportController {
     @ApiOperation(value = "월간 수입내역 보고서 조회 API",
         notes = "조회할 기간을 입력하면 해당하는 월간 수입내역 보고서가 조회됩니다.")
     @GetMapping("/month/income")
-    public ResponseEntity<?> getMonthlyIncomeReport(Principal principal,
+    public ResponseEntity<List<ReportDto>> getMonthlyIncomeReport(Principal principal,
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
             @ApiParam(value = "조회할 기간의 시작일", example = "2022-10-01") LocalDate startDt,
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
@@ -42,7 +42,7 @@ public class ReportController {
     @ApiOperation(value = "연간 수입 보고서 조회 API",
         notes = "조회할 기간을 입력하면 해당하는 연간 수입 보고서가 조회됩니다.")
     @GetMapping("/year/income")
-    public ResponseEntity<?> getYearlyIncomeReport(Principal principal,
+    public ResponseEntity<List<YearlyIncomeReportDto>> getYearlyIncomeReport(Principal principal,
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
         @ApiParam(value = "조회할 기간의 시작일", example = "2021-10-01") LocalDate startDt,
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
@@ -56,7 +56,7 @@ public class ReportController {
     @ApiOperation(value = "월간 지출내역 보고서 조회 API",
         notes = "조회할 기간을 입력하면 해당하는 월간 지출내역 보고서가 조회됩니다.")
     @GetMapping("/month/expense")
-    public ResponseEntity<?> getMonthlyExpenseReport(Principal principal,
+    public ResponseEntity<List<ReportDto>> getMonthlyExpenseReport(Principal principal,
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
         @ApiParam(value = "조회할 기간의 시작일", example = "2021-10-01") LocalDate startDt,
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
@@ -71,7 +71,7 @@ public class ReportController {
     @ApiOperation(value = "연간 지출 보고서 조회 API",
         notes = "조회할 기간을 입력하면 해당하는 연간 지출 보고서가 조회됩니다.")
     @GetMapping("/year/expense")
-    public ResponseEntity<?> getYearlyExpenseReport(Principal principal,
+    public ResponseEntity<List<YearlyExpenseReportDto>> getYearlyExpenseReport(Principal principal,
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
         @ApiParam(value = "조회할 기간의 시작일", example = "2021-10-01") LocalDate startDt,
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
@@ -86,7 +86,7 @@ public class ReportController {
     @ApiOperation(value = "연간 보고서 조회 API",
         notes = "조회할 기간을 입력하면 해당하는 연간 보고서가 조회됩니다.")
     @GetMapping("/year")
-    public ResponseEntity<?> getYearlyTotalReport(Principal principal,
+    public ResponseEntity<YearlyTotalReportDto> getYearlyTotalReport(Principal principal,
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
         @ApiParam(value = "조회할 기간의 시작일", example = "2021-10-01") LocalDate startDt,
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)

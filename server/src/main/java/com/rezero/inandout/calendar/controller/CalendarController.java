@@ -25,7 +25,7 @@ public class CalendarController {
     @GetMapping
     @ApiOperation(value = "달력화면의 수입&지출 내역 조회 API",
         notes = "로그인 시 메인화면. 해당 회원의 한 달의 수입&지출 내역이 조회된다.")
-    public ResponseEntity<?> getCalendarIncomeAndExpenseList(Principal principal,
+    public ResponseEntity<CalendarMonthlyDto> getCalendarIncomeAndExpenseList(Principal principal,
                     @ApiParam(value = "조회 시작 날짜", example = "2022-01-01")
                     @RequestParam @DateTimeFormat(iso = ISO.DATE) LocalDate startDt,
                     @ApiParam(value = "조회 끝 날짜", example = "2022-01-31")
