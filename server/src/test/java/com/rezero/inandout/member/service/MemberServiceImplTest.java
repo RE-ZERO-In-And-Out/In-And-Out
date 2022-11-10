@@ -257,7 +257,7 @@ class MemberServiceImplTest {
             exception.getErrorCode().getDescription());
 
     }
-
+/*
     @Test
     @DisplayName("회원 정보 수정(같은 폰번호가 존재하는 경우) - 실패 (2)")
     void updateInfo_fail_sameNickName() {
@@ -286,7 +286,7 @@ class MemberServiceImplTest {
             exception.getErrorCode().getDescription());
 
     }
-
+*/
 
     @Test
     @DisplayName("회원 정보 수정(같은 닉네임이 존재하는 경우) - 실패(3)")

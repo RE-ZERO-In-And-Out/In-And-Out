@@ -35,12 +35,14 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
         Optional<Member> optionalMember;
         oauthMember.setOauthUsername(input.getOauthUsername());
 
+        /*
         optionalMember = memberRepository.findByPhone(input.getPhone());
         if (optionalMember.isPresent()) {
             oauthMember.setPhone(null);
         } else {
             oauthMember.setPhone(input.getPhone());
         }
+        */
 
         optionalMember = memberRepository.findByNickName(input.getNickName());
         if (optionalMember.isPresent()) {
@@ -77,9 +79,10 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
 
             if (!optionalMember.isPresent()) {
 
-                oauthMemberInput = validateOauthInput(oauthMemberInput);
+               // oauthMemberInput = validateOauthInput(oauthMemberInput);
                 member = Member.builder()
-                    .email(oauthUsername).nickName(oauthMemberInput.getNickName())
+                    .email(oauthUsername)
+                    .nickName(oauthUsername)
                     .phone(oauthMemberInput.getPhone())
                     .role(MemberRole.ROLE_OAUTH_MEMBER)
                     .memberS3ImageKey("")
@@ -113,10 +116,11 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
 
             if (!optionalMember.isPresent()) {
 
-                oauthMemberInput = validateOauthInput(oauthMemberInput);
+                //oauthMemberInput = validateOauthInput(oauthMemberInput);
 
                 member = Member.builder()
-                    .email(oauthUsername).nickName(oauthMemberInput.getNickName())
+                    .email(oauthUsername)
+                    .nickName(oauthUsername)
                     .phone(oauthMemberInput.getPhone()).gender(naverUserInfo.getGender())
                     .role(MemberRole.ROLE_OAUTH_MEMBER)
                     .memberS3ImageKey("")

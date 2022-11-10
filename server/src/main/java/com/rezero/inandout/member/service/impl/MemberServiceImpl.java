@@ -157,10 +157,10 @@ public class MemberServiceImpl extends DefaultOAuth2UserService implements Membe
             throw new MemberException(EMAIL_EXIST);
         }
 
-        existsMember = memberRepository.findByPhone(input.getPhone());
-        if (existsMember.isPresent()) {
-            throw new MemberException(PHONE_EXIST);
-        }
+//        existsMember = memberRepository.findByPhone(input.getPhone());
+//        if (existsMember.isPresent()) {
+//            throw new MemberException(PHONE_EXIST);
+//        }
 
         existsMember = memberRepository.findByNickName(input.getNickName());
         if (existsMember.isPresent()) {
@@ -391,12 +391,13 @@ public class MemberServiceImpl extends DefaultOAuth2UserService implements Membe
 
         String inputPhone = input.getPhone();
         String inputNickname = input.getNickName();
-        if (!previousUsedPhone.equals(inputPhone)) {
-            Optional<Member> existPhoneMember = memberRepository.findByPhone(inputPhone);
-            if (existPhoneMember.isPresent()) {
-                throw new MemberException(PHONE_EXIST);
-            }
-        }
+
+//        if (!previousUsedPhone.equals(inputPhone)) {
+//            Optional<Member> existPhoneMember = memberRepository.findByPhone(inputPhone);
+//            if (existPhoneMember.isPresent()) {
+//                throw new MemberException(PHONE_EXIST);
+//            }
+//        }
 
         if (!previousUsedNickname.equals(inputNickname)) {
             Optional<Member> existNicknameMember = memberRepository.findByNickName(inputNickname);
