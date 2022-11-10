@@ -28,30 +28,6 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
     private final MemberRepository memberRepository;
 
 
-    public OauthMemberInput validateOauthInput(OauthMemberInput input) {
-
-        OauthMemberInput oauthMember = OauthMemberInput.builder().build();
-        String oauthUsername = input.getProvider() + "_" + input.getProviderId();
-        Optional<Member> optionalMember;
-        oauthMember.setOauthUsername(input.getOauthUsername());
-
-        optionalMember = memberRepository.findByPhone(input.getPhone());
-        if (optionalMember.isPresent()) {
-            oauthMember.setPhone(null);
-        } else {
-            oauthMember.setPhone(input.getPhone());
-        }
-
-        optionalMember = memberRepository.findByNickName(input.getNickName());
-        if (optionalMember.isPresent()) {
-            oauthMember.setNickName(oauthUsername);
-        } else {
-            oauthMember.setNickName(input.getNickName());
-        }
-
-        return oauthMember;
-    }
-
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
 
@@ -68,18 +44,13 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
             String oauthUsername = provider + "_" + providerId;
             String encPwd = bCryptPasswordEncoder.encode(oauthUsername);
 
-            oauthMemberInput.setProvider(provider);
-            oauthMemberInput.setProviderId(providerId);
-            oauthMemberInput.setOauthUsername(oauthUsername);
-            oauthMemberInput.setNickName(googleUserInfo.getName());
-
             Optional<Member> optionalMember = memberRepository.findByEmail(oauthUsername);
 
             if (!optionalMember.isPresent()) {
 
-                oauthMemberInput = validateOauthInput(oauthMemberInput);
                 member = Member.builder()
-                    .email(oauthUsername).nickName(oauthMemberInput.getNickName())
+                    .email(oauthUsername)
+                    .nickName(oauthUsername)
                     .phone(oauthMemberInput.getPhone())
                     .role(MemberRole.ROLE_OAUTH_MEMBER)
                     .memberS3ImageKey("")
@@ -103,21 +74,15 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
             String oauthUsername = provider + "_" + providerId;
             String encPwd = bCryptPasswordEncoder.encode(oauthUsername);
 
-            oauthMemberInput.setProvider(provider);
-            oauthMemberInput.setProviderId(providerId);
-            oauthMemberInput.setOauthUsername(oauthUsername);
-            oauthMemberInput.setNickName(naverUserInfo.getNickname());
-            oauthMemberInput.setPhone(naverUserInfo.getPhone());
-
             Optional<Member> optionalMember = memberRepository.findByEmail(oauthUsername);
 
             if (!optionalMember.isPresent()) {
 
-                oauthMemberInput = validateOauthInput(oauthMemberInput);
-
                 member = Member.builder()
-                    .email(oauthUsername).nickName(oauthMemberInput.getNickName())
-                    .phone(oauthMemberInput.getPhone()).gender(naverUserInfo.getGender())
+                    .email(oauthUsername)
+                    .nickName(oauthUsername)
+                    .phone(naverUserInfo.getPhone())
+                    .gender(naverUserInfo.getGender())
                     .role(MemberRole.ROLE_OAUTH_MEMBER)
                     .memberS3ImageKey("")
                     .status(MemberStatus.ING)
