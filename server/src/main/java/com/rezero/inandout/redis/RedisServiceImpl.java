@@ -37,7 +37,8 @@ public class RedisServiceImpl implements RedisService{
                     T t = mapper.readValue((String)redisTemplate.opsForList().index(key, i), classType);
                     returnList.add(t);
                 } catch (JsonProcessingException e) {
-                    log.error("redis 서버가 동작하지 않거나 데이터를 불러올 수 없습니다.");
+                    log.error("redis 서버가 동작하지 않거나 데이터를 불러올 수 없습니다 : " + e.getMessage());
+                    break;
                 }
             }
         }
@@ -52,7 +53,8 @@ public class RedisServiceImpl implements RedisService{
             try {
                 redisTemplate.opsForList().rightPush(key, mapper.writeValueAsString(category));
             } catch (JsonProcessingException e) {
-                log.error("redis 서버가 동작하지 않거나 데이터를 삽입할 수 없습니다.");
+                log.error("redis 서버가 동작하지 않거나 데이터를 삽입할 수 없습니다 : " + e.getMessage());
+                break;
             }
         }
     }

@@ -102,7 +102,8 @@ public class IncomeServiceImpl implements IncomeService {
 
                 List<DetailIncomeCategory> detailIncomeCategories =
                         redisService.getList(
-                                incomeCategory.getIncomeCategoryName(),
+                                INCOME_CATEGORY_REDIS_KEY
+                                        + incomeCategory.getIncomeCategoryId(),
                                 DetailIncomeCategory.class);
 
                 incomeCategoryDto.setDetailIncomeCategoryDtoList(
@@ -121,7 +122,9 @@ public class IncomeServiceImpl implements IncomeService {
                 List<DetailIncomeCategory> detailIncomeCategoryList
                         = detailIncomeCategoryRepository.findAllByIncomeCategory(incomeCategory);
 
-                redisService.putList(incomeCategory.getIncomeCategoryName(), detailIncomeCategoryList);
+                redisService.putList(INCOME_CATEGORY_REDIS_KEY
+                                + incomeCategory.getIncomeCategoryId(),
+                        detailIncomeCategoryList);
 
                 incomeCategoryDto.setDetailIncomeCategoryDtoList(
                         DetailIncomeCategory.toDtoList(detailIncomeCategoryList));
