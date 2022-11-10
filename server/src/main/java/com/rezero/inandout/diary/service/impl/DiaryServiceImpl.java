@@ -32,6 +32,7 @@ public class DiaryServiceImpl implements DiaryService {
     private final AwsS3Service awsS3Service;
     private static final String dir = "diary";
     private static final String deleteFile = "delete";
+    private static final String nullFile = "null";
 
     @Override
     public List<DiaryDto> getDiaryList(String email, LocalDate startDt, LocalDate endDt) {
@@ -69,7 +70,15 @@ public class DiaryServiceImpl implements DiaryService {
 
         String s3ImageKey = "";
 
-        if (file != null) {
+        String fileContent;
+
+        try {
+            fileContent = new String(file.getBytes());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        if (!fileContent.equals(nullFile)) {
             s3ImageKey = awsS3Service.addImageAndGetKey(dir, file);
             log.info("[S3 Image save] dir: " + dir + "/ member: " + email);
         }
@@ -107,23 +116,21 @@ public class DiaryServiceImpl implements DiaryService {
 
         String s3ImageKey = updateDiary.getDiaryS3ImageKey();
 
-        String delete;
+        String fileContent;
 
-        if (file != null) {
-            try {
-                delete = new String(file.getBytes());
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+        try {
+            fileContent = new String(file.getBytes());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
-            if (deleteFile.equals(delete)) {
-                awsS3Service.deleteImage(s3ImageKey);
-                log.info("[S3 Image delete] dir: " + dir + "/ member: " + email);
-                s3ImageKey = "";
-            } else {
-                s3ImageKey = awsS3Service.addImageAndGetKey(dir, file);
-                log.info("[S3 Image save] dir: " + dir + "/ member: " + email);
-            }
+        if (fileContent.equals(deleteFile)) {
+            awsS3Service.deleteImage(s3ImageKey);
+            log.info("[S3 Image delete] dir: " + dir + "/ member: " + email);
+            s3ImageKey = "";
+        } else if (!fileContent.equals(nullFile)) {
+            s3ImageKey = awsS3Service.addImageAndGetKey(dir, file);
+            log.info("[S3 Image save] dir: " + dir + "/ member: " + email);
         }
 
         updateDiary.setDiaryDt(diaryDt);
@@ -139,7 +146,7 @@ public class DiaryServiceImpl implements DiaryService {
 
         Diary deleteDiary = findDiaryByDiaryIdAndMember(diaryId, member);
 
-        String deleteDiaryKey = deleteDiary.getDiaryS3ImageKey().trim();
+        String deleteDiaryKey = deleteDiary.getDiaryS3ImageKey();
 
         if (!deleteDiaryKey.isEmpty()) {
             awsS3Service.deleteImage(deleteDiary.getDiaryS3ImageKey());
