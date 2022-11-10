@@ -20,7 +20,7 @@ public class UserAuthenticationSuccessHandler extends SimpleUrlAuthenticationSuc
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
         Authentication authentication) throws IOException, ServletException {
 
-        String email = authentication.getName();
+        String oauthUsername = authentication.getName();
         String frontLoginUrl = "https://3.34.206.181/calendar";
 
         /*
@@ -34,7 +34,7 @@ public class UserAuthenticationSuccessHandler extends SimpleUrlAuthenticationSuc
         // ex) /api/calendar?start_dt=2022-11-01&end_dt=2022-11-30
         */
 
-        log.info("[Member Authentication] member: " + oauthUsername);
+        log.info("[Member Authentication] OAuth member: " + oauthUsername);
         setDefaultTargetUrl(frontLoginUrl);
         super.onAuthenticationSuccess(request, response, authentication);
 

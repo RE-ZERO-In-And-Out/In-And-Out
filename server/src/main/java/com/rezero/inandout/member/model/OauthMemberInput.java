@@ -15,10 +15,13 @@ import lombok.Setter;
 public class OauthMemberInput {
 
     private String oauthUsername;
-    private String nickName;
-    private String phone;
-    private String provider;
-    private String providerId;
 
+    private String nickName;
+
+    private String phone;
+
+    private String provider;
+
+    private String providerId;
 
 }
