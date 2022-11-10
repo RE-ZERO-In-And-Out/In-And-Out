@@ -11,7 +11,6 @@ public enum MemberErrorCode {
      * 회원가입 - 이미 존재하는 이메일, 휴대폰, 닉네임 오류, 탈퇴 / 정지 회원
      */
     EMAIL_EXIST("이미 가입된 이메일입니다. 가입된 이메일로 로그인 하시길 바랍니다."),
-    PHONE_EXIST("동일한 휴대폰 번호가 존재합니다. 다른 번호를 입력하세요."),
     NICKNAME_EXIST("동일한 닉네임이 존재합니다. 다른 닉네임을 입력하세요"),
     WITHDRAWAL_MEMBER_CANNOT_JOIN("이미 탈퇴한 아이디(이메일)입니다. 다른 이메일로 회원 가입하시길 바랍니다."),
     STOP_MEMBER_CANNOT_JOIN("정지된 회원입니다. 관리자에게 문의 바랍니다."),

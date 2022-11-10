@@ -257,39 +257,10 @@ class MemberServiceImplTest {
             exception.getErrorCode().getDescription());
 
     }
-/*
-    @Test
-    @DisplayName("회원 정보 수정(같은 폰번호가 존재하는 경우) - 실패 (2)")
-    void updateInfo_fail_sameNickName() {
 
-        // given
-        Member memberA = Member.builder().email("egg@naver.com").address("서울특별시")
-            .phone("010-2222-0000").birth(LocalDate.from(LocalDate.of(2000, 9, 30))).gender("남")
-            .nickName("강동원").password("abc!@#12").build();
-        given(memberRepository.findByEmail(any())).willReturn(Optional.of(memberA));
-
-        Member memberB = Member.builder().email("ogh@naver.com").address("인천광역시")
-            .phone("010-9999-0000").birth(LocalDate.from(LocalDate.of(1998, 9, 30))).gender("남")
-            .nickName("소지섭").password("abc!@#12").build();
-        given(memberRepository.findByPhone(any())).willReturn(Optional.of(memberB));
-
-        UpdateMemberInput input = UpdateMemberInput.builder().address("강원도").nickName("강동원")
-            .phone("010-9999-0000").birth(LocalDate.now()).gender("여")
-            .address("강원도").build();
-
-        // when
-        MemberException exception = assertThrows(MemberException.class,
-            () -> memberService.updateInfo(memberB.getEmail(), input, any()));
-
-        // then
-        assertEquals(MemberErrorCode.PHONE_EXIST.getDescription(),
-            exception.getErrorCode().getDescription());
-
-    }
-*/
 
     @Test
-    @DisplayName("회원 정보 수정(같은 닉네임이 존재하는 경우) - 실패(3)")
+    @DisplayName("회원 정보 수정(같은 닉네임이 존재하는 경우) - 실패(2)")
     void updateInfo_fail_samePhoneNumber() {
 
         // given

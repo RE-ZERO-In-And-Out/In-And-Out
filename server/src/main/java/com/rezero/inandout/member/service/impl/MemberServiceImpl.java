@@ -16,7 +16,6 @@ import static com.rezero.inandout.exception.errorcode.MemberErrorCode.PASSWORD_N
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.PASSWORD_NOT_CONTAIN_DIGIT_AND_SPECIAL;
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.PASSWORD_NOT_CONTAIN_SPECIAL;
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.PASSWORD_NOT_MATCH;
-import static com.rezero.inandout.exception.errorcode.MemberErrorCode.PHONE_EXIST;
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.PHONE_NOT_EXIST;
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.REQ_MEMBER_CANNOT_JOIN;
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.RESET_PASSWORD_KEY_EXPIRED;
@@ -157,11 +156,6 @@ public class MemberServiceImpl extends DefaultOAuth2UserService implements Membe
             throw new MemberException(EMAIL_EXIST);
         }
 
-//        existsMember = memberRepository.findByPhone(input.getPhone());
-//        if (existsMember.isPresent()) {
-//            throw new MemberException(PHONE_EXIST);
-//        }
-
         existsMember = memberRepository.findByNickName(input.getNickName());
         if (existsMember.isPresent()) {
             throw new MemberException(NICKNAME_EXIST);
@@ -251,11 +245,7 @@ public class MemberServiceImpl extends DefaultOAuth2UserService implements Membe
 
 // front 테스트 버전 ex) http://localhost:3000/In-And-Out/password_reset/sending?id=068e4252-2f68-45c3-9d7c-4ff5d02760a5
         String text = "<p>안녕하세요. In And Out 입니다.</p><p>아래 링크를 누르시면 회원 가입이 완료됩니다.</p>"
-            + "<div><a href='http://"
-            + ec2IpAddress
-            + ":3000"
-            + "/signup_check/sending?id="
-            + uuid
+            + "<div><a href='http://" + ec2IpAddress + ":3000" + "/signup_check/sending?id=" + uuid
             + "'>가입 완료</a></div>";
         mailComponent.send(input.getEmail(), subject, text);
 
@@ -381,7 +371,6 @@ public class MemberServiceImpl extends DefaultOAuth2UserService implements Membe
     public void updateInfo(String email, UpdateMemberInput input, MultipartFile file) {
 
         Member member = memberRepository.findByEmail(email).get();
-        String previousUsedPhone = member.getPhone();
         String previousUsedNickname = member.getNickName();
 
         if (input.getNickName().contains(" ") || input.getPhone().contains(" ") || input.getGender()
@@ -389,15 +378,8 @@ public class MemberServiceImpl extends DefaultOAuth2UserService implements Membe
             throw new MemberException(CONTAINS_BLANK);
         }
 
-        String inputPhone = input.getPhone();
         String inputNickname = input.getNickName();
 
-//        if (!previousUsedPhone.equals(inputPhone)) {
-//            Optional<Member> existPhoneMember = memberRepository.findByPhone(inputPhone);
-//            if (existPhoneMember.isPresent()) {
-//                throw new MemberException(PHONE_EXIST);
-//            }
-//        }
 
         if (!previousUsedNickname.equals(inputNickname)) {
             Optional<Member> existNicknameMember = memberRepository.findByNickName(inputNickname);
