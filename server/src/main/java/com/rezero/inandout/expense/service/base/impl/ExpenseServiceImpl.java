@@ -96,7 +96,8 @@ public class ExpenseServiceImpl implements ExpenseService {
 
                 List<DetailExpenseCategory> detailExpenseCategories =
                         redisService.getList(
-                                expenseCategory.getExpenseCategoryName(),
+                                EXPENSE_CATEGORY_REDIS_KEY
+                                        + expenseCategory.getExpenseCategoryId(),
                                 DetailExpenseCategory.class);
 
                 expenseCategoryDto.setDetailExpenseCategoryDtos(
@@ -116,7 +117,10 @@ public class ExpenseServiceImpl implements ExpenseService {
                         detailExpenseCategoryRepository
                                 .findAllByExpenseCategory(expenseCategory);
 
-                redisService.putList(expenseCategory.getExpenseCategoryName(), detailExpenseCategories);
+                redisService.putList(
+                        EXPENSE_CATEGORY_REDIS_KEY
+                                + expenseCategory.getExpenseCategoryId(),
+                        detailExpenseCategories);
 
                 expenseCategoryDto.setDetailExpenseCategoryDtos(
                         DetailExpenseCategoryDto.toDtos(detailExpenseCategories));
