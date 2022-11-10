@@ -17,10 +17,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -45,7 +43,7 @@ public class DiaryServiceImpl implements DiaryService {
 
         for (Diary diary : diaries) {
             String s3ImageUrl = "";
-            if (!diary.getDiaryS3ImageKey().isEmpty() || diary.getDiaryS3ImageKey() != "") {
+            if (!diary.getDiaryS3ImageKey().isEmpty()) {
                 s3ImageUrl = awsS3Service.getImageUrl(diary.getDiaryS3ImageKey());
             }
 
@@ -102,7 +100,7 @@ public class DiaryServiceImpl implements DiaryService {
             }
         }
 
-        if (!updateDiary.getDiaryS3ImageKey().isEmpty() || updateDiary.getDiaryS3ImageKey() != "") {
+        if (!updateDiary.getDiaryS3ImageKey().isEmpty()) {
             awsS3Service.deleteImage(member.getMemberS3ImageKey());
             log.info("[S3 Image delete] dir: " + dir + "/ member: " + email);
         }
@@ -111,19 +109,21 @@ public class DiaryServiceImpl implements DiaryService {
 
         String delete;
 
-        try {
-            delete = new String(file.getBytes());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        if (file != null) {
+            try {
+                delete = new String(file.getBytes());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
 
-        if (deleteFile.equals(delete)) {
-            awsS3Service.deleteImage(s3ImageKey);
-            log.info("[S3 Image delete] dir: " + dir + "/ member: " + email);
-            s3ImageKey = "";
-        } else if (file != null) {
-            s3ImageKey = awsS3Service.addImageAndGetKey(dir, file);
-            log.info("[S3 Image save] dir: " + dir + "/ member: " + email);
+            if (deleteFile.equals(delete)) {
+                awsS3Service.deleteImage(s3ImageKey);
+                log.info("[S3 Image delete] dir: " + dir + "/ member: " + email);
+                s3ImageKey = "";
+            } else {
+                s3ImageKey = awsS3Service.addImageAndGetKey(dir, file);
+                log.info("[S3 Image save] dir: " + dir + "/ member: " + email);
+            }
         }
 
         updateDiary.setDiaryDt(diaryDt);
@@ -139,7 +139,9 @@ public class DiaryServiceImpl implements DiaryService {
 
         Diary deleteDiary = findDiaryByDiaryIdAndMember(diaryId, member);
 
-        if (!deleteDiary.getDiaryS3ImageKey().isEmpty() || deleteDiary.getDiaryS3ImageKey() != "") {
+        String deleteDiaryKey = deleteDiary.getDiaryS3ImageKey().trim();
+
+        if (!deleteDiaryKey.isEmpty()) {
             awsS3Service.deleteImage(deleteDiary.getDiaryS3ImageKey());
             log.info("[S3 Image delete] dir: " + dir + "/ member: " + email);
         }
