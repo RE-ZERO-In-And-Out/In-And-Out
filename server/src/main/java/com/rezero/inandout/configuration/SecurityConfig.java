@@ -74,7 +74,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
          */
 
         http.oauth2Login()
-            .loginPage(frontLoginUrl)        //  (프론트 url - EC2로 바뀔수도 있음)
+            .loginPage(frontLoginUrl)
             .failureHandler(getFailureHandler())
             .successHandler(getSuccessHandler())
             .userInfoEndpoint()
