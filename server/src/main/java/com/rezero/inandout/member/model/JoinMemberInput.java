@@ -41,13 +41,4 @@ public class JoinMemberInput {
     private String gender;
 
 
-    // 낫널일 떄는
-    // "" " " => 에서 예외 안 터진다.
-
-    // 낫empty
-    // " " => 에서 예외 안 터진다. ""는 예외 터뜨림
-
-
-    // 핸들러에 밸리드 익셉션
-
 }
