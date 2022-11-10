@@ -40,7 +40,7 @@ public class MemberController {
 
     @PostMapping("/signup")
     @ApiOperation(value = "회원 가입 API", notes = "이메일을 아이디로 사용하여 가입할 수 있다.")
-    public ResponseEntity<?> signUp(
+    public ResponseEntity<String> signUp(
         @ApiParam(value = "회원 가입 정보 입력") @RequestBody @Valid JoinMemberInput memberInput) {
         memberService.join(memberInput);
         String message = "이메일 인증을 하시면 회원가입이 완료됩니다.";
@@ -50,7 +50,7 @@ public class MemberController {
 
     @PostMapping("/signup/sending")
     @ApiOperation(value = "회원 가입을 위한 이메일 인증 API", notes = "이메일을 인증하여 회원 가입 가능하다.")
-    public ResponseEntity<?> emailAuth(HttpServletRequest request) {
+    public ResponseEntity<String> emailAuth(HttpServletRequest request) {
         String uuid = request.getParameter("id");
         memberService.emailAuth(uuid);
         String message = "회원가입이 완료되었습니다.";
@@ -60,7 +60,7 @@ public class MemberController {
 
     @GetMapping("/member/info")
     @ApiOperation(value = "회원 정보 조회 API", notes = "회원이 자신의 정보를 조회한다.")
-    public ResponseEntity<?> getInfo(Principal principal) {
+    public ResponseEntity<MemberDto> getInfo(Principal principal) {
         String email = principal.getName();
         MemberDto memberDto = memberService.getInfo(email);
         return new ResponseEntity<>(memberDto, HttpStatus.OK);
@@ -69,7 +69,7 @@ public class MemberController {
 
     @PutMapping("/member/info")
     @ApiOperation(value = "회원 정보 수정 API", notes = "회원이 자신의 정보를 수정하거나 프로필 이미지 사진 등록 가능하다.")
-    public ResponseEntity<?> updateInfo(Principal principal,
+    public ResponseEntity<String> updateInfo(Principal principal,
         @ApiParam(value =  "수정할 회원 정보 입력 또는 회원 프로필 이미지 등록")
         @RequestPart  @Valid  UpdateMemberInput input,
         MultipartFile file) {
@@ -82,7 +82,7 @@ public class MemberController {
 
     @PatchMapping("/member/password")
     @ApiOperation(value = "회원 비밀번호 변경 API", notes = "기존 비밀번호를 확인하고나서 회원 비밀번호를 변경한다.")
-    public ResponseEntity<?> updatePassword(Principal principal,
+    public ResponseEntity<String> updatePassword(Principal principal,
         @ApiParam(value = "기존 비밀번호, 새로운 비밀번호 입력") @RequestBody @Valid  ChangePasswordInput input) {
         String email = principal.getName();
         memberService.changePassword(email, input);
@@ -93,7 +93,7 @@ public class MemberController {
 
     @PostMapping("/signin")
     @ApiOperation(value = "회원 로그인 API", notes = "아이디(이메일)와 비밀번호를 입력해서 로그인한다.")
-    public ResponseEntity<?> signin(
+    public ResponseEntity<String> signin(
         @ApiParam(value = "로그인 정보 입력") @RequestBody @Valid  LoginMemberInput input) {
         memberService.login(input);
         String message = "정상적으로 로그인 완료했습니다.";
@@ -103,7 +103,7 @@ public class MemberController {
 
     @PostMapping("/signout")
     @ApiOperation(value = "회원 로그아웃 API")
-    public ResponseEntity<?> signout() {
+    public ResponseEntity<String> signout() {
         memberService.logout();
         String message = "정상적으로 로그아웃을 완료했습니다.";
         return new ResponseEntity<>(message, HttpStatus.OK);
@@ -112,7 +112,7 @@ public class MemberController {
 
     @PostMapping("/password/email")
     @ApiOperation(value = "아이디(이메일) 찾기 API", notes = "아이디(이메일)를 입력해서 존재하는 회원인지 확인한다.")
-    public ResponseEntity<?> checkEmail(
+    public ResponseEntity<String> checkEmail(
         @ApiParam(value = "아이디(이메일) 입력") @RequestBody @Valid  FindEmailMemberInput input) {
         memberService.validateEmail(input.getEmail());
         return new ResponseEntity<>(input.getEmail(), HttpStatus.OK);
@@ -121,7 +121,7 @@ public class MemberController {
 
     @PostMapping("/password/email/phone")
     @ApiOperation(value = "비밀번호 찾기 API", notes = "연락처를 입력하여 비밀번호를 찾을 수 있도록 한다.")
-    public ResponseEntity<?> checkPhone(
+    public ResponseEntity<String> checkPhone(
         @ApiParam(value = "연락처 입력") @RequestBody @Valid FindPasswordMemberInput findPasswordMemberInput) {
         memberService.validatePhone(findPasswordMemberInput.getEmail(),
             findPasswordMemberInput.getPhone());
@@ -132,7 +132,7 @@ public class MemberController {
 
     @PostMapping("/password/email/phone/sending")
     @ApiOperation(value = "비밀번호 초기화 API", notes = "이메일 인증을 완료하면 새롭게 비밀번호를 설정 가능하다.")
-    public ResponseEntity<?> resetPassword(HttpServletRequest request,
+    public ResponseEntity<String> resetPassword(HttpServletRequest request,
         @ApiParam(value = "새로운 비밀번호를 입력") @RequestBody @Valid ResetPasswordInput input) {
         String uuid = request.getParameter("id");
         memberService.resetPassword(uuid, input);
@@ -143,7 +143,7 @@ public class MemberController {
 
     @DeleteMapping("/member/info")
     @ApiOperation(value = "회원 탈퇴 API", notes = "비밀번호를 입력하여 회원 탈퇴할 수 있다.")
-    public ResponseEntity<?> delete(
+    public ResponseEntity<String> delete(
         @ApiParam(value = "비밀번호 입력") @RequestBody @Valid WithdrawMemberInput input, Principal principal) {
         String email = principal.getName();
         memberService.withdraw(email, input.getPassword());
