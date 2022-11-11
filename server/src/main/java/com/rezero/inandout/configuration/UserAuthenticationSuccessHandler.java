@@ -7,6 +7,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 
@@ -16,12 +17,16 @@ public class UserAuthenticationSuccessHandler extends SimpleUrlAuthenticationSuc
 
     private final MemberRepository memberRepository;
 
+    @Value(value = "${url.after.login}")
+    private String urlAfterLogin;
+
+
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
         Authentication authentication) throws IOException, ServletException {
 
         String oauthUsername = authentication.getName();
-        String frontLoginUrl = "https://3.34.206.181/calendar";
+
 
         /*
         LocalDate now = LocalDate.now();
@@ -35,7 +40,7 @@ public class UserAuthenticationSuccessHandler extends SimpleUrlAuthenticationSuc
         */
 
         log.info("[Member Authentication] OAuth member: " + oauthUsername);
-        setDefaultTargetUrl(frontLoginUrl);
+        setDefaultTargetUrl(urlAfterLogin);
         super.onAuthenticationSuccess(request, response, authentication);
 
     }
