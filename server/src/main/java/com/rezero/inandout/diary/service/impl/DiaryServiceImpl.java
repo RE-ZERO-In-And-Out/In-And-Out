@@ -31,8 +31,8 @@ public class DiaryServiceImpl implements DiaryService {
     private final MemberRepository memberRepository;
     private final AwsS3Service awsS3Service;
     private static final String dir = "diary";
-    private static final String deleteFile = "delete";
-    private static final String nullFile = "null";
+    private static final String deleteFile = "100101108101116101";
+    private static final String nullFile = "110117108108";
 
     @Override
     public List<DiaryDto> getDiaryList(String email, LocalDate startDt, LocalDate endDt) {
@@ -107,11 +107,6 @@ public class DiaryServiceImpl implements DiaryService {
             if (dateExistDiary.getDiaryDt() != updateDiary.getDiaryDt()) {
                 throw new DiaryException(DiaryErrorCode.THIS_DATE_EXIST_DIARY);
             }
-        }
-
-        if (!updateDiary.getDiaryS3ImageKey().isEmpty()) {
-            awsS3Service.deleteImage(member.getMemberS3ImageKey());
-            log.info("[S3 Image delete] dir: " + dir + "/ member: " + email);
         }
 
         String s3ImageKey = updateDiary.getDiaryS3ImageKey();
