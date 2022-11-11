@@ -20,6 +20,9 @@ public class UserAuthenticationSuccessHandler extends SimpleUrlAuthenticationSuc
     @Value(value = "${url.after.login}")
     private String urlAfterLogin;
 
+    @Value(value = "${url.after.google.login}")
+    private String urlAfterGoogleLogin;
+
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
@@ -27,20 +30,14 @@ public class UserAuthenticationSuccessHandler extends SimpleUrlAuthenticationSuc
 
         String oauthUsername = authentication.getName();
 
+        if(oauthUsername.startsWith("google_")) {
+            setDefaultTargetUrl(urlAfterGoogleLogin);
 
-        /*
-        LocalDate now = LocalDate.now();
-        LocalDate startDate = LocalDate.of(now.getYear(), now.getMonth(), 1);
-        LocalDate endDate = LocalDate.of(now.getYear(), now.getMonth(), now.lengthOfMonth());
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        String start = startDate.format(formatter);
-        String end = endDate.format(formatter);
-        String mainUrl = "/api/calendar?startDt=" + start + "&endDt=" + end;
-        // ex) /api/calendar?start_dt=2022-11-01&end_dt=2022-11-30
-        */
+        }else {
+            setDefaultTargetUrl(urlAfterLogin);
+        }
 
         log.info("[Member Authentication] OAuth member: " + oauthUsername);
-        setDefaultTargetUrl(urlAfterLogin);
         super.onAuthenticationSuccess(request, response, authentication);
 
     }
