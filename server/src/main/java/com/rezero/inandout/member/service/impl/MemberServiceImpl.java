@@ -39,6 +39,7 @@ import com.rezero.inandout.member.model.ResetPasswordInput;
 import com.rezero.inandout.member.model.UpdateMemberInput;
 import com.rezero.inandout.member.repository.MemberRepository;
 import com.rezero.inandout.member.service.MemberService;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
@@ -69,6 +70,11 @@ public class MemberServiceImpl extends DefaultOAuth2UserService implements Membe
     private final AwsS3Service awsS3Service;
 
     private static final String dir = "member";
+
+    private static final String deleteFile = "100101108101116101";
+
+    private static final String nullFile = "110117108108";
+
 
     // 프론트 테스트 버전
     @Value(value = "${ip.address}")
@@ -393,9 +399,23 @@ public class MemberServiceImpl extends DefaultOAuth2UserService implements Membe
         }
 
         String s3ImageKey = member.getMemberS3ImageKey();
+        String fileContent;
 
-        if (file != null) {
+        try{
+            fileContent = new String(file.getBytes());
+        }catch (IOException e){
+            throw new RuntimeException(e);
+        }
+
+        if(fileContent.equals(deleteFile)){
+            awsS3Service.deleteImage(s3ImageKey);
+            log.info("[S3 Image delete] dir: " + dir + "/ member: " + email);
+            s3ImageKey = "";
+
+        } else if (!fileContent.equals(nullFile)) {
             s3ImageKey = awsS3Service.addImageAndGetKey(dir, file);
+            log.info("[S3 Image save] dir: " + dir + "/ member: " + email);
+
         }
 
         member.setNickName(input.getNickName());
