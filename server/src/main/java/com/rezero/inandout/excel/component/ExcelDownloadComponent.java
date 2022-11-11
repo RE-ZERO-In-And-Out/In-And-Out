@@ -246,8 +246,9 @@ public class ExcelDownloadComponent {
                     row.createCell(getColumnNum(10, monthVal)).setCellValue(item.getOct());
                     row.createCell(getColumnNum(11, monthVal)).setCellValue(item.getNov());
                     row.createCell(getColumnNum(12, monthVal)).setCellValue(item.getDec());
+                    row.createCell(13).setCellValue(item.getSum());
 
-                for (int i = 1; i <= 12; i++) {
+                for (int i = 1; i <= 13; i++) {
                     row.getCell(i).setCellStyle(numCellStyle);
                 }
 
@@ -262,7 +263,7 @@ public class ExcelDownloadComponent {
                         sumStyle.setFont(headFont);
                         sumStyle.setDataFormat(HSSFDataFormat.getBuiltinFormat("#,##0"));
 
-                    for (int i = 0; i < 13; i++) {
+                    for (int i = 0; i < 14; i++) {
                         row.getCell(i).setCellStyle(sumStyle);
                     }
                 }
@@ -279,7 +280,7 @@ public class ExcelDownloadComponent {
                         sumStyle.setFont(headFont);
                         sumStyle.setDataFormat(HSSFDataFormat.getBuiltinFormat("#,##0"));
 
-                    for (int i = 0; i < 13; i++) {
+                    for (int i = 0; i < 14; i++) {
                         row.getCell(i).setCellStyle(sumStyle);
                     }
                 }
