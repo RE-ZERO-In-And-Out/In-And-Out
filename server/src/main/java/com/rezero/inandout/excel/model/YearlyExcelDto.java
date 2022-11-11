@@ -27,4 +27,6 @@ public class YearlyExcelDto {
     Integer oct;
     Integer nov;
     Integer dec;
+
+    Integer sum;
 }

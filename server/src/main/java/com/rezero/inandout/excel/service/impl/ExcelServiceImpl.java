@@ -104,7 +104,7 @@ public class ExcelServiceImpl implements ExcelService {
     @Override
     public ResponseEntity<InputStreamResource> downloadYearlyReportExcelFile(
         HttpServletRequest request, String email, LocalDate startDt,
-        List<YearlyExcelDto> yearlyExcelDtoList) throws IOException {
+        List<YearlyExcelDto> yearlyExcelDtoList) {
 
         Member member = findMemberByEmail(email);
 
@@ -127,7 +127,8 @@ public class ExcelServiceImpl implements ExcelService {
             new ColConfig(period.get(8), 3000),
             new ColConfig(period.get(9), 3000),
             new ColConfig(period.get(10), 3000),
-            new ColConfig(period.get(11), 3000))
+            new ColConfig(period.get(11), 3000),
+            new ColConfig("합계", 3000))
         );
 
         try {
