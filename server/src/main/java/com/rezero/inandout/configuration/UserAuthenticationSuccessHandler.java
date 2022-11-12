@@ -31,10 +31,10 @@ public class UserAuthenticationSuccessHandler extends SimpleUrlAuthenticationSuc
         String oauthUsername = authentication.getName();
 
         if(oauthUsername.startsWith("google_")) {
-            setDefaultTargetUrl(urlAfterGoogleLogin);
+            setDefaultTargetUrl(urlAfterGoogleLogin + "?id=" + oauthUsername);  //
 
         }else {
-            setDefaultTargetUrl(urlAfterLogin);
+            setDefaultTargetUrl(urlAfterLogin + "?id=" + oauthUsername);
         }
 
         log.info("[Member Authentication] OAuth member: " + oauthUsername);

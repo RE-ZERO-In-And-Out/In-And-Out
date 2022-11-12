@@ -70,8 +70,8 @@ public class MemberController {
     @PutMapping("/member/info")
     @ApiOperation(value = "회원 정보 수정 API", notes = "회원이 자신의 정보를 수정하거나 프로필 이미지 사진 등록 가능하다.")
     public ResponseEntity<String> updateInfo(Principal principal,
-        @ApiParam(value =  "수정할 회원 정보 입력 또는 회원 프로필 이미지 등록")
-        @RequestPart  @Valid  UpdateMemberInput input,
+        @ApiParam(value = "수정할 회원 정보 입력 또는 회원 프로필 이미지 등록")
+        @RequestPart @Valid UpdateMemberInput input,
         MultipartFile file) {
         String email = principal.getName();
         memberService.updateInfo(email, input, file);
@@ -83,7 +83,7 @@ public class MemberController {
     @PatchMapping("/member/password")
     @ApiOperation(value = "회원 비밀번호 변경 API", notes = "기존 비밀번호를 확인하고나서 회원 비밀번호를 변경한다.")
     public ResponseEntity<String> updatePassword(Principal principal,
-        @ApiParam(value = "기존 비밀번호, 새로운 비밀번호 입력") @RequestBody @Valid  ChangePasswordInput input) {
+        @ApiParam(value = "기존 비밀번호, 새로운 비밀번호 입력") @RequestBody @Valid ChangePasswordInput input) {
         String email = principal.getName();
         memberService.changePassword(email, input);
         String message = "비밀 번호가 변경되었습니다.";
@@ -94,7 +94,7 @@ public class MemberController {
     @PostMapping("/signin")
     @ApiOperation(value = "회원 로그인 API", notes = "아이디(이메일)와 비밀번호를 입력해서 로그인한다.")
     public ResponseEntity<String> signin(
-        @ApiParam(value = "로그인 정보 입력") @RequestBody @Valid  LoginMemberInput input) {
+        @ApiParam(value = "로그인 정보 입력") @RequestBody @Valid LoginMemberInput input) {
         memberService.login(input);
         String message = "정상적으로 로그인 완료했습니다.";
         return new ResponseEntity<>(message, HttpStatus.OK);
@@ -113,7 +113,7 @@ public class MemberController {
     @PostMapping("/password/email")
     @ApiOperation(value = "아이디(이메일) 찾기 API", notes = "아이디(이메일)를 입력해서 존재하는 회원인지 확인한다.")
     public ResponseEntity<String> checkEmail(
-        @ApiParam(value = "아이디(이메일) 입력") @RequestBody @Valid  FindEmailMemberInput input) {
+        @ApiParam(value = "아이디(이메일) 입력") @RequestBody @Valid FindEmailMemberInput input) {
         memberService.validateEmail(input.getEmail());
         return new ResponseEntity<>(input.getEmail(), HttpStatus.OK);
     }
@@ -149,6 +149,13 @@ public class MemberController {
         memberService.withdraw(email, input.getPassword());
         String message = "회원 탈퇴 완료";
         return new ResponseEntity<>(message, HttpStatus.OK);
+    }
+
+    @PostMapping("/social_check/sending")
+    @ApiOperation(value = "OAuth 회원 인증 API")
+    public ResponseEntity<String> oauthLogin(HttpServletRequest request) {
+        String id = request.getParameter("id");
+        return new ResponseEntity<>(id, HttpStatus.OK);
     }
 
 
