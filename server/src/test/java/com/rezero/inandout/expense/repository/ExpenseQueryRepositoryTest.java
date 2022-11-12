@@ -138,8 +138,8 @@ class ExpenseQueryRepositoryTest {
     }
 
     @Test
-    @DisplayName("달력 월 수입내역 조회")
-    void getMonthlyIncomeCalendar_success() {
+    @DisplayName("달력 월 지출내역 조회")
+    void getMonthlyExpenseCalendar_success() {
 
         //given
         QExpense expense = QExpense.expense;
@@ -155,7 +155,7 @@ class ExpenseQueryRepositoryTest {
         given(jpaQueryFactory.select(
                 Projections.constructor(CalendarExpenseDto.class,
                     expense.expenseDt, expense.expenseItem,
-                    expense.expenseCard.add(expense.expenseCash).sum())))
+                    expense.expenseCard.add(expense.expenseCash))))
             .willReturn(step1);
 
         JPAQuery step2 = mock(JPAQuery.class);
@@ -168,16 +168,11 @@ class ExpenseQueryRepositoryTest {
             .willReturn(step3);
 
         JPAQuery step4 = mock(JPAQuery.class);
-        given(step3.groupBy(
-            expense.expenseDt))
+        given(step3.orderBy(
+            expense.expenseDt.asc()))
             .willReturn(step4);
 
-        JPAQuery step5 = mock(JPAQuery.class);
-        given(step4.orderBy(
-            expense.expenseDt.asc()))
-            .willReturn(step5);
-
-        given(step5.fetch())
+        given(step4.fetch())
             .willReturn(calendarExpenseDtoList);
 
         //when
