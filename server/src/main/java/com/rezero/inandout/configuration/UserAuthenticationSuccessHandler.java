@@ -18,7 +18,7 @@ public class UserAuthenticationSuccessHandler extends SimpleUrlAuthenticationSuc
     private final MemberRepository memberRepository;
 
     @Value(value = "${url.after.login}")
-    private String urlAfterLogin;
+    private String urlAfterNaverLogin;
 
     @Value(value = "${url.after.google.login}")
     private String urlAfterGoogleLogin;
@@ -30,11 +30,13 @@ public class UserAuthenticationSuccessHandler extends SimpleUrlAuthenticationSuc
 
         String oauthUsername = authentication.getName();
 
-        if(oauthUsername.startsWith("google_")) {
-            setDefaultTargetUrl(urlAfterGoogleLogin + "?id=" + oauthUsername);  //
+        if (oauthUsername.startsWith("google_")) {
+            setDefaultTargetUrl(urlAfterGoogleLogin + "?id=" + oauthUsername);
 
-        }else {
-            setDefaultTargetUrl(urlAfterLogin + "?id=" + oauthUsername);
+        }
+
+        if (oauthUsername.startsWith("naver_")) {
+            setDefaultTargetUrl(urlAfterNaverLogin + "?id=" + oauthUsername);
         }
 
         log.info("[Member Authentication] OAuth member: " + oauthUsername);
