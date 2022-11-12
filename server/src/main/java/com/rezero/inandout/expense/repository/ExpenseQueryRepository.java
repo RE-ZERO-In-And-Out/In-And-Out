@@ -56,11 +56,10 @@ public class ExpenseQueryRepository {
         return jpaQueryFactory
             .select(Projections.constructor(CalendarExpenseDto.class,
                 expense.expenseDt, expense.expenseItem,
-                expense.expenseCard.add(expense.expenseCash).sum()))
+                expense.expenseCard.add(expense.expenseCash)))
             .from(expense)
             .where(expense.member.memberId.eq(id)
                 .and(expense.expenseDt.between(startDt, endDt)))
-            .groupBy(expense.expenseDt)
             .orderBy(expense.expenseDt.asc())
             .fetch();
 
