@@ -17,7 +17,7 @@ public class UserAuthenticationSuccessHandler extends SimpleUrlAuthenticationSuc
 
     private final MemberRepository memberRepository;
 
-    @Value(value = "${url.after.login}")
+    @Value(value = "${url.after.naver.login}")
     private String urlAfterNaverLogin;
 
     @Value(value = "${url.after.google.login}")
