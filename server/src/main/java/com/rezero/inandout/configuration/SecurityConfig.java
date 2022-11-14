@@ -51,7 +51,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
 
-        corsConfiguration.addAllowedOrigin("http://3.34.206.181:3000");
         corsConfiguration.addAllowedOrigin("http://ec2-3-34-206-181.ap-northeast-2.compute.amazonaws.com:3000");
         corsConfiguration.addAllowedOrigin("http://localhost:3000");
         corsConfiguration.addAllowedHeader(CorsConfiguration.ALL);
@@ -67,7 +66,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
 
-        String frontLoginUrl = "http://3.34.206.181:3000";
+        String frontLoginUrl = "http://ec2-3-34-206-181.ap-northeast-2.compute.amazonaws.com:3000";
 
         http.csrf().disable();
         http.cors();
