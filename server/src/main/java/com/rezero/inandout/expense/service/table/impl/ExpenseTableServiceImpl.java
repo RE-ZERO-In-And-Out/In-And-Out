@@ -6,6 +6,7 @@ import com.rezero.inandout.expense.service.table.ExpenseTableService;
 import com.rezero.inandout.expense.service.base.ExpenseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -18,6 +19,7 @@ public class ExpenseTableServiceImpl implements ExpenseTableService {
     private final ExpenseService expenseService;
 
     @Override
+    @Transactional
     public void addAndUpdateExpense(String email, List<ExpenseInput> inputs) {
 
         List<ExpenseInput> addExpenseInputs = new ArrayList<>();
@@ -37,6 +39,7 @@ public class ExpenseTableServiceImpl implements ExpenseTableService {
     }
 
     @Override
+    @Transactional
     public CategoryAndExpenseDto getCategoryAndExpenseDto(String email, LocalDate startDt, LocalDate endDt) {
         return CategoryAndExpenseDto.builder()
                 .expenseCategoryDtos(expenseService.getExpenseCategories())

@@ -177,6 +177,7 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ReportDto> getMonthlyExpenseReport(String email, LocalDate startDt, LocalDate endDt) {
 
         Member member = findMemberByEmail(email);
@@ -238,6 +239,7 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<CalendarExpenseDto> getMonthlyExpenseCalendar(String email, LocalDate startDt, LocalDate endDt) {
         Member member = findMemberByEmail(email);
 
