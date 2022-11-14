@@ -41,7 +41,7 @@ public class ReportServiceImpl implements ReportService {
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public YearlyTotalReportDto getYearlyTotalReport(String email, LocalDate startDt, LocalDate endDt) {
 
         return YearlyTotalReportDto.builder()
