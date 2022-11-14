@@ -185,6 +185,7 @@ public class IncomeServiceImpl implements IncomeService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ReportDto> getMonthlyIncomeReport(String email, LocalDate startDt, LocalDate endDt) {
 
         Member member = findMemberByEmail(email);
