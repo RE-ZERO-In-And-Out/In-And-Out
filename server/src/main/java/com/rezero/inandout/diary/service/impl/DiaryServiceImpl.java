@@ -14,6 +14,7 @@ import com.rezero.inandout.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -35,6 +36,7 @@ public class DiaryServiceImpl implements DiaryService {
     private static final String nullFile = "110117108108";
 
     @Override
+    @Transactional(readOnly = true)
     public List<DiaryDto> getDiaryList(String email, LocalDate startDt, LocalDate endDt) {
         Member member = findMemberByEmail(email);
 
@@ -61,6 +63,7 @@ public class DiaryServiceImpl implements DiaryService {
     }
 
     @Override
+    @Transactional
     public void addDiary(String email, LocalDate diaryDt, String text, MultipartFile file) {
         Member member = findMemberByEmail(email);
 
@@ -94,6 +97,7 @@ public class DiaryServiceImpl implements DiaryService {
     }
 
     @Override
+    @Transactional
     public void updateDiary(String email, Long diaryId, LocalDate diaryDt, String text, MultipartFile file) {
         Member member = findMemberByEmail(email);
 
@@ -136,6 +140,7 @@ public class DiaryServiceImpl implements DiaryService {
     }
 
     @Override
+    @Transactional
     public void deleteDiary(String email, Long diaryId) {
         Member member = findMemberByEmail(email);
 
