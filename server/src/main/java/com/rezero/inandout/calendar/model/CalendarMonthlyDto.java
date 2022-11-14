@@ -16,6 +16,9 @@ public class CalendarMonthlyDto {
     int year;
     int month;
 
+    int incomeSum;
+    int expenseSum;
+
     List<CalendarIncomeDto> calendarIncomeDtoList;
     List<CalendarExpenseDto> calendarExpenseDtoList;
 
