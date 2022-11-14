@@ -1,11 +1,8 @@
 package com.rezero.inandout.report.service.impl;
 
 
-import com.rezero.inandout.expense.repository.ExpenseQueryRepository;
 import com.rezero.inandout.expense.service.base.ExpenseService;
-import com.rezero.inandout.income.repository.IncomeQueryRepository;
 import com.rezero.inandout.income.service.base.impl.IncomeServiceImpl;
-import com.rezero.inandout.member.repository.MemberRepository;
 import com.rezero.inandout.report.model.ReportDto;
 import com.rezero.inandout.report.model.YearlyExpenseReportDto;
 import com.rezero.inandout.report.model.YearlyIncomeReportDto;
