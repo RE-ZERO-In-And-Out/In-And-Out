@@ -88,7 +88,7 @@ class CalendarServiceImplTest {
 
             assertEquals(getCalendarMonthlyDto.getMonth(), calendarMonthlyDto.getMonth());
             assertEquals(getCalendarMonthlyDto.getCalendarIncomeDtoList(), calendarIncomeDtoList);
+            assertEquals(getCalendarMonthlyDto.getExpenseSum(), 98765 + 45678);
         }
-
     }
 }

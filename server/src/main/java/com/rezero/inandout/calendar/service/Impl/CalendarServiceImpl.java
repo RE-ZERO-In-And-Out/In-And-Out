@@ -10,6 +10,7 @@ import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -19,6 +20,7 @@ public class CalendarServiceImpl implements CalendarService {
     private final ExpenseServiceImpl expenseService;
 
     @Override
+    @Transactional
     public CalendarMonthlyDto getCalendarIncomeAndExpenseList(String email, LocalDate startDt, LocalDate endDt) {
 
         List<CalendarIncomeDto> calendarIncomeDtoList
@@ -26,9 +28,22 @@ public class CalendarServiceImpl implements CalendarService {
         List<CalendarExpenseDto> calendarExpenseDtoList
             = expenseService.getMonthlyExpenseCalendar(email, startDt, endDt);
 
+        int incomeSum = 0;
+        for (CalendarIncomeDto item : calendarIncomeDtoList) {
+            incomeSum += item.getAmount();
+        }
+
+        int expenseSum = 0;
+        for (CalendarExpenseDto item : calendarExpenseDtoList) {
+            expenseSum += item.getAmount();
+        }
+
+
         return CalendarMonthlyDto.builder()
             .year(startDt.getYear())
             .month(startDt.getMonthValue())
+            .incomeSum(incomeSum)
+            .expenseSum(expenseSum)
             .calendarIncomeDtoList(calendarIncomeDtoList)
             .calendarExpenseDtoList(calendarExpenseDtoList)
             .build();
