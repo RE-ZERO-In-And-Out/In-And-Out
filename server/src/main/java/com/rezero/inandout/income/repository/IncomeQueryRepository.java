@@ -8,6 +8,7 @@ import com.rezero.inandout.income.entity.QIncome;
 import com.rezero.inandout.income.entity.QIncomeCategory;
 import com.rezero.inandout.member.entity.QMember;
 import com.rezero.inandout.report.model.ReportDto;
+import com.rezero.inandout.report.model.YearlyReportDto;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +41,53 @@ public class IncomeQueryRepository {
                 .and(income.incomeDt.between(startDt, endDt))
             )
             .groupBy(incomeCategory.incomeCategoryName)
+            .orderBy(income.incomeAmount.sum().desc())
+            .fetch();
+
+    }
+
+    public List<ReportDto> getIncomeReportRefactoring (Long id, LocalDate startDt, LocalDate endDt) {
+
+        return queryFactory
+            .select(Projections.constructor(ReportDto.class,
+                    incomeCategory.incomeCategoryName,
+                    income.incomeAmount.sum(),
+                    income.incomeAmount.sum().doubleValue()
+                )
+            )
+            .from(income)
+            .leftJoin(income.detailIncomeCategory.incomeCategory, incomeCategory)
+            .where(income.member.memberId.eq(id)
+                .and(income.incomeDt.between(startDt, endDt))
+            )
+            .groupBy(incomeCategory.incomeCategoryName)
+            .orderBy(income.incomeDt.asc())
+            .orderBy(income.incomeAmount.sum().desc())
+            .fetch();
+
+    }
+
+    public List<YearlyReportDto> getYearlyIncomeReport (Long id, LocalDate startDt, LocalDate endDt) {
+
+        return queryFactory
+            .select(Projections.constructor(YearlyReportDto.class,
+                    income.incomeDt.year(),
+                    income.incomeDt.month(),
+                    incomeCategory.incomeCategoryName,
+                    income.incomeAmount.sum(),
+                    income.incomeAmount.sum()
+                        .multiply(100).doubleValue()
+                )
+            )
+            .from(income)
+            .leftJoin(income.detailIncomeCategory.incomeCategory, incomeCategory)
+            .where(income.member.memberId.eq(id)
+                .and(income.incomeDt.between(startDt, endDt))
+            )
+            .groupBy(income.incomeDt.month())
+            .groupBy(incomeCategory.incomeCategoryName)
+            .orderBy(income.incomeDt.year().asc())
+            .orderBy(income.incomeDt.month().asc())
             .orderBy(income.incomeAmount.sum().desc())
             .fetch();
 

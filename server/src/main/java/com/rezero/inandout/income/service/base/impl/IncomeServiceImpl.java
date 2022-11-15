@@ -29,8 +29,10 @@ import com.rezero.inandout.member.repository.MemberRepository;
 import com.rezero.inandout.redis.RedisService;
 import com.rezero.inandout.report.model.ReportDto;
 import com.rezero.inandout.report.model.YearlyIncomeReportDto;
+import com.rezero.inandout.report.model.YearlyReportDto;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
@@ -207,6 +209,28 @@ public class IncomeServiceImpl implements IncomeService {
         return reportDtoList;
     }
 
+    @Transactional(readOnly = true)
+    public List<ReportDto> getMonthlyIncomeReportRefactoring(String email, LocalDate startDt, LocalDate endDt) {
+
+        Member member = findMemberByEmail(email);
+
+        List<ReportDto> reportDtoList
+            = incomeQueryRepository.getIncomeReportRefactoring(member.getMemberId(), startDt, endDt);
+
+        int monthlyIncomeSum = 0;
+        for (ReportDto item : reportDtoList) {
+            monthlyIncomeSum += item.getCategorySum();
+        }
+
+        for (ReportDto item : reportDtoList) {
+            item.setCategoryRatio(
+                Math.round(item.getCategoryRatio() / monthlyIncomeSum * 100) / 100.0
+            );
+        }
+
+        return reportDtoList;
+    }
+
     @Override
     public List<YearlyIncomeReportDto> getYearlyIncomeReport(String email, LocalDate startDt,
         LocalDate endDt) {
@@ -238,6 +262,66 @@ public class IncomeServiceImpl implements IncomeService {
             );
 
             countDate = countDate.plusMonths(1);
+        }
+
+        return yearlyReportDtoList;
+    }
+
+    public List<YearlyIncomeReportDto> getYearlyIncomeReportRefactoring(String email, LocalDate startDt,
+        LocalDate endDt) {
+
+        Member member = findMemberByEmail(email);
+
+        List<YearlyIncomeReportDto> yearlyReportDtoList = new ArrayList<>();
+
+        List<YearlyReportDto> reportYearDtoList
+            = incomeQueryRepository.getYearlyIncomeReport(member.getMemberId(), startDt, endDt);
+
+        HashMap<Integer, Integer> monthlySum = new HashMap<>();
+
+        for (YearlyReportDto item : reportYearDtoList) {
+            monthlySum.put(item.getMonth(), monthlySum.getOrDefault(
+                item.getMonth(), 0) + item.getCategorySum());
+        }
+
+        int curYear = startDt.getYear();
+        int curMonth = startDt.getMonthValue();
+
+        for (int i = 0; i < 12; i++) {
+            List<ReportDto> reportDtoList = new ArrayList<>();
+            for (YearlyReportDto item : reportYearDtoList) {
+                if (item.getMonth() == curMonth) {
+                    reportDtoList.add(
+                        ReportDto.builder()
+                            .category(item.getCategory())
+                            .categorySum(item.getCategorySum())
+                            .categoryRatio(Math.round(
+                                    ((double)item.getCategorySum()
+                                        / (double)monthlySum.get(curMonth)) * 100 * 100) / 100.00
+                            ).build()
+                    );
+                }
+            }
+
+            int curSum = 0;
+            if(monthlySum.containsKey(curMonth)) {
+                curSum = monthlySum.get(curMonth);
+            }
+
+            yearlyReportDtoList.add(
+                YearlyIncomeReportDto.builder()
+                    .year(curYear)
+                    .month(curMonth)
+                    .monthlySum(curSum)
+                    .incomeReport(reportDtoList)
+                    .build()
+            );
+
+            curMonth++;
+            if(curMonth > 12) {
+                curMonth = 1;
+                curYear++;
+            }
         }
 
         return yearlyReportDtoList;
