@@ -27,6 +27,7 @@ import com.rezero.inandout.member.repository.MemberRepository;
 import com.rezero.inandout.redis.RedisService;
 import com.rezero.inandout.report.model.ReportDto;
 import com.rezero.inandout.report.model.YearlyExpenseReportDto;
+import com.rezero.inandout.report.model.YearlyReportDto;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -612,35 +613,40 @@ class ExpenseServiceImplTest {
             given(memberRepository.findByEmail(any()))
                     .willReturn(Optional.of(member));
 
-            List<ReportDto> reportDtos = Arrays.asList(
-                    ReportDto.builder()
-                            .category("건강/문화")
-                            .categorySum(8800000)
-                            .categoryRatio(27.07)
-                            .build(),
-                    ReportDto.builder()
-                            .category("교통/차량")
-                            .categorySum(23000000)
-                            .categoryRatio(70.76)
-                            .build(),
-                    ReportDto.builder()
-                            .category("세금/이자")
-                            .categorySum(200000)
-                            .categoryRatio(0.62)
-                            .build(),
-                    ReportDto.builder()
-                            .category("식비")
-                            .categorySum(41000)
-                            .categoryRatio(0.13)
-                            .build(),
-                    ReportDto.builder()
-                            .category("의복/미용")
-                            .categorySum(462000)
-                            .categoryRatio(1.42)
-                            .build()
+            List<YearlyReportDto> reportDtos = Arrays.asList(
+                    YearlyReportDto.builder()
+                                .month(10)
+                                .category("건강/문화")
+                                .categorySum(8800000)
+                                .categoryRatio(27.07)
+                                .build(),
+                    YearlyReportDto.builder()
+                                .month(10)
+                                .category("교통/차량")
+                                .categorySum(23000000)
+                                .categoryRatio(70.76)
+                                .build(),
+                    YearlyReportDto.builder()
+                                .month(10)
+                                .category("세금/이자")
+                                .categorySum(200000)
+                                .categoryRatio(0.62)
+                                .build(),
+                    YearlyReportDto.builder()
+                                .month(10)
+                                .category("식비")
+                                .categorySum(41000)
+                                .categoryRatio(0.13)
+                                .build(),
+                    YearlyReportDto.builder()
+                                .month(10)
+                                .category("의복/미용")
+                                .categorySum(462000)
+                                .categoryRatio(1.42)
+                                .build()
             );
 
-            given(expenseQueryRepository.getMonthlyExpenseReport(any(),any(),any()))
+            given(expenseQueryRepository.getYearlyExpenseReport(any(),any(),any()))
                     .willReturn(reportDtos);
 
             //when

@@ -741,8 +741,8 @@ class IncomeServiceImplTest {
             );
 
             //then
-            verify(incomeQueryRepository, times(12))
-                .getMonthlyIncomeReport(any(), any(), any());
+            verify(incomeQueryRepository, times(1))
+                .getYearlyIncomeReport(any(), any(), any());
 
             assertEquals(findYearlyReportDto.size(), 12);
             assertEquals(findYearlyReportDto.get(0).getYear(), 2022);
