@@ -1,4 +1,5 @@
-# ![In-And-Out](./test.png)
+![header](https://user-images.githubusercontent.com/27846824/201936135-ee9ad674-ca48-4edd-bd1c-5a4dc37f5f80.png)
+
 
 # In-And-Out
 
@@ -84,18 +85,18 @@
 
 <details>
 <summary> 피그마 </summary>
-<img src="./figma.PNG"/>
+<img src="https://user-images.githubusercontent.com/27846824/201936269-b0577211-007a-4fad-9cb4-c43cbf354459.PNG/>
 
 </details>
 
 <details>
 <summary> API 명세서 </summary>
-<object type="application/pdf" data="./api.pdf" width="500" height="500"></object>
+<object type="application/pdf" data="https://github.com/RE-ZERO-In-And-Out/In-And-Out/files/10013211/api.pdf" width="500" height="500"></object>
 </details>
 
 <details>
 <summary> ERD </summary>
-<img src="./erd.PNG"/>
+<img src="https://user-images.githubusercontent.com/27846824/201935663-d41af558-046d-4aac-8fef-4dc597815df5.png"/>
 </details>
 
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
