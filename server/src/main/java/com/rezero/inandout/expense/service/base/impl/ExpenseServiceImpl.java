@@ -23,7 +23,10 @@ import com.rezero.inandout.report.model.ReportDto;
 import com.rezero.inandout.report.model.YearlyExpenseReportDto;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+
+import com.rezero.inandout.report.model.YearlyReportDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -200,6 +203,28 @@ public class ExpenseServiceImpl implements ExpenseService {
         return reportDtos;
     }
 
+    public List<ReportDto> getMonthlyExpenseReportRefactoring(String email, LocalDate startDt, LocalDate endDt) {
+
+        Member member = findMemberByEmail(email);
+
+        List<ReportDto> reportDtos
+                = expenseQueryRepository.getExpenseReportRefactoring(member, startDt, endDt);
+
+        int monthlyExpenseSum = 0;
+
+        for (ReportDto reportDto : reportDtos) {
+            monthlyExpenseSum += reportDto.getCategorySum();
+        }
+
+        for (ReportDto reportDto : reportDtos) {
+            reportDto.setCategoryRatio(
+                    Math.round(reportDto.getCategoryRatio() / monthlyExpenseSum * 100) / 100.0
+            );
+        }
+
+        return reportDtos;
+    }
+
     @Override
     public List<YearlyExpenseReportDto> getYearlyExpenseReport(String email, LocalDate startDt, LocalDate endDt) {
 
@@ -236,6 +261,69 @@ public class ExpenseServiceImpl implements ExpenseService {
         }
 
         return yearlyReportDtos;
+    }
+
+    public List<YearlyExpenseReportDto> getYearlyExpenseReportRefactoring(
+            String email, LocalDate startDt, LocalDate endDt) {
+
+        Member member = findMemberByEmail(email);
+
+        List<YearlyExpenseReportDto> yearlyExpenseReportDtos = new ArrayList<>();
+
+        List<YearlyReportDto> yearlyReportDtos =
+                expenseQueryRepository.getYearlyExpenseReport(member, startDt, endDt);
+
+        HashMap<Integer, Integer> monthlySum = new HashMap<>();
+
+        for (YearlyReportDto dto : yearlyReportDtos) {
+            monthlySum.put(dto.getMonth(),
+                    monthlySum.getOrDefault(dto.getMonth(), 0) + dto.getCategorySum()
+            );
+        }
+
+        int curYear = startDt.getYear();
+        int curMonth = startDt.getMonthValue();
+
+        for (int i = 0; i < 12; i++) {
+            List<ReportDto> reportDtos = new ArrayList<>();
+            for (YearlyReportDto dto : yearlyReportDtos) {
+                if (dto.getMonth() == curMonth) {
+                    reportDtos.add(
+                            ReportDto.builder()
+                                    .category(dto.getCategory())
+                                    .categorySum(dto.getCategorySum())
+                                    .categoryRatio(
+                                            Math.round(
+                                                    (double)dto.getCategorySum()
+                                                    / (double)monthlySum.get(curMonth)
+                                                    * 100 * 100) / 100.00
+                                    ).build()
+                    );
+                }
+            }
+
+            int curSum = 0;
+            if (monthlySum.containsKey(curMonth)) {
+                curSum = monthlySum.get(curMonth);
+            }
+
+            yearlyExpenseReportDtos.add(
+                    YearlyExpenseReportDto.builder()
+                            .year(curYear)
+                            .month(curMonth)
+                            .monthlySum(curSum)
+                            .expenseReport(reportDtos)
+                            .build()
+            );
+
+            curMonth++;
+            if (curMonth > 12) {
+                curMonth = 1;
+                curYear++;
+            }
+        }
+
+        return yearlyExpenseReportDtos;
     }
 
     @Override
