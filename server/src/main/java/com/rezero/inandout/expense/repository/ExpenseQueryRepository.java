@@ -7,6 +7,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.rezero.inandout.calendar.model.CalendarExpenseDto;
 import com.rezero.inandout.member.entity.Member;
 import com.rezero.inandout.report.model.ReportDto;
+import com.rezero.inandout.report.model.YearlyReportDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -40,6 +41,51 @@ public class ExpenseQueryRepository {
                 .fetch();
 
         return result;
+    }
+
+    public List<ReportDto> getExpenseReportRefactoring(Member member, LocalDate startDt, LocalDate endDt) {
+
+        return jpaQueryFactory
+                .select(Projections.constructor(
+                                ReportDto.class,
+                                expense.detailExpenseCategory.expenseCategory
+                                        .expenseCategoryName,
+                                expense.expenseCard.add(expense.expenseCash)
+                                        .sum(),
+                                expense.expenseCard.add(expense.expenseCash)
+                                        .sum().doubleValue()
+
+                        )
+                )
+                .from(expense)
+                .where(expense.member.eq(member),
+                        expense.expenseDt.between(startDt, endDt))
+                .groupBy(expense.detailExpenseCategory.expenseCategory.expenseCategoryName)
+                .orderBy(expense.expenseDt.asc())
+                .orderBy(expense.expenseCard.add(expense.expenseCash).sum().desc())
+                .fetch();
+    }
+
+    public List<YearlyReportDto> getYearlyExpenseReport(Member member, LocalDate startDt, LocalDate endDt) {
+        return jpaQueryFactory
+                .select(Projections.constructor(
+                        YearlyReportDto.class,
+                        expense.expenseDt.year(),
+                        expense.expenseDt.month(),
+                        expense.detailExpenseCategory.expenseCategory.expenseCategoryName,
+                        expense.expenseCard.add(expense.expenseCash).sum(),
+                        expense.expenseCard.add(expense.expenseCash).sum().doubleValue()
+                        )
+                ).from(expense)
+                .where(expense.member.eq(member),
+                        expense.expenseDt.between(startDt, endDt)
+                )
+                .groupBy(expense.expenseDt.month(),
+                        expense.detailExpenseCategory.expenseCategory.expenseCategoryName)
+                .orderBy(expense.expenseDt.year().asc(),
+                        expense.expenseDt.month().asc(),
+                        expense.expenseCard.add(expense.expenseCash).sum().desc())
+                .fetch();
     }
 
     public Integer getTotalSum(Member member, LocalDate startDt, LocalDate endDt) {
