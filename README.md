@@ -85,13 +85,14 @@
 
 <details>
 <summary> 피그마 </summary>
-<img src="https://user-images.githubusercontent.com/27846824/201936269-b0577211-007a-4fad-9cb4-c43cbf354459.PNG/>
+<img src="https://user-images.githubusercontent.com/27846824/201936269-b0577211-007a-4fad-9cb4-c43cbf354459.PNG"/>
 
 </details>
 
 <details>
 <summary> API 명세서 </summary>
-<object type="application/pdf" data="https://github.com/RE-ZERO-In-And-Out/In-And-Out/files/10013211/api.pdf" width="500" height="500"></object>
+  <embed type="application/pdf" data="https://github.com/RE-ZERO-In-And-Out/In-And-Out/files/10013268/api.pdf" width="500" height="500"/>
+  
 </details>
 
 <details>
