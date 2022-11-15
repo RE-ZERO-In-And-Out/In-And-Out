@@ -1,7 +1,7 @@
 package com.rezero.inandout.report.service.impl;
 
 
-import com.rezero.inandout.expense.service.base.ExpenseService;
+import com.rezero.inandout.expense.service.base.impl.ExpenseServiceImpl;
 import com.rezero.inandout.income.service.base.impl.IncomeServiceImpl;
 import com.rezero.inandout.report.model.ReportDto;
 import com.rezero.inandout.report.model.YearlyExpenseReportDto;
@@ -17,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class ReportServiceImpl implements ReportService {
-    private final ExpenseService expenseService;
+    private final ExpenseServiceImpl expenseService;
     private final IncomeServiceImpl incomeService;
 
     @Override
