@@ -180,35 +180,12 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<ReportDto> getMonthlyExpenseReport(String email, LocalDate startDt, LocalDate endDt) {
 
         Member member = findMemberByEmail(email);
 
         List<ReportDto> reportDtos
-            = expenseQueryRepository.getMonthlyExpenseReport(member, startDt, endDt);
-
-        int totalSum;
-
-        if (reportDtos.size() > 0) {
-            totalSum = expenseQueryRepository.getTotalSum(member, startDt, endDt);
-
-            for (ReportDto reportDto : reportDtos) {
-                reportDto.setCategoryRatio(
-                        Math.round(reportDto.getCategoryRatio()/totalSum*100)/100.0
-                );
-            }
-        }
-
-        return reportDtos;
-    }
-
-    public List<ReportDto> getMonthlyExpenseReportRefactoring(String email, LocalDate startDt, LocalDate endDt) {
-
-        Member member = findMemberByEmail(email);
-
-        List<ReportDto> reportDtos
-                = expenseQueryRepository.getExpenseReportRefactoring(member, startDt, endDt);
+                = expenseQueryRepository.getMonthlyExpenseReport(member, startDt, endDt);
 
         int monthlyExpenseSum = 0;
 
@@ -226,44 +203,7 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
-    public List<YearlyExpenseReportDto> getYearlyExpenseReport(String email, LocalDate startDt, LocalDate endDt) {
-
-        Member member = findMemberByEmail(email);
-
-        LocalDate countDate = startDt;
-
-        List<YearlyExpenseReportDto> yearlyReportDtos = new ArrayList<>();
-
-        while (countDate.isBefore(endDt)) {
-            List<ReportDto> reportDtos = expenseQueryRepository.getMonthlyExpenseReport(
-                    member, countDate, countDate.plusMonths(1).minusDays(1));
-
-            for (int i = 0; i < reportDtos.size(); i++) {
-                reportDtos.get(i).setCategoryRatio(0);
-            }
-
-            int totalSum = 0;
-
-            for (ReportDto reportDto : reportDtos) {
-                totalSum += reportDto.getCategorySum();
-            }
-
-            YearlyExpenseReportDto yearlyReportDto = YearlyExpenseReportDto.builder()
-                    .year(countDate.getYear())
-                    .month(countDate.getMonthValue())
-                    .monthlySum(totalSum)
-                    .expenseReport(reportDtos)
-                    .build();
-
-            yearlyReportDtos.add(yearlyReportDto);
-
-            countDate = countDate.plusMonths(1);
-        }
-
-        return yearlyReportDtos;
-    }
-
-    public List<YearlyExpenseReportDto> getYearlyExpenseReportRefactoring(
+    public List<YearlyExpenseReportDto> getYearlyExpenseReport(
             String email, LocalDate startDt, LocalDate endDt) {
 
         Member member = findMemberByEmail(email);

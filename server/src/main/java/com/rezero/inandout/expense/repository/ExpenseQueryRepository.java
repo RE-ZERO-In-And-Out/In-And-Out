@@ -20,7 +20,7 @@ public class ExpenseQueryRepository {
 
     private final JPAQueryFactory jpaQueryFactory;
 
-    public List<ReportDto> getMonthlyExpenseReport(Member member, LocalDate startDt, LocalDate endDt) {
+    public List<ReportDto> getMonthlyExpenseReportPast(Member member, LocalDate startDt, LocalDate endDt) {
 
         List<ReportDto> result = jpaQueryFactory
                 .select(Projections.constructor(
@@ -30,7 +30,7 @@ public class ExpenseQueryRepository {
                                         expense.expenseCard.add(expense.expenseCash)
                                                 .sum(),
                                         expense.expenseCard.add(expense.expenseCash)
-                                                .sum().multiply(100).doubleValue()
+                                                .sum().doubleValue()
 
                         )
                 )
@@ -43,7 +43,7 @@ public class ExpenseQueryRepository {
         return result;
     }
 
-    public List<ReportDto> getExpenseReportRefactoring(Member member, LocalDate startDt, LocalDate endDt) {
+    public List<ReportDto> getMonthlyExpenseReport(Member member, LocalDate startDt, LocalDate endDt) {
 
         return jpaQueryFactory
                 .select(Projections.constructor(
@@ -54,7 +54,6 @@ public class ExpenseQueryRepository {
                                         .sum(),
                                 expense.expenseCard.add(expense.expenseCash)
                                         .sum().doubleValue()
-
                         )
                 )
                 .from(expense)
