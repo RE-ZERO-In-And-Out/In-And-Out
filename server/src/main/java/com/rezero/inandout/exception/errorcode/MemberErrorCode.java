@@ -12,8 +12,6 @@ public enum MemberErrorCode {
      */
     EMAIL_EXIST("이미 가입된 이메일입니다. 가입된 이메일로 로그인 하시길 바랍니다."),
     NICKNAME_EXIST("동일한 닉네임이 존재합니다. 다른 닉네임을 입력하세요"),
-    WITHDRAWAL_MEMBER_CANNOT_JOIN("이미 탈퇴한 아이디(이메일)입니다. 다른 이메일로 회원 가입하시길 바랍니다."),
-    STOP_MEMBER_CANNOT_JOIN("정지된 회원입니다. 관리자에게 문의 바랍니다."),
 
     /**
      * 회원가입 - 비밀번호 오류
@@ -30,7 +28,7 @@ public enum MemberErrorCode {
      * 회원 가입 - 이메일 인증 오류 (가입 요청 중인 회원)
      */
     EMAIL_AUTH_KEY_NOT_EXIST("이메일 인증키가 존재하지 않습니다."),
-    REQ_MEMBER_CANNOT_JOIN("현재 회원가입 요청 중입니다. 이메일 인증을 하시고 나면 회원 가입이 완료됩니다."),
+
 
     /**
      * 이메일 발송 오류
@@ -62,9 +60,9 @@ public enum MemberErrorCode {
     /**
      * 로그인 오류
      */
-    REQ_MEMBER_CANNOT_LOGIN("이메일 인증을 완료해야 로그인이 가능합니다."),
-    STOP_MEMBER_CANNOT_LOGIN("정지된 회원입니다. 관리자에게 문의하시길 바랍니다."),
-    WITHDRAWAL_MEMBER_CANNOT_LOGIN("이미 탈퇴한 회원입니다. 새로운 아이디로 회원가입 후, 로그인하시길 바랍니다."),
+    REQ_MEMBER_CANNOT_LOGIN_OR_JOIN("이메일을 재발송했습니다.이메일 인증을 완료하면 로그인이 가능합니다."),
+    STOP_MEMBER_CANNOT_LOGIN_OR_JOIN("정지된 회원입니다. 관리자에게 문의하시길 바랍니다."),
+    WITHDRAWAL_MEMBER_CANNOT_LOGIN_OR_JOIN("이미 탈퇴한 회원입니다. 새로운 아이디로 회원가입 후, 로그인하시길 바랍니다."),
 
     /**
      * 로그아웃 오류
