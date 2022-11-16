@@ -42,7 +42,7 @@
 3. 월간/연간 보고서
    <details>
    <summary>영상</summary>
-   <img src="https://user-images.githubusercontent.com/70008599/202179467-6a3508f6-7d30-43d3-b227-6d28a6059df9.mov" />
+   <img src="https://user-images.githubusercontent.com/70008599/202196778-b4a1a90a-c3b7-4e67-93fd-8294d254babb.gif"/>
    </details>
 
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
