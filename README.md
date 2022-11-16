@@ -33,11 +33,6 @@
 
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
 
-### 프로젝트 구조
-<img src="https://user-images.githubusercontent.com/98104603/202212896-cb86a4c2-1318-4c81-baa9-bfa214c0be2a.png"/>
-
-![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
-
 ### 핵심 기능
 
 1. 달력
@@ -65,38 +60,35 @@
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
 
 #### Team (담당한 업무)
-
 <details>
 <summary> 윤지용 </summary>
-1. 수입 API<br>
-2. 보고서 API<br>
-3. 엑셀 출력 API<br>
-4. 메인 달력 API<br>
-5. 서버 배포<br>
-6. RDS 세팅<br>
-7. ERD 설계<br>
+
+1. 달력
+2. 수입
+3. 보고서(수입)
+4. 엑셀
 </details>
 <details>
 <summary> 오근협 </summary>
-1. 지출 API<br>
-2. 보고서 API<br>
-3. 다이어리 API<br>
-4. Redis<br>
-5. ERD 설계<br>
+
+1. 일기
+2. 지출
+3. 보고서(지출)
 </details>
 <details>
 <summary> 김란 </summary>
-1. 멤버 API<br>
-2. Spring Security<br>
-3. OAUTH 2.0<br>
-4. ERD 설계<br>
+
+1. 로그인, OAuth 로그인
+2. 회원가입 및 회원관련
 </details>
 <details>
 <summary> 이태희 </summary>
+
 1. 
 </details>
 <details>
 <summary> 김찬주 </summary>
+
 1. 
 </details>
 
