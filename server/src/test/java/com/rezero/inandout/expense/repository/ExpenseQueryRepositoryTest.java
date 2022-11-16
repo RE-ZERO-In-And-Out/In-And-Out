@@ -59,7 +59,7 @@ class ExpenseQueryRepositoryTest {
                         expense.expenseCard.add(expense.expenseCash)
                                 .sum(),
                         expense.expenseCard.add(expense.expenseCash)
-                                .sum().multiply(100).doubleValue()
+                                .sum().doubleValue()
                 ))
         ).willReturn(resultStep1);
 
@@ -82,7 +82,7 @@ class ExpenseQueryRepositoryTest {
 
         //when
         List<ReportDto> reportDtos = expenseQueryRepository
-                .getMonthlyExpenseReport(
+                .getMonthlyExpenseReportPast(
                         Member.builder()
                                 .memberId(1L)
                                 .email("hgd@gmail.com")

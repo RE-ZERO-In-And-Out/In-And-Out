@@ -96,7 +96,7 @@ class IncomeQueryRepositoryTest {
 
         //when
         List<ReportDto> queryReportDtoList
-            = incomeQueryRepository.getMonthlyIncomeReport(1L,
+            = incomeQueryRepository.getMonthlyIncomeReportPast(1L,
             LocalDate.of(2022,10,1),
             LocalDate.of(2022,10,31)
         );

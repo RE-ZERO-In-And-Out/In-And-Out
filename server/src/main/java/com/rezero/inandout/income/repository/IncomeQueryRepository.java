@@ -25,7 +25,7 @@ public class IncomeQueryRepository {
     QIncomeCategory incomeCategory = new QIncomeCategory("ic");
     QDetailIncomeCategory detailIncomeCategory = new QDetailIncomeCategory("dic");
 
-    public List<ReportDto> getMonthlyIncomeReport (Long id, LocalDate startDt, LocalDate endDt) {
+    public List<ReportDto> getMonthlyIncomeReportPast(Long id, LocalDate startDt, LocalDate endDt) {
 
         return queryFactory
             .select(Projections.constructor(ReportDto.class,
@@ -46,7 +46,7 @@ public class IncomeQueryRepository {
 
     }
 
-    public List<ReportDto> getIncomeReportRefactoring (Long id, LocalDate startDt, LocalDate endDt) {
+    public List<ReportDto> getMonthlyIncomeReport(Long id, LocalDate startDt, LocalDate endDt) {
 
         return queryFactory
             .select(Projections.constructor(ReportDto.class,
@@ -67,7 +67,7 @@ public class IncomeQueryRepository {
 
     }
 
-    public List<YearlyReportDto> getYearlyIncomeReport (Long id, LocalDate startDt, LocalDate endDt) {
+    public List<YearlyReportDto> getYearlyIncomeReport(Long id, LocalDate startDt, LocalDate endDt) {
 
         return queryFactory
             .select(Projections.constructor(YearlyReportDto.class,

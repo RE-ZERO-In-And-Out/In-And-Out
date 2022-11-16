@@ -34,14 +34,8 @@ public class ReportController {
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
             @ApiParam(value = "조회할 기간의 마지막일", example = "2022-10-31") LocalDate endDt) {
 
-        long beforeTime = System.currentTimeMillis(); //코드 실행 전에 시간 받아오기
-
         List<ReportDto> reportDtos =
                 reportService.getMonthlyIncomeReport(principal.getName(), startDt, endDt);
-
-        long afterTime = System.currentTimeMillis(); // 코드 실행 후에 시간 받아오기
-        long secDiffTime = (afterTime - beforeTime); //두 시간에 차 계산
-        System.out.println("시간차이(m) : "+secDiffTime);
 
         return ResponseEntity.ok().body(reportDtos);
     }
@@ -55,14 +49,8 @@ public class ReportController {
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
         @ApiParam(value = "조회할 기간의 마지막일", example = "2022-09-30") LocalDate endDt) {
 
-        long beforeTime = System.currentTimeMillis(); //코드 실행 전에 시간 받아오기
-
         List<YearlyIncomeReportDto> yearlyReportDtoList =
             reportService.getYearlyIncomeReport(principal.getName(), startDt, endDt);
-
-        long afterTime = System.currentTimeMillis(); // 코드 실행 후에 시간 받아오기
-        long secDiffTime = (afterTime - beforeTime); //두 시간에 차 계산
-        System.out.println("시간차이(m) : "+secDiffTime);
 
         return ResponseEntity.ok().body(yearlyReportDtoList);
     }
@@ -105,10 +93,10 @@ public class ReportController {
         @ApiParam(value = "조회할 기간의 시작일", example = "2021-10-01") LocalDate startDt,
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
         @ApiParam(value = "조회할 기간의 마지막일", example = "2022-09-30") LocalDate endDt) {
+
         YearlyTotalReportDto yearlyTotalReportDto =
             reportService.getYearlyTotalReport(principal.getName(), startDt, endDt);
 
         return ResponseEntity.ok().body(yearlyTotalReportDto);
     }
-
 }
