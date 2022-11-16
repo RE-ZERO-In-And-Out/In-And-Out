@@ -394,10 +394,6 @@ public class MemberServiceImpl extends DefaultOAuth2UserService implements Membe
             }
         }
 
-        if (!member.getMemberS3ImageKey().isEmpty()) {
-            awsS3Service.deleteImage(member.getMemberS3ImageKey());
-        }
-
         String s3ImageKey = member.getMemberS3ImageKey();
         String fileContent;
 
