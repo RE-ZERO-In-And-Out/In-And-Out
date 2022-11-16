@@ -20,29 +20,6 @@ public class ExpenseQueryRepository {
 
     private final JPAQueryFactory jpaQueryFactory;
 
-    public List<ReportDto> getMonthlyExpenseReportPast(Member member, LocalDate startDt, LocalDate endDt) {
-
-        List<ReportDto> result = jpaQueryFactory
-                .select(Projections.constructor(
-                                        ReportDto.class,
-                                        expense.detailExpenseCategory.expenseCategory
-                                                .expenseCategoryName,
-                                        expense.expenseCard.add(expense.expenseCash)
-                                                .sum(),
-                                        expense.expenseCard.add(expense.expenseCash)
-                                                .sum().doubleValue()
-
-                        )
-                )
-                .from(expense)
-                .where(expense.member.eq(member),
-                        expense.expenseDt.between(startDt, endDt))
-                .groupBy(expense.detailExpenseCategory.expenseCategory.expenseCategoryName)
-                .fetch();
-
-        return result;
-    }
-
     public List<ReportDto> getMonthlyExpenseReport(Member member, LocalDate startDt, LocalDate endDt) {
 
         return jpaQueryFactory
@@ -85,15 +62,6 @@ public class ExpenseQueryRepository {
                         expense.expenseDt.month().asc(),
                         expense.expenseCard.add(expense.expenseCash).sum().desc())
                 .fetch();
-    }
-
-    public Integer getTotalSum(Member member, LocalDate startDt, LocalDate endDt) {
-
-        return jpaQueryFactory.select(expense.expenseCard.add(expense.expenseCash).sum())
-                .from(expense)
-                .where(expense.member.eq(member),
-                        expense.expenseDt.between(startDt, endDt))
-                .fetchOne();
     }
 
     public List<CalendarExpenseDto> getMonthlyExpenseCalendar(Long id, LocalDate startDt, LocalDate endDt) {
