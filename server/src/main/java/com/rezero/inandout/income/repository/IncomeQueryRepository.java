@@ -25,27 +25,6 @@ public class IncomeQueryRepository {
     QIncomeCategory incomeCategory = new QIncomeCategory("ic");
     QDetailIncomeCategory detailIncomeCategory = new QDetailIncomeCategory("dic");
 
-    public List<ReportDto> getMonthlyIncomeReportPast(Long id, LocalDate startDt, LocalDate endDt) {
-
-        return queryFactory
-            .select(Projections.constructor(ReportDto.class,
-                incomeCategory.incomeCategoryName,
-                income.incomeAmount.sum(),
-                income.incomeAmount.sum()
-                    .multiply(100).doubleValue()
-                )
-            )
-            .from(income)
-                .leftJoin(income.detailIncomeCategory.incomeCategory, incomeCategory)
-            .where(income.member.memberId.eq(id)
-                .and(income.incomeDt.between(startDt, endDt))
-            )
-            .groupBy(incomeCategory.incomeCategoryName)
-            .orderBy(income.incomeAmount.sum().desc())
-            .fetch();
-
-    }
-
     public List<ReportDto> getMonthlyIncomeReport(Long id, LocalDate startDt, LocalDate endDt) {
 
         return queryFactory
@@ -82,27 +61,14 @@ public class IncomeQueryRepository {
             .from(income)
             .leftJoin(income.detailIncomeCategory.incomeCategory, incomeCategory)
             .where(income.member.memberId.eq(id)
-                .and(income.incomeDt.between(startDt, endDt))
+                ,income.incomeDt.between(startDt, endDt)
             )
-            .groupBy(income.incomeDt.month())
-            .groupBy(incomeCategory.incomeCategoryName)
-            .orderBy(income.incomeDt.year().asc())
-            .orderBy(income.incomeDt.month().asc())
-            .orderBy(income.incomeAmount.sum().desc())
+            .groupBy(income.incomeDt.month(),
+                    incomeCategory.incomeCategoryName)
+            .orderBy(income.incomeDt.year().asc(),
+                    income.incomeDt.month().asc(),
+                    income.incomeAmount.sum().desc())
             .fetch();
-
-    }
-
-
-    public int getMonthlyIncomeSum(Long id, LocalDate startDt, LocalDate endDt) {
-        Integer sum = queryFactory
-            .select(income.incomeAmount.sum())
-            .from(income)
-            .where(income.member.memberId.eq(id)
-                .and(income.incomeDt.between(startDt, endDt)))
-            .fetchOne();
-
-        return (sum == 0) ? 0 : sum;
 
     }
 
