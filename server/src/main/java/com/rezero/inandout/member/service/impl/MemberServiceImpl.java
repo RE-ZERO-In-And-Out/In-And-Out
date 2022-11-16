@@ -17,11 +17,8 @@ import static com.rezero.inandout.exception.errorcode.MemberErrorCode.PASSWORD_N
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.PASSWORD_NOT_CONTAIN_SPECIAL;
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.PASSWORD_NOT_MATCH;
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.PHONE_NOT_EXIST;
-import static com.rezero.inandout.exception.errorcode.MemberErrorCode.REQ_MEMBER_CANNOT_JOIN;
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.RESET_PASSWORD_KEY_EXPIRED;
 import static com.rezero.inandout.exception.errorcode.MemberErrorCode.RESET_PASSWORD_KEY_NOT_EXIST;
-import static com.rezero.inandout.exception.errorcode.MemberErrorCode.STOP_MEMBER_CANNOT_JOIN;
-import static com.rezero.inandout.exception.errorcode.MemberErrorCode.WITHDRAWAL_MEMBER_CANNOT_JOIN;
 
 import com.rezero.inandout.awss3.AwsS3Service;
 import com.rezero.inandout.configuration.auth.PrincipalDetails;
@@ -98,6 +95,35 @@ public class MemberServiceImpl extends DefaultOAuth2UserService implements Membe
     }
 
 
+    public void validateMemberStatus(Member member) {
+
+        if (member.getStatus().equals(MemberStatus.WITHDRAW)) {
+            throw new MemberException(MemberErrorCode.WITHDRAWAL_MEMBER_CANNOT_LOGIN_OR_JOIN);
+
+        } else if (member.getStatus().equals(MemberStatus.STOP)) {
+            throw new MemberException(MemberErrorCode.STOP_MEMBER_CANNOT_LOGIN_OR_JOIN);
+
+        } else if (member.getStatus().equals(MemberStatus.REQ)) {
+
+            String uuid = UUID.randomUUID().toString();
+            member.setEmailAuthKey(uuid);
+
+            String subject = "In And Out 계정 활성화";
+            String text = "<p>안녕하세요. In And Out 입니다.</p><p>아래 링크를 누르시면 계정 활성화가 완료됩니다.</p>"
+                + "<div><a href='http://" + ec2IpAddress + ":3000" + "/signup_check/sending?id="
+                + uuid
+                + "'>가입 완료</a></div>";
+
+            mailComponent.send(member.getEmail(), subject, text);
+
+            memberRepository.save(member);
+
+            throw new MemberException(MemberErrorCode.REQ_MEMBER_CANNOT_LOGIN_OR_JOIN);
+
+        }
+    }
+
+
     @Override
     public void login(LoginMemberInput input) {
 
@@ -105,16 +131,7 @@ public class MemberServiceImpl extends DefaultOAuth2UserService implements Membe
         Optional<Member> optionalMember = memberRepository.findByEmail(input.getEmail());
         Member member = optionalMember.get();
 
-        if (member.getStatus().equals(MemberStatus.WITHDRAW)) {
-            throw new MemberException(MemberErrorCode.WITHDRAWAL_MEMBER_CANNOT_LOGIN);
-
-        } else if (member.getStatus().equals(MemberStatus.STOP)) {
-            throw new MemberException(MemberErrorCode.STOP_MEMBER_CANNOT_LOGIN);
-
-        } else if (member.getStatus().equals(MemberStatus.REQ)) {
-            throw new MemberException(MemberErrorCode.REQ_MEMBER_CANNOT_LOGIN);
-
-        }
+        validateMemberStatus(member);
 
         if (!bCryptPasswordEncoder.matches(input.getPassword(), member.getPassword())) {
             throw new MemberException(PASSWORD_NOT_MATCH);
@@ -149,15 +166,8 @@ public class MemberServiceImpl extends DefaultOAuth2UserService implements Membe
         Optional<Member> existsMember = memberRepository.findByEmail(input.getEmail());
         if (existsMember.isPresent()) {
 
-            if (existsMember.get().getStatus().equals(MemberStatus.WITHDRAW)) {
-                throw new MemberException(WITHDRAWAL_MEMBER_CANNOT_JOIN);
-
-            } else if (existsMember.get().getStatus().equals(MemberStatus.REQ)) {
-                throw new MemberException(REQ_MEMBER_CANNOT_JOIN);
-
-            } else if (existsMember.get().getStatus().equals(MemberStatus.STOP)) {
-                throw new MemberException(STOP_MEMBER_CANNOT_JOIN);
-            }
+            Member member = existsMember.get();
+            validateMemberStatus(member);
 
             throw new MemberException(EMAIL_EXIST);
         }
@@ -228,7 +238,6 @@ public class MemberServiceImpl extends DefaultOAuth2UserService implements Membe
 
 
     @Override
-    @Transactional
     public void join(JoinMemberInput input) {
 
         validateInput(input);
@@ -386,7 +395,6 @@ public class MemberServiceImpl extends DefaultOAuth2UserService implements Membe
 
         String inputNickname = input.getNickName();
 
-
         if (!previousUsedNickname.equals(inputNickname)) {
             Optional<Member> existNicknameMember = memberRepository.findByNickName(inputNickname);
             if (existNicknameMember.isPresent()) {
@@ -397,13 +405,13 @@ public class MemberServiceImpl extends DefaultOAuth2UserService implements Membe
         String s3ImageKey = member.getMemberS3ImageKey();
         String fileContent;
 
-        try{
+        try {
             fileContent = new String(file.getBytes());
-        }catch (IOException e){
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
-        if(fileContent.equals(deleteFile)){
+        if (fileContent.equals(deleteFile)) {
             awsS3Service.deleteImage(s3ImageKey);
             log.info("[S3 Image delete] dir: " + dir + "/ member: " + email);
             s3ImageKey = "";
