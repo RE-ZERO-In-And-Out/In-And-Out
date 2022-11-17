@@ -101,6 +101,7 @@
 </details>
 <details>
 <summary> 김찬주 </summary>
+  
 1. 회원가입 및 정보 수정
 - react-hook-form + yup을 사용한 입력 정보 유효성 검사 
 
