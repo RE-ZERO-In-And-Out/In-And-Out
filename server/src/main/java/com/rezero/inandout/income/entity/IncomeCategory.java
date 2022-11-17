@@ -1,18 +1,13 @@
 package com.rezero.inandout.income.entity;
 
 
-import com.rezero.inandout.domain.BaseEntity;
 import com.rezero.inandout.income.model.IncomeCategoryDto;
+import lombok.*;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import org.hibernate.envers.AuditOverride;
 
 @Entity
 @Getter
@@ -20,8 +15,7 @@ import org.hibernate.envers.AuditOverride;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@AuditOverride(forClass = BaseEntity.class)
-public class IncomeCategory extends BaseEntity {
+public class IncomeCategory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

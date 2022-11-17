@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -17,6 +18,7 @@ public class IncomeTableServiceImpl implements IncomeTableService {
     private final IncomeService incomeService;
 
     @Override
+    @Transactional
     public void addAndUpdateIncome(String email, List<IncomeInput> incomeInputList) {
         List<IncomeInput> addIncomeInputList = new ArrayList<>();
         List<IncomeInput> updateIncomeInputList = new ArrayList<>();
@@ -34,6 +36,7 @@ public class IncomeTableServiceImpl implements IncomeTableService {
     }
 
     @Override
+    @Transactional
     public CategoryAndIncomeDto getCategoryAndIncomeDto(String email, LocalDate startDt, LocalDate endDt) {
         return CategoryAndIncomeDto.builder()
                 .incomeDtoList(incomeService.getIncomeList(email, startDt, endDt))

@@ -1,11 +1,16 @@
 package com.rezero.inandout.expense.service.base.impl;
 
+import com.rezero.inandout.calendar.model.CalendarExpenseDto;
 import com.rezero.inandout.exception.ExpenseException;
 import com.rezero.inandout.exception.errorcode.ExpenseErrorCode;
 import com.rezero.inandout.expense.entity.DetailExpenseCategory;
 import com.rezero.inandout.expense.entity.Expense;
 import com.rezero.inandout.expense.entity.ExpenseCategory;
-import com.rezero.inandout.expense.model.*;
+import com.rezero.inandout.expense.model.DeleteExpenseInput;
+import com.rezero.inandout.expense.model.DetailExpenseCategoryDto;
+import com.rezero.inandout.expense.model.ExpenseCategoryDto;
+import com.rezero.inandout.expense.model.ExpenseDto;
+import com.rezero.inandout.expense.model.ExpenseInput;
 import com.rezero.inandout.expense.repository.DetailExpenseCategoryRepository;
 import com.rezero.inandout.expense.repository.ExpenseCategoryRepository;
 import com.rezero.inandout.expense.repository.ExpenseQueryRepository;
@@ -13,15 +18,18 @@ import com.rezero.inandout.expense.repository.ExpenseRepository;
 import com.rezero.inandout.expense.service.base.ExpenseService;
 import com.rezero.inandout.member.entity.Member;
 import com.rezero.inandout.member.repository.MemberRepository;
+import com.rezero.inandout.redis.RedisService;
 import com.rezero.inandout.report.model.ReportDto;
 import com.rezero.inandout.report.model.YearlyExpenseReportDto;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import com.rezero.inandout.report.model.YearlyReportDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +40,9 @@ public class ExpenseServiceImpl implements ExpenseService {
     private final ExpenseCategoryRepository expenseCategoryRepository;
     private final MemberRepository memberRepository;
     private final ExpenseQueryRepository expenseQueryRepository;
+    private final RedisService redisService;
+
+    private static final String EXPENSE_CATEGORY_REDIS_KEY = "지출카테고리";
 
     @Override
     @Transactional
@@ -74,20 +85,51 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
+    @Transactional
     public List<ExpenseCategoryDto> getExpenseCategories() {
-        List<ExpenseCategory> expenseCategories = expenseCategoryRepository.findAll();
-
         List<ExpenseCategoryDto> expenseCategoryDtos = new ArrayList<>();
 
-        for (ExpenseCategory expenseCategory : expenseCategories) {
-            ExpenseCategoryDto expenseCategoryDto = ExpenseCategoryDto.toDto(expenseCategory);
+        List<ExpenseCategory> expenseCategories =
+                redisService.getList(EXPENSE_CATEGORY_REDIS_KEY, ExpenseCategory.class);
 
-            List<DetailExpenseCategory> detailExpenseCategories =
-                detailExpenseCategoryRepository.findAllByExpenseCategory(expenseCategory);
+        if (expenseCategories.size() > 0) {
+            for (ExpenseCategory expenseCategory : expenseCategories) {
+                ExpenseCategoryDto expenseCategoryDto =
+                        ExpenseCategoryDto.toDto(expenseCategory);
 
-            expenseCategoryDto.setDetailExpenseCategoryDtos(DetailExpenseCategoryDto.toDtos(detailExpenseCategories));
+                List<DetailExpenseCategory> detailExpenseCategories =
+                        redisService.getList(
+                                EXPENSE_CATEGORY_REDIS_KEY
+                                        + expenseCategory.getExpenseCategoryId(),
+                                DetailExpenseCategory.class);
 
-            expenseCategoryDtos.add(expenseCategoryDto);
+                expenseCategoryDto.setDetailExpenseCategoryDtos(
+                        DetailExpenseCategoryDto.toDtos(detailExpenseCategories));
+
+                expenseCategoryDtos.add(expenseCategoryDto);
+            }
+        } else {
+            expenseCategories = expenseCategoryRepository.findAll();
+
+            redisService.putList(EXPENSE_CATEGORY_REDIS_KEY, expenseCategories);
+
+            for (ExpenseCategory expenseCategory : expenseCategories) {
+                ExpenseCategoryDto expenseCategoryDto = ExpenseCategoryDto.toDto(expenseCategory);
+
+                List<DetailExpenseCategory> detailExpenseCategories =
+                        detailExpenseCategoryRepository
+                                .findAllByExpenseCategory(expenseCategory);
+
+                redisService.putList(
+                        EXPENSE_CATEGORY_REDIS_KEY
+                                + expenseCategory.getExpenseCategoryId(),
+                        detailExpenseCategories);
+
+                expenseCategoryDto.setDetailExpenseCategoryDtos(
+                        DetailExpenseCategoryDto.toDtos(detailExpenseCategories));
+
+                expenseCategoryDtos.add(expenseCategoryDto);
+            }
         }
 
         return expenseCategoryDtos;
@@ -143,59 +185,101 @@ public class ExpenseServiceImpl implements ExpenseService {
         Member member = findMemberByEmail(email);
 
         List<ReportDto> reportDtos
-            = expenseQueryRepository.getMonthlyExpenseReport(member, startDt, endDt);
+                = expenseQueryRepository.getMonthlyExpenseReport(member, startDt, endDt);
 
-        int totalSum;
+        int monthlyExpenseSum = 0;
 
-        if (reportDtos.size() > 0) {
-            totalSum = expenseQueryRepository.getTotalSum(member, startDt, endDt);
+        for (ReportDto reportDto : reportDtos) {
+            monthlyExpenseSum += reportDto.getCategorySum();
+        }
 
-            for (ReportDto reportDto : reportDtos) {
-                reportDto.setCategoryRatio(
-                        Math.round(reportDto.getCategoryRatio()/totalSum*100)/100.0
-                );
-            }
+        for (ReportDto reportDto : reportDtos) {
+            reportDto.setCategoryRatio(
+                    Math.round(reportDto.getCategoryRatio() / monthlyExpenseSum * 100) / 100.0
+            );
         }
 
         return reportDtos;
     }
 
     @Override
-    public List<YearlyExpenseReportDto> getYearlyExpenseReport(String email, LocalDate startDt, LocalDate endDt) {
+    public List<YearlyExpenseReportDto> getYearlyExpenseReport(
+            String email, LocalDate startDt, LocalDate endDt) {
 
         Member member = findMemberByEmail(email);
 
-        LocalDate countDate = startDt;
+        List<YearlyExpenseReportDto> yearlyExpenseReportDtos = new ArrayList<>();
 
-        List<YearlyExpenseReportDto> yearlyReportDtos = new ArrayList<>();
+        List<YearlyReportDto> yearlyReportDtos =
+                expenseQueryRepository.getYearlyExpenseReport(member, startDt, endDt);
 
-        while (countDate.isBefore(endDt)) {
-            List<ReportDto> reportDtos = expenseQueryRepository.getMonthlyExpenseReport(
-                    member, countDate, countDate.plusMonths(1).minusDays(1));
+        HashMap<Integer, Integer> monthlySum = new HashMap<>();
 
-            for (int i = 0; i < reportDtos.size(); i++) {
-                reportDtos.get(i).setCategoryRatio(0);
-            }
-
-            int totalSum = 0;
-
-            for (ReportDto reportDto : reportDtos) {
-                totalSum += reportDto.getCategorySum();
-            }
-
-            YearlyExpenseReportDto yearlyReportDto = YearlyExpenseReportDto.builder()
-                    .year(countDate.getYear())
-                    .month(countDate.getMonthValue())
-                    .monthlySum(totalSum)
-                    .expenseReport(reportDtos)
-                    .build();
-
-            yearlyReportDtos.add(yearlyReportDto);
-
-            countDate = countDate.plusMonths(1);
+        for (YearlyReportDto dto : yearlyReportDtos) {
+            monthlySum.put(dto.getMonth(),
+                    monthlySum.getOrDefault(dto.getMonth(), 0) + dto.getCategorySum()
+            );
         }
 
-        return yearlyReportDtos;
+        int curYear = startDt.getYear();
+        int curMonth = startDt.getMonthValue();
+
+        for (int i = 0; i < 12; i++) {
+            List<ReportDto> reportDtos = new ArrayList<>();
+            for (YearlyReportDto dto : yearlyReportDtos) {
+                if (dto.getMonth() == curMonth) {
+                    reportDtos.add(
+                            ReportDto.builder()
+                                    .category(dto.getCategory())
+                                    .categorySum(dto.getCategorySum())
+                                    .categoryRatio(
+                                            Math.round(
+                                                    (double)dto.getCategorySum()
+                                                    / (double)monthlySum.get(curMonth)
+                                                    * 100 * 100) / 100.00
+                                    ).build()
+                    );
+                }
+            }
+
+            int curSum = 0;
+            if (monthlySum.containsKey(curMonth)) {
+                curSum = monthlySum.get(curMonth);
+            }
+
+            yearlyExpenseReportDtos.add(
+                    YearlyExpenseReportDto.builder()
+                            .year(curYear)
+                            .month(curMonth)
+                            .monthlySum(curSum)
+                            .expenseReport(reportDtos)
+                            .build()
+            );
+
+            curMonth++;
+            if (curMonth > 12) {
+                curMonth = 1;
+                curYear++;
+            }
+        }
+
+        return yearlyExpenseReportDtos;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<CalendarExpenseDto> getMonthlyExpenseCalendar(String email, LocalDate startDt, LocalDate endDt) {
+        Member member = findMemberByEmail(email);
+
+        return expenseQueryRepository.getMonthlyExpenseCalendar(member.getMemberId(), startDt, endDt);
+    }
+
+    @Override
+    public List<DetailExpenseCategoryDto> getDetailExpenseCategory() {
+        List<DetailExpenseCategory> detailExpenseCategoryList
+            = detailExpenseCategoryRepository.findAll();
+
+        return DetailExpenseCategoryDto.toDtos(detailExpenseCategoryList);
     }
 
     private Expense findExpenseByExpenseId(Long expenseId) {

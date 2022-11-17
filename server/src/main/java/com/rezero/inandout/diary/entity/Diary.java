@@ -4,12 +4,8 @@ package com.rezero.inandout.diary.entity;
 import com.rezero.inandout.domain.BaseEntity;
 import com.rezero.inandout.member.entity.Member;
 import java.time.LocalDate;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
+import javax.persistence.*;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -36,5 +32,7 @@ public class Diary extends BaseEntity{
 
     private LocalDate diaryDt;
     private String text;
-    private String diaryPhotoUrl;
+
+    @Column(name = "diary_s3_image_key")
+    private String diaryS3ImageKey;
 }

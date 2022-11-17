@@ -5,6 +5,7 @@ import static com.rezero.inandout.exception.errorcode.IncomeErrorCode.NO_CATEGOR
 import static com.rezero.inandout.exception.errorcode.IncomeErrorCode.NO_INCOME;
 import static com.rezero.inandout.exception.errorcode.IncomeErrorCode.NO_MEMBER;
 
+import com.rezero.inandout.calendar.model.CalendarIncomeDto;
 import com.rezero.inandout.exception.IncomeException;
 import com.rezero.inandout.income.entity.DetailIncomeCategory;
 import com.rezero.inandout.income.entity.Income;
@@ -21,14 +22,18 @@ import com.rezero.inandout.income.repository.IncomeRepository;
 import com.rezero.inandout.income.service.base.IncomeService;
 import com.rezero.inandout.member.entity.Member;
 import com.rezero.inandout.member.repository.MemberRepository;
+import com.rezero.inandout.redis.RedisService;
 import com.rezero.inandout.report.model.ReportDto;
 import com.rezero.inandout.report.model.YearlyIncomeReportDto;
+import com.rezero.inandout.report.model.YearlyReportDto;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -40,6 +45,9 @@ public class IncomeServiceImpl implements IncomeService {
     private final IncomeCategoryRepository incomeCategoryRepository;
     private final DetailIncomeCategoryRepository detailIncomeCategoryRepository;
     private final IncomeQueryRepository incomeQueryRepository;
+    private final RedisService redisService;
+
+    private static final String INCOME_CATEGORY_REDIS_KEY = "수입카테고리";
 
 
     @Override
@@ -78,21 +86,49 @@ public class IncomeServiceImpl implements IncomeService {
     }
 
     @Override
+    @Transactional
     public List<IncomeCategoryDto> getIncomeCategoryList() {
-        List<IncomeCategory> incomeCategoryList = incomeCategoryRepository.findAll();
-
         List<IncomeCategoryDto> incomeCategoryDtoList = new ArrayList<>();
 
-        for (IncomeCategory item : incomeCategoryList) {
-            IncomeCategoryDto incomeCategoryDto = IncomeCategory.toDto(item);
+        List<IncomeCategory> incomeCategoryList =
+                redisService.getList(INCOME_CATEGORY_REDIS_KEY, IncomeCategory.class);
 
-            List<DetailIncomeCategory> detailIncomeCategoryList
-                = detailIncomeCategoryRepository.findAllByIncomeCategory(item);
+        if (incomeCategoryList.size() > 0) {
+            for (IncomeCategory incomeCategory : incomeCategoryList) {
+                IncomeCategoryDto incomeCategoryDto =
+                        IncomeCategory.toDto(incomeCategory);
 
-            incomeCategoryDto.setDetailIncomeCategoryDtoList(
-                DetailIncomeCategory.toDtoList(detailIncomeCategoryList));
+                List<DetailIncomeCategory> detailIncomeCategories =
+                        redisService.getList(
+                                INCOME_CATEGORY_REDIS_KEY
+                                        + incomeCategory.getIncomeCategoryId(),
+                                DetailIncomeCategory.class);
 
-            incomeCategoryDtoList.add(incomeCategoryDto);
+                incomeCategoryDto.setDetailIncomeCategoryDtoList(
+                        DetailIncomeCategory.toDtoList(detailIncomeCategories));
+
+                incomeCategoryDtoList.add(incomeCategoryDto);
+            }
+        } else {
+            incomeCategoryList = incomeCategoryRepository.findAll();
+
+            redisService.putList(INCOME_CATEGORY_REDIS_KEY, incomeCategoryList);
+
+            for (IncomeCategory incomeCategory : incomeCategoryList) {
+                IncomeCategoryDto incomeCategoryDto = IncomeCategory.toDto(incomeCategory);
+
+                List<DetailIncomeCategory> detailIncomeCategoryList
+                        = detailIncomeCategoryRepository.findAllByIncomeCategory(incomeCategory);
+
+                redisService.putList(INCOME_CATEGORY_REDIS_KEY
+                                + incomeCategory.getIncomeCategoryId(),
+                        detailIncomeCategoryList);
+
+                incomeCategoryDto.setDetailIncomeCategoryDtoList(
+                        DetailIncomeCategory.toDtoList(detailIncomeCategoryList));
+
+                incomeCategoryDtoList.add(incomeCategoryDto);
+            }
         }
 
         return incomeCategoryDtoList;
@@ -147,6 +183,7 @@ public class IncomeServiceImpl implements IncomeService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ReportDto> getMonthlyIncomeReport(String email, LocalDate startDt, LocalDate endDt) {
 
         Member member = findMemberByEmail(email);
@@ -154,15 +191,15 @@ public class IncomeServiceImpl implements IncomeService {
         List<ReportDto> reportDtoList
             = incomeQueryRepository.getMonthlyIncomeReport(member.getMemberId(), startDt, endDt);
 
-        if(reportDtoList.size() > 0) {
-            int monthlyIncomeSum
-                = incomeQueryRepository.getMonthlyIncomeSum(member.getMemberId(), startDt, endDt);
+        int monthlyIncomeSum = 0;
+        for (ReportDto item : reportDtoList) {
+            monthlyIncomeSum += item.getCategorySum();
+        }
 
-            for (ReportDto item : reportDtoList) {
-                item.setCategoryRatio(
-                    Math.round(item.getCategoryRatio() / monthlyIncomeSum * 100) / 100.0
-                );
-            }
+        for (ReportDto item : reportDtoList) {
+            item.setCategoryRatio(
+                Math.round(item.getCategoryRatio() / monthlyIncomeSum * 100) / 100.0
+            );
         }
 
         return reportDtoList;
@@ -174,36 +211,67 @@ public class IncomeServiceImpl implements IncomeService {
 
         Member member = findMemberByEmail(email);
 
-        LocalDate countDate = startDt;
-
         List<YearlyIncomeReportDto> yearlyReportDtoList = new ArrayList<>();
 
-        while(countDate.isBefore(endDt)) {
-            List<ReportDto> reportDtoList
-                = getMonthlyIncomeReport(member.getEmail(),
-                countDate, countDate.plusMonths(1).minusDays(1));
+        List<YearlyReportDto> reportYearDtoList
+            = incomeQueryRepository.getYearlyIncomeReport(member.getMemberId(), startDt, endDt);
 
-            int thisSum = 0;
+        HashMap<Integer, Integer> monthlySum = new HashMap<>();
 
-            for (ReportDto item : reportDtoList) {
-                thisSum += item.getCategorySum();
+        for (YearlyReportDto item : reportYearDtoList) {
+            monthlySum.put(item.getMonth(), monthlySum.getOrDefault(
+                item.getMonth(), 0) + item.getCategorySum());
+        }
+
+        int curYear = startDt.getYear();
+        int curMonth = startDt.getMonthValue();
+
+        for (int i = 0; i < 12; i++) {
+            List<ReportDto> reportDtoList = new ArrayList<>();
+            for (YearlyReportDto item : reportYearDtoList) {
+                if (item.getMonth() == curMonth) {
+                    reportDtoList.add(
+                        ReportDto.builder()
+                            .category(item.getCategory())
+                            .categorySum(item.getCategorySum())
+                            .categoryRatio(Math.round(
+                                    ((double)item.getCategorySum()
+                                        / (double)monthlySum.get(curMonth)) * 100 * 100) / 100.00
+                            ).build()
+                    );
+                }
+            }
+
+            int curSum = 0;
+            if(monthlySum.containsKey(curMonth)) {
+                curSum = monthlySum.get(curMonth);
             }
 
             yearlyReportDtoList.add(
                 YearlyIncomeReportDto.builder()
-                    .year(countDate.getYear())
-                    .month(countDate.getMonthValue())
-                    .monthlySum(thisSum)
+                    .year(curYear)
+                    .month(curMonth)
+                    .monthlySum(curSum)
                     .incomeReport(reportDtoList)
                     .build()
             );
 
-            countDate = countDate.plusMonths(1);
+            curMonth++;
+            if(curMonth > 12) {
+                curMonth = 1;
+                curYear++;
+            }
         }
 
         return yearlyReportDtoList;
     }
 
+    @Override
+    public List<CalendarIncomeDto> getMonthlyIncomeCalendar(String email, LocalDate startDt, LocalDate endDt) {
+        Member member = findMemberByEmail(email);
+
+        return incomeQueryRepository.getMonthlyIncomeCalendar(member.getMemberId(), startDt, endDt);
+    }
 
     private DetailIncomeCategory findDetailIncomeCategoryById(Long detailIncomeCategoryId) {
         return detailIncomeCategoryRepository

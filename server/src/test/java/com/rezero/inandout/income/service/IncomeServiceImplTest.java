@@ -7,10 +7,12 @@ import static com.rezero.inandout.exception.errorcode.IncomeErrorCode.NO_MEMBER;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import com.rezero.inandout.calendar.model.CalendarIncomeDto;
 import com.rezero.inandout.exception.IncomeException;
 import com.rezero.inandout.exception.errorcode.IncomeErrorCode;
 import com.rezero.inandout.income.entity.DetailIncomeCategory;
@@ -27,6 +29,7 @@ import com.rezero.inandout.income.repository.IncomeRepository;
 import com.rezero.inandout.income.service.base.impl.IncomeServiceImpl;
 import com.rezero.inandout.member.entity.Member;
 import com.rezero.inandout.member.repository.MemberRepository;
+import com.rezero.inandout.redis.RedisService;
 import com.rezero.inandout.report.model.ReportDto;
 import com.rezero.inandout.report.model.YearlyIncomeReportDto;
 import java.time.LocalDate;
@@ -60,6 +63,9 @@ class IncomeServiceImplTest {
 
     @Mock
     private IncomeQueryRepository incomeQueryRepository;
+
+    @Mock
+    private RedisService redisService;
 
     @InjectMocks
     private IncomeServiceImpl incomeService;
@@ -231,7 +237,7 @@ class IncomeServiceImplTest {
 
 
     @Nested
-    @DisplayName("수입카테고리리스트 가져오기")
+    @DisplayName("수입 카테고리 조회")
     class getIncomeCategoryList {
 
         List<DetailIncomeCategory> detailIncomeCategoryList = Arrays.asList(
@@ -253,9 +259,14 @@ class IncomeServiceImplTest {
             );
 
         @Test
-        @DisplayName("성공")
-        void getIncomeCategoryList_success() {
+        @DisplayName("수입 카테입리 조회 - 성공 : Mysql")
+        void getIncomeCategoryList_success_mysql() {
             //given
+            List<IncomeCategory> redisIncomeCategoryList = new ArrayList<>();
+
+            given(redisService.getList(any(), eq(IncomeCategory.class)))
+                    .willReturn(redisIncomeCategoryList);
+
             given(incomeCategoryRepository.findAll())
                 .willReturn(incomeCategoryList);
 
@@ -269,6 +280,26 @@ class IncomeServiceImplTest {
             assertEquals(incomeCategoryDtoList.get(0).getIncomeCategoryName(), "주수입");
             assertEquals(incomeCategoryDtoList.get(0).getDetailIncomeCategoryDtoList()
                 .get(1).getDetailIncomeCategoryName(), "아르바이트");
+
+        }
+
+        @Test
+        @DisplayName("수입 카테입리 조회 - 성공 : Redis")
+        void getIncomeCategoryList_success_redis() {
+            //given
+            given(redisService.getList(any(), eq(IncomeCategory.class)))
+                    .willReturn(incomeCategoryList);
+
+            given(redisService.getList(any(), eq(DetailIncomeCategory.class)))
+                    .willReturn(detailIncomeCategoryList);
+
+            //when
+            List<IncomeCategoryDto> incomeCategoryDtoList = incomeService.getIncomeCategoryList();
+
+            //then
+            assertEquals(incomeCategoryDtoList.get(0).getIncomeCategoryName(), "주수입");
+            assertEquals(incomeCategoryDtoList.get(0).getDetailIncomeCategoryDtoList()
+                    .get(1).getDetailIncomeCategoryName(), "아르바이트");
 
         }
     }
@@ -710,8 +741,8 @@ class IncomeServiceImplTest {
             );
 
             //then
-            verify(incomeQueryRepository, times(12))
-                .getMonthlyIncomeReport(any(), any(), any());
+            verify(incomeQueryRepository, times(1))
+                .getYearlyIncomeReport(any(), any(), any());
 
             assertEquals(findYearlyReportDto.size(), 12);
             assertEquals(findYearlyReportDto.get(0).getYear(), 2022);
@@ -738,6 +769,66 @@ class IncomeServiceImplTest {
             //then
             assertEquals(exception.getErrorCode(), NO_MEMBER);
         }
+    }
+
+    @Nested
+    @DisplayName("달력 수입 조회 서비스 테스트")
+    class getMonthlyIncomeCalendarMethod {
+
+        Member member = Member.builder()
+            .memberId(1L)
+            .password("1234")
+            .email("test@naver.com")
+            .build();
+
+        List<CalendarIncomeDto> calendarIncomeDtoList = new ArrayList<>(Arrays.asList(
+            CalendarIncomeDto.builder().incomeDt(LocalDate.of(2022, 10, 2))
+                .item("수입1").amount(123456).build(),
+            CalendarIncomeDto.builder().incomeDt(LocalDate.of(2022, 10, 28))
+                .item("수입2").amount(54321).build()
+        ));
+
+        @Test
+        @DisplayName("성공")
+        void getMonthlyIncomeCalendar_success() {
+            //given
+            given(memberRepository.findByEmail(any()))
+                .willReturn(Optional.of(member));
+
+            given(incomeQueryRepository.getMonthlyIncomeCalendar(any(), any(), any()))
+                .willReturn(calendarIncomeDtoList);
+
+            //when
+            List<CalendarIncomeDto> getMonthlyIncomeCalendar
+                = incomeService.getMonthlyIncomeCalendar("test@naver.com",
+                LocalDate.of(2022, 10, 1),
+                LocalDate.of(2022, 10, 31));
+
+            //then
+            verify(incomeQueryRepository, times(1))
+                .getMonthlyIncomeCalendar(any(), any(), any());
+            assertEquals(getMonthlyIncomeCalendar.get(0).getItem(),
+                        calendarIncomeDtoList.get(0).getItem());
+        }
+
+        @Test
+        @DisplayName("실패 - 맴버 없음")
+        void getMonthlyIncomeCalendar_no_member() {
+            //given
+            given(memberRepository.findByEmail(any()))
+                .willReturn(Optional.empty());
+
+            //when
+            IncomeException exception = assertThrows(IncomeException.class,
+                () -> incomeService.getMonthlyIncomeCalendar("test@naver.com",
+                    LocalDate.of(2022, 10, 1),
+                    LocalDate.of(2022, 10, 31))
+            );
+
+            //then
+            assertEquals(exception.getErrorCode(), NO_MEMBER);
+        }
+
     }
 
 }

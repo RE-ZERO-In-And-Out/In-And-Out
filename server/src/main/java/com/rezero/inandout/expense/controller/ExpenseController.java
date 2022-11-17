@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.format.annotation.DateTimeFormat.ISO;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -20,6 +21,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
+@Validated
 @RequestMapping("/api/expense")
 public class ExpenseController {
 
@@ -29,9 +31,9 @@ public class ExpenseController {
     @PostMapping
     @ApiOperation(value = "지출내역 저장(수정) API",
     notes = "지출내역 목록을 통해 저장과 수정을 할 수 있다.")
-    public ResponseEntity<?> writeExpense(Principal principal,
+    public ResponseEntity<String> writeExpense(Principal principal,
             @ApiParam(value = "지출내역 목록 (저장은 expenseId 빼고 하면 됨)")
-            @Valid @RequestBody List<ExpenseInput> inputs) {
+            @RequestBody @Valid List<ExpenseInput> inputs) {
 
         expenseTableService.addAndUpdateExpense(principal.getName(), inputs);
 
@@ -41,7 +43,7 @@ public class ExpenseController {
     @GetMapping
     @ApiOperation(value = "지출내역 목록 API",
     notes = "시작 날짜와 끝 날짜를 통해 지출내역 목록을 볼 수 있다.")
-    public ResponseEntity<?> getExpense(Principal principal,
+    public ResponseEntity<CategoryAndExpenseDto> getExpense(Principal principal,
         @ApiParam(value = "조회 시작 날짜", example = "2022-01-01")
         @RequestParam @DateTimeFormat(iso = ISO.DATE) LocalDate startDt,
         @ApiParam(value = "조회 끝 날짜", example = "2022-01-01")
@@ -57,9 +59,9 @@ public class ExpenseController {
     @DeleteMapping
     @ApiOperation(value = "지출내역 삭제 API",
     notes = "지출내역 Id 목록을 통해 지출내역 목록을 삭제할 수 있다.")
-    public ResponseEntity<?> deleteExpense(Principal principal,
+    public ResponseEntity<String> deleteExpense(Principal principal,
         @ApiParam(value = "지출내역 Id 목록")
-        @RequestBody List<DeleteExpenseInput> inputs) {
+        @RequestBody @Valid List<DeleteExpenseInput> inputs) {
 
         expenseService.deleteExpense(principal.getName(), inputs);
         return ResponseEntity.ok("지출이 정상적으로 삭제되었습니다.");

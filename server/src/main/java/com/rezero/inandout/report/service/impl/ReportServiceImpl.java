@@ -1,11 +1,8 @@
 package com.rezero.inandout.report.service.impl;
 
 
-import com.rezero.inandout.expense.repository.ExpenseQueryRepository;
-import com.rezero.inandout.expense.service.base.ExpenseService;
-import com.rezero.inandout.income.repository.IncomeQueryRepository;
+import com.rezero.inandout.expense.service.base.impl.ExpenseServiceImpl;
 import com.rezero.inandout.income.service.base.impl.IncomeServiceImpl;
-import com.rezero.inandout.member.repository.MemberRepository;
 import com.rezero.inandout.report.model.ReportDto;
 import com.rezero.inandout.report.model.YearlyExpenseReportDto;
 import com.rezero.inandout.report.model.YearlyIncomeReportDto;
@@ -15,11 +12,12 @@ import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 public class ReportServiceImpl implements ReportService {
-    private final ExpenseService expenseService;
+    private final ExpenseServiceImpl expenseService;
     private final IncomeServiceImpl incomeService;
 
     @Override
@@ -43,6 +41,7 @@ public class ReportServiceImpl implements ReportService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public YearlyTotalReportDto getYearlyTotalReport(String email, LocalDate startDt, LocalDate endDt) {
 
         return YearlyTotalReportDto.builder()

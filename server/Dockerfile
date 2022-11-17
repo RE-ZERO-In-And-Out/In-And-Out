@@ -8,4 +8,4 @@ FROM openjdk:8-jre
 COPY build/libs/inandout-*.jar app.jar
 
 ### 컨테이너 시작시 실행할 스크립트
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-Dcom.amazonaws.sdk.disableEc2Metadata=true", "-jar", "app.jar"]

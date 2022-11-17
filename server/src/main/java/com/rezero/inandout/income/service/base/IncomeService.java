@@ -1,6 +1,7 @@
 package com.rezero.inandout.income.service.base;
 
 
+import com.rezero.inandout.calendar.model.CalendarIncomeDto;
 import com.rezero.inandout.income.model.DeleteIncomeInput;
 import com.rezero.inandout.income.model.DetailIncomeCategoryDto;
 import com.rezero.inandout.income.model.IncomeCategoryDto;
@@ -23,5 +24,8 @@ public interface IncomeService {
 
     List<ReportDto> getMonthlyIncomeReport(String email, LocalDate startDt, LocalDate endDt);
     List<YearlyIncomeReportDto> getYearlyIncomeReport(String email, LocalDate startDt, LocalDate endDt);
+
+
+    List<CalendarIncomeDto> getMonthlyIncomeCalendar(String email, LocalDate startDt, LocalDate endDt);
 
 }
