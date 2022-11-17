@@ -94,7 +94,10 @@
 <details>
 <summary> 이태희 </summary>
 
-1. 
+1. 일기
+2. 달력
+3. api formData 통신
+4. 스타일링 
 </details>
 <details>
 <summary> 김찬주 </summary>
