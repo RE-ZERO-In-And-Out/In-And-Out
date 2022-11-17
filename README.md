@@ -40,10 +40,9 @@
 2. 수입/지출
    (영상)
 3. 월간/연간 보고서
-   <details>
-   <summary>영상</summary>
+<div>
    <img src="https://user-images.githubusercontent.com/70008599/202196778-b4a1a90a-c3b7-4e67-93fd-8294d254babb.gif"/>
-   </details>
+</div>
 
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
 
