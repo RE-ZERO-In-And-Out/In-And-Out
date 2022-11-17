@@ -114,7 +114,10 @@
 
 <details>
 <summary> API 명세서 </summary>
-  <embed type="application/pdf" data="https://github.com/RE-ZERO-In-And-Out/In-And-Out/files/10013268/api.pdf" width="500" height="500"/>
+  <img src="https://user-images.githubusercontent.com/27846824/202340046-95c1c07f-2548-4350-b297-7c1e173d9001.jpg"/>
+  <img src="https://user-images.githubusercontent.com/27846824/202340051-9e281588-5ae2-45ab-891f-c0b83da78499.jpg"/>
+  <img src="https://user-images.githubusercontent.com/27846824/202340053-e8afa899-0324-40c8-8249-64e8cb0efba9.jpg"/>
+  <img src="https://user-images.githubusercontent.com/27846824/202340057-02a43df8-fcf7-4857-ae35-080c6ac3d335.jpg"/>
   
 </details>
 
