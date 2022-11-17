@@ -101,8 +101,18 @@
 </details>
 <details>
 <summary> 김찬주 </summary>
+1. 회원가입 및 정보 수정
+- react-hook-form + yup을 사용한 입력 정보 유효성 검사 
 
-1. 
+2. 수입/지출
+- react-data-grid를 사용한 수입/지출 및 보고서 표 작성 및 드롭다운 메뉴 커스터마이징
+
+3. 보고서
+- chart.js를 사용한 월간/연간 보고서 작성 및 그래프 커스터마이징
+
+4. 기타
+- react query를 사용한 빠른 서버 데이터 변경 반영 및 오래된 데이터 자동 업데이트
+-  Material 디자인 적용
 </details>
 
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
