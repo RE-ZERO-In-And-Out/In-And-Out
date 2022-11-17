@@ -299,6 +299,8 @@ export default function Inout() {
       month: getMonth(currentMonth),
       year: getYear(currentMonth),
       key: Math.floor(Math.random() * 1000),
+      rowNum: rows.length,
+      totalRow: rows.length,
     };
 
     const newExpenseData = {
@@ -311,6 +313,8 @@ export default function Inout() {
       month: getMonth(currentMonth),
       year: getYear(currentMonth),
       key: Math.floor(Math.random() * 1000),
+      rowNum: rows.length,
+      totalRow: rows.length,
     };
     let newData =
       tabValue === TabSelected.INCOME ? newIncomeData : newExpenseData;
