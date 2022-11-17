@@ -1,0 +1,371 @@
+{
+  "calendar": [
+    {
+      "id": 2,
+      "diary_id": 2,
+      "date": "09/05/22",
+      "dailyIncomeList": [
+        {
+          "income_item": "월급",
+          "income_amount": 10000
+        },
+        {
+          "income_item": "월급",
+          "income_amount": 10000
+        },
+        {
+          "income_item": "월급",
+          "income_amount": 10000
+        }
+      ],
+      "dailyExpenseList": [
+        {
+          "expense_item": "사과",
+          "expense_amount": 10000
+        },
+        {
+          "expense_item": "사과",
+          "expense_amount": 10000
+        },
+        {
+          "expense_item": "사과",
+          "expense_amount": 10000
+        }
+      ],
+      "diary": {
+        "text": "ㄴㄴ",
+        "diary_photo_url": ""
+      }
+    },
+    {
+      "id": 3,
+      "diary_id": 3,
+      "date": "10/22/22",
+      "dailyIncomeList": [
+        {
+          "income_item": "월급",
+          "income_amount": 10000
+        },
+        {
+          "income_item": "월급",
+          "income_amount": 10000
+        },
+        {
+          "income_item": "월급",
+          "income_amount": 10000
+        }
+      ],
+      "dailyExpenseList": [
+        {
+          "expense_item": "사과",
+          "expense_amount": 10000
+        },
+        {
+          "expense_item": "사과",
+          "expense_amount": 10000
+        },
+        {
+          "expense_item": "사과",
+          "expense_amount": 10000
+        }
+      ],
+      "diary": {
+        "text": "아아아아아악",
+        "diary_photo_url": ""
+      }
+    },
+    {
+      "id": 12,
+      "diary_id": 12,
+      "date": "10/29/22",
+      "dailyIncomeList": [],
+      "dailyExpenseList": [],
+      "diary": {
+        "text": "111",
+        "diary_photo_url": ""
+      }
+    },
+    {
+      "id": 83,
+      "diary_id": 83,
+      "date": "10/28/22",
+      "dailyIncomeList": [],
+      "dailyExpenseList": [],
+      "diary": {
+        "text": "123",
+        "diary_photo_url": ""
+      }
+    },
+    {
+      "id": 17,
+      "diary_id": 17,
+      "date": "09/01/22",
+      "dailyIncomeList": [],
+      "dailyExpenseList": [],
+      "diary": {
+        "text": "ㅅㅅㅅ",
+        "diary_photo_url": ""
+      }
+    },
+    {
+      "id": 49,
+      "diary_id": 49,
+      "date": "09/02/22",
+      "dailyIncomeList": [],
+      "dailyExpenseList": [],
+      "diary": {
+        "text": "",
+        "diary_photo_url": ""
+      }
+    },
+    {
+      "id": 69,
+      "diary_id": 69,
+      "date": "09/09/22",
+      "dailyIncomeList": [],
+      "dailyExpenseList": [],
+      "diary": {
+        "text": "",
+        "diary_photo_url": ""
+      }
+    },
+    {
+      "id": 61,
+      "diary_id": 61,
+      "date": "09/03/22",
+      "dailyIncomeList": [],
+      "dailyExpenseList": [],
+      "diary": {
+        "text": "",
+        "diary_photo_url": ""
+      }
+    },
+    {
+      "id": 5,
+      "diary_id": 5,
+      "date": "09/08/22",
+      "dailyIncomeList": [],
+      "dailyExpenseList": [],
+      "diary": {
+        "text": "",
+        "diary_photo_url": ""
+      }
+    },
+    {
+      "id": 29,
+      "diary_id": 29,
+      "date": "09/07/22",
+      "dailyIncomeList": [],
+      "dailyExpenseList": [],
+      "diary": {
+        "text": "",
+        "diary_photo_url": ""
+      }
+    },
+    {
+      "id": 82,
+      "diary_id": 82,
+      "date": "10/21/22",
+      "dailyIncomeList": [],
+      "dailyExpenseList": [],
+      "diary": {
+        "text": "22",
+        "diary_photo_url": ""
+      }
+    },
+    {
+      "id": 72,
+      "diary_id": 72,
+      "date": "11/05/22",
+      "dailyIncomeList": [],
+      "dailyExpenseList": [],
+      "diary": {
+        "text": "oo",
+        "diary_photo_url": [
+          {
+            "uploadedFile": {}
+          }
+        ]
+      }
+    },
+    {
+      "id": 16,
+      "diary_id": 16,
+      "date": "11/03/22",
+      "dailyIncomeList": [],
+      "dailyExpenseList": [],
+      "diary": {
+        "text": "o",
+        "diary_photo_url": {}
+      }
+    }
+  ],
+  "report": {
+    "income": [
+      {
+        "category": "수입1",
+        "category_sum": 500000,
+        "category_ratio": 0.5
+      },
+      {
+        "category": "수입2",
+        "category_sum": 200000,
+        "category_ratio": 0.2
+      },
+      {
+        "category": "수입3",
+        "category_sum": 300000,
+        "category_ratio": 0.3
+      }
+    ],
+    "expense": [
+      {
+        "category": "지출1",
+        "category_sum": 500000,
+        "category_ratio": 0.5
+      },
+      {
+        "category": "지출2",
+        "category_sum": 200000,
+        "category_ratio": 0.2
+      },
+      {
+        "category": "지출3",
+        "category_sum": 300000,
+        "category_ratio": 0.3
+      }
+    ]
+  },
+  "income": {
+    "income": [
+      {
+        "incomeId": 1,
+        "incomeDate": "12/12/22",
+        "incomeItem": "월급",
+        "incomeCategoryName": "월급",
+        "incomeAmount": 20000,
+        "incomeMemo": "good",
+        "date": "12/12/22",
+        "category": "월급"
+      },
+      {
+        "incomeId": 2,
+        "incomeDate": "12/12/22",
+        "incomeItem": "월급",
+        "incomeCategoryName": "월급",
+        "incomeAmount": 20000,
+        "incomeMemo": "good",
+        "date": "12/12/22",
+        "category": "월급"
+      },
+      {
+        "incomeId": 3,
+        "incomeDate": "12/12/22",
+        "incomeItem": "월급",
+        "incomeCategoryName": "월급",
+        "incomeAmount": "111",
+        "incomeMemo": "good",
+        "date": "12/12/22",
+        "category": "월급"
+      },
+      {
+        "incomeId": 5,
+        "incomeDate": "",
+        "incomeItem": "122",
+        "incomeCategoryName": "",
+        "incomeAmount": "111",
+        "incomeMemo": "111",
+        "date": "9/28/2022",
+        "category": "교통비"
+      },
+      {
+        "incomeId": 7,
+        "incomeDate": "",
+        "incomeCategoryName": "",
+        "incomeItem": "",
+        "incomeAmount": "222",
+        "incomeMemo": "",
+        "date": "9/27/2022",
+        "category": ""
+      },
+      {
+        "incomeId": 8,
+        "incomeDate": "",
+        "incomeItem": "월급",
+        "incomeAmount": "3333",
+        "incomeCategoryName": "",
+        "incomeMemo": "111",
+        "date": "11/26/22",
+        "category": "교통비"
+      },
+      {
+        "incomeId": 9,
+        "incomeDate": "",
+        "incomeItem": "",
+        "incomeAmount": "",
+        "incomeCategoryName": "",
+        "incomeMemo": ""
+      }
+    ]
+  },
+  "expense": {
+    "expense": [
+      {
+        "expenseId": 1,
+        "expenseDate": "11/12/22",
+        "expenseItem": "사과",
+        "expenseCash": 10000,
+        "expenseCard": 50000,
+        "expenseCategoryName": "음식",
+        "expenseMemo": "good",
+        "date": "11/12/22",
+        "category": "음식"
+      },
+      {
+        "expenseId": 2,
+        "expenseDate": "11/12/22",
+        "expenseItem": "사과",
+        "expenseCash": 10000,
+        "expenseCard": 50000,
+        "expenseCategoryName": "음식",
+        "expenseMemo": "good",
+        "date": "11/12/22",
+        "category": "음식"
+      },
+      {
+        "expenseId": 3,
+        "expenseDate": "11/12/22",
+        "expenseItem": "사과",
+        "expenseCash": 10000,
+        "expenseCard": 50000,
+        "expenseCategoryName": "음식",
+        "expenseMemo": "good",
+        "date": "11/12/22",
+        "category": "음식"
+      },
+      {
+        "expenseId": 5,
+        "expenseDate": "",
+        "expenseItem": "",
+        "expenseCash": "",
+        "expenseCard": "1111",
+        "expenseCategoryName": "",
+        "expenseMemo": ""
+      },
+      {
+        "expenseId": 6,
+        "expenseDate": "",
+        "expenseItem": "",
+        "expenseCash": "",
+        "expenseCard": "222",
+        "expenseCategoryName": "",
+        "expenseMemo": ""
+      }
+    ]
+  },
+  "temp": [
+    {
+      "uploadedFile": null
+    }
+  ]
+}

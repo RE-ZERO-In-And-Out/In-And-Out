@@ -1,0 +1,48 @@
+{
+  "posts": [
+    {
+      "id": 1,
+      "title": "json-server",
+      "author": "typicode"
+    }
+  ],
+  "comments": [
+    {
+      "id": 1,
+      "body": "some comment",
+      "postId": 1
+    }
+  ],
+  "profile": {
+    "name": "typicode"
+  },
+  "users": [
+    {
+      "id": "inandout1234@gmail.com",
+      "password": "@@zero12",
+      "nickname": "인앤아웃",
+      "phoneNumber": "010-1010-1010",
+      "birthdate": "1999-05-17",
+      "residence": "미국",
+      "gender": "여자"
+    },
+    {
+      "id": "rezero1234@gmail.com",
+      "password": "@@zero12",
+      "nickname": "리제로",
+      "phoneNumber": "010-2020-2020",
+      "birthdate": "1995-06-18",
+      "residence": "일본",
+      "gender": "남자"
+    },
+    {
+      "id": "zero@gmail.com",
+      "password": "@@zero12",
+      "nickname": "wpwp",
+      "phoneNumber": "010-0011-2222",
+      "birthdate": "1990-01-01",
+      "residence": "한국",
+      "gender": "male"
+    }
+  ]
+}
