@@ -50,12 +50,23 @@
 ### 사용한 기술 및 배포 환경
 
 #### Frontend
-
+<div style="display: flex">
+  <img src="https://img.shields.io/badge/Create React App-09D3AC?style=flat&logo=Create React App&logoColor=white" />
   <img src="https://img.shields.io/badge/React-61DAFB?style=flat&logo=React&logoColor=white" />
+  <img src="https://img.shields.io/badge/Material Design-757575?style=flat&logo=Material Design&logoColor=white" />
+  <img src="https://img.shields.io/badge/React Query-FF4154?style=flat&logo=React Query&logoColor=white" />
+  <img src="https://img.shields.io/badge/Styled Components-DB7093?style=flat&logo=styled-components&logoColor=white" />
+  <img src="https://img.shields.io/badge/Zustand-0078D7?style=flat&logo=Zulip&logoColor=white" />
+  <img src="https://img.shields.io/badge/React Hook Form-EC5990?style=flat&logo=FormStack&logoColor=white" />
+  <img src="https://img.shields.io/badge/Chart.js-FF6384?style=flat&logo=Chart.js&logoColor=white" />
+  <img src="https://img.shields.io/badge/React Router-CA4245?style=flat&logo=React Router&logoColor=white" />
+  <img src="https://img.shields.io/badge/Amazon EC2-FF9900?style=flat&logo=Amazon EC2&logoColor=white" />
+</div>
 
 #### Backend
-
+<div style="display: flex">
   <img src="https://img.shields.io/badge/Spring Boot-6DB33F?style=flat&logo=Spring Boot&logoColor=white" />
+</div>
 
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
 
@@ -123,7 +134,7 @@
 
 ```javascript
 npm install -f
-(Material ui library가 react 18 버전과 dependency 문제가 있음 )
+(Material ui library가 react 18 버전과 dependency 문제가 있어서 -f 옵션 필요 )
 ```
 
 2. ./client 폴더로 이동해 프로젝트를 실행한다
