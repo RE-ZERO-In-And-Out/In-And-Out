@@ -91,6 +91,7 @@ public class MemberServiceImpl extends DefaultOAuth2UserService implements Membe
         }
 
         Member member = optionalMember.get();
+        validateMemberStatus(member);
         return new PrincipalDetails(member);
     }
 
@@ -128,12 +129,8 @@ public class MemberServiceImpl extends DefaultOAuth2UserService implements Membe
     public void login(LoginMemberInput input) {
 
         UserDetails userDetails = loadUserByUsername(input.getEmail());
-        Optional<Member> optionalMember = memberRepository.findByEmail(input.getEmail());
-        Member member = optionalMember.get();
 
-        validateMemberStatus(member);
-
-        if (!bCryptPasswordEncoder.matches(input.getPassword(), member.getPassword())) {
+        if (!bCryptPasswordEncoder.matches(input.getPassword(), userDetails.getPassword())) {
             throw new MemberException(PASSWORD_NOT_MATCH);
         }
 
@@ -142,7 +139,6 @@ public class MemberServiceImpl extends DefaultOAuth2UserService implements Membe
         SecurityContextHolder.getContext().setAuthentication(token);
 
         log.info("[Member Login] member: " + input.getEmail());
-
     }
 
 
@@ -150,7 +146,8 @@ public class MemberServiceImpl extends DefaultOAuth2UserService implements Membe
     public void logout() {
 
         if (SecurityContextHolder.getContext().getAuthentication() == null
-            || SecurityContextHolder.getContext().getAuthentication().getName().equals("anonymousUser") ) {
+            || SecurityContextHolder.getContext().getAuthentication().getName()
+            .equals("anonymousUser")) {
             throw new MemberException(CANNOT_LOGOUT);
         }
 
