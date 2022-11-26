@@ -33,6 +33,13 @@
 
 ![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
 
+### 프로젝트 구조
+
+![structure-final](https://user-images.githubusercontent.com/98104603/204092433-41a98f24-cdc7-4240-b217-25c119252a7c.png)
+
+
+![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png)
+
 ### 핵심 기능
 
 1. 달력
