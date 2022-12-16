@@ -1,25 +1,6 @@
 import { useRef, useState, useEffect } from "react";
-import ChartCanvas from "./ChartCanvas";
-
 import "react-data-grid/lib/styles.css";
-import DataGrid from "react-data-grid";
-import DateHeader from "../common/DateHeader";
-
-import Tabs from "@mui/material/Tabs";
-import Tab from "@mui/material/Tab";
-import Box from "@mui/material/Box";
 import Grid from "@mui/material/Unstable_Grid2/Grid2";
-import InputLabel from "@mui/material/InputLabel";
-import MenuItem from "@mui/material/MenuItem";
-import FormControl from "@mui/material/FormControl";
-import Select from "@mui/material/Select";
-import Button from "@mui/material/Button";
-import Stack from "@mui/material/Stack";
-
-import TabPanel from "./TabPanel";
-import RadioButton from "./RadioButton";
-import DatePicker from "react-datepicker";
-import { ko } from "date-fns/esm/locale";
 
 import {
   addMonths,
@@ -30,6 +11,8 @@ import {
   format,
 } from "date-fns";
 
+import ReportTab from "./ReportTab";
+
 import axios from "axios";
 
 import { useQuery } from "react-query";
@@ -39,96 +22,18 @@ import {
   doughnutConfig,
   barConfig,
   lineConfig,
-} from "../../utils/graphOptions";
+} from "../../../utils/graphOptions";
 
+import ReportMonthTabPanel from "./ReportMonthTabPanel";
+import ReportYearTabPanel from "./ReportYearTabPanel";
 import {
-  Chart,
-  BarElement,
-  BarController,
-  CategoryScale,
-  LinearScale,
-  Title,
-  Legend,
-  DoughnutController,
-  ArcElement,
-  PieController,
-  LineController,
-  PointElement,
-  LineElement,
-} from "chart.js";
-import ChartDataLabels from "chartjs-plugin-datalabels";
-
-Chart.register(
-  BarElement,
-  BarController,
-  CategoryScale,
-  LinearScale,
-  Title,
-  Legend,
-  DoughnutController,
-  ArcElement,
-  PieController,
-  ChartDataLabels,
-  LineController,
-  PointElement,
-  LineElement
-);
-
-const drawChart = (ctx, config) => {
-  return new Chart(ctx, config);
-};
-
-const graphTypeOptions = [
-  { value: "bar", label: "막대형" },
-  { value: "doughnut", label: "파이형" },
-];
-const yearlyOptions = [
-  { value: "table", label: "표" },
-  { value: "chart", label: "그래프" },
-];
-const costOptions = [
-  { value: "income", label: "수입" },
-  { value: "expense", label: "지출" },
-];
-
-const months = [
-  "jan",
-  "feb",
-  "mar",
-  "apr",
-  "may",
-  "jun",
-  "jul",
-  "aug",
-  "sep",
-  "oct",
-  "nov",
-  "dec",
-];
-
-let columns = [
-  { key: "category", name: "내용", width: 200 },
-  { key: "jan", name: "1월" },
-  { key: "feb", name: "2월" },
-  { key: "mar", name: "3월" },
-  { key: "apr", name: "4월" },
-  { key: "may", name: "5월" },
-  { key: "jun", name: "6월" },
-  { key: "jul", name: "7월" },
-  { key: "aug", name: "8월" },
-  { key: "sep", name: "9월" },
-  { key: "oct", name: "10월" },
-  { key: "nov", name: "11월" },
-  { key: "dec", name: "12월" },
-  { key: "sum", name: "합계" },
-];
-
-function a11yProps(index) {
-  return {
-    id: `simple-tab-${index}`,
-    "aria-controls": `simple-tabpanel-${index}`,
-  };
-}
+  drawChart,
+  columns,
+  months,
+  graphTypeOptions,
+  yearlyOptions,
+  costOptions,
+} from "../../../utils/reportUtil";
 
 const TabSelected = Object.freeze({
   MONTH: 0,
@@ -136,8 +41,19 @@ const TabSelected = Object.freeze({
 });
 
 let currentMonth = new Date();
-
 let categoryRows = [];
+
+const setYearGraphDropdownCategoryData = (selectedCategory) => {
+  let newData = [];
+  categoryRows.forEach((row) => {
+    if (row.category === selectedCategory) {
+      newData = Object.entries(row)
+        .slice(1, 13)
+        .map((entry) => entry[1]);
+      lineConfig.data.datasets[0].data = newData;
+    }
+  });
+};
 
 export default function Report() {
   const canvasRef = useRef(null);
@@ -152,60 +68,8 @@ export default function Report() {
   const [startMonth, setStartMonth] = useState(new Date());
 
   const handleDropdownCategoryChange = (event) => {
-    let newData = [];
-    categoryRows.forEach((row) => {
-      if (row.category === event.target.value) {
-        newData = Object.entries(row)
-          .slice(1, 13)
-          .map((entry) => entry[1]);
-        lineConfig.data.datasets[0].data = newData;
-      }
-    });
-
+    setYearGraphDropdownCategoryData(event.target.value);
     setCategory(event.target.value);
-  };
-
-  const downloadToExcel = async (type) => {
-    let url = "";
-    switch (type) {
-      case "income":
-      case "expense":
-        url = `${process.env.REACT_APP_API_URL}/api/excel/${type}?startDt=${params.startDt}&endDt=${params.endDt}`;
-        break;
-      case "year":
-        url = `${process.env.REACT_APP_API_URL}/api/excel/${type}?startDt=${params.startDt}`;
-        break;
-      default:
-        break;
-    }
-
-    try {
-      const obj = {
-        yearlyExcelDtoList: rows,
-      };
-      await axios(url, {
-        method: type === "year" ? "POST" : "GET",
-        data: type === "year" ? obj.yearlyExcelDtoList : {},
-        responseType: "blob", // important
-        withCredentials: true,
-      }).then((response) => {
-        console.log(response);
-        const url = window.URL.createObjectURL(
-          new Blob([response.data], { type: response.headers["content-type"] })
-        );
-        const link = document.createElement("a");
-        link.href = url;
-        link.setAttribute(
-          "download",
-          `${type}-report-${params.startDt}-${params.endDt}.xlsx`
-        );
-        document.body.appendChild(link);
-        link.click();
-        return response;
-      });
-    } catch (err) {
-      console.log(err.response.data);
-    }
   };
 
   const setParamAndRefetch = () => {
@@ -530,137 +394,34 @@ export default function Report() {
 
   return (
     <Grid container spacing={0}>
-      <Grid xs={12}>
-        <Box sx={{ width: "100%" }}>
-          <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-            <Tabs
-              value={tabValue}
-              onChange={handleTabChange}
-              aria-label="periodic report"
-            >
-              <Tab label="월간 보고서" {...a11yProps(0)} />
-              <Tab label="연간 보고서" {...a11yProps(1)} />
-            </Tabs>
-          </Box>
-        </Box>
-      </Grid>
+      <ReportTab tabValue={tabValue} handleTabChange={handleTabChange} />
+      <ReportMonthTabPanel
+        tabValue={tabValue}
+        graphTypeOptions={graphTypeOptions}
+        graphTypeOption={graphTypeOption}
+        costOptions={costOptions}
+        costOption={costOption}
+        handleCheckboxChange={handleCheckboxChange}
+        currentMonth={currentMonth}
+        prevMonth={prevMonth}
+        nextMonth={nextMonth}
+        canvasRef={canvasRef}
+      />
 
-      <TabPanel value={tabValue} index={0}>
-        <Grid display="flex" justifyContent="flex-end" sx={{ mb: 5, mt: -5 }}>
-          <RadioButton
-            legend={"차트"}
-            buttonOptions={graphTypeOptions}
-            checkedOption={graphTypeOption}
-            buttonName={"monthly"}
-            labelPlacement={"end"}
-            handleChange={handleCheckboxChange}
-          />
-
-          <RadioButton
-            legend={"항목"}
-            buttonOptions={costOptions}
-            checkedOption={costOption}
-            buttonName={"cost"}
-            labelPlacement={"end"}
-            handleChange={handleCheckboxChange}
-          />
-        </Grid>
-        <DateHeader
-          type={"month"}
-          currentTime={currentMonth}
-          prev={prevMonth}
-          next={nextMonth}
-        />
-        <ChartCanvas width={1000} height={500} ref={canvasRef} />
-        <Box
-          sx={{
-            mt: 10,
-            display: "flex",
-            width: "100%",
-            justifyContent: "flex-end",
-          }}
-        >
-          {costOption === "income" && (
-            <Button onClick={() => downloadToExcel("income")}>
-              엑셀 다운로드 (수입)
-            </Button>
-          )}
-          {costOption === "expense" && (
-            <Button onClick={() => downloadToExcel("expense")}>
-              엑셀 다운로드 (지출)
-            </Button>
-          )}
-        </Box>
-      </TabPanel>
-
-      <TabPanel value={tabValue} index={1}>
-        <Grid
-          display="flex"
-          justifyContent="flex-end"
-          sx={{ mb: 5, mt: -5 }}
-          alignItems="baseline"
-        >
-          <RadioButton
-            legend={"형식"}
-            buttonOptions={yearlyOptions}
-            checkedOption={yearlyOption}
-            buttonName={"yearly"}
-            labelPlacement={"end"}
-            handleChange={handleCheckboxChange}
-          />
-        </Grid>
-        <DatePicker
-          locale={ko}
-          selected={startMonth}
-          onChange={(date) => setStartMonth(date)}
-          dateFormat="MM/yyyy"
-          showMonthYearPicker
-        />
-        <DateHeader
-          type={"year"}
-          currentTime={startMonth}
-          prev={setStartMonth}
-          next={setStartMonth}
-        />
-        {yearlyOption === "table" && (
-          <div>
-            <DataGrid columns={columns} rows={rows} height={500} />
-            <Stack direction="row" spacing={2}>
-              <Button onClick={() => downloadToExcel("year")}>
-                엑셀 다운로드 (연간 보고서)
-              </Button>
-            </Stack>
-          </div>
-        )}
-        {yearlyOption === "chart" && (
-          <>
-            <span>
-              <FormControl sx={{ ml: 70, minWidth: 120 }}>
-                <InputLabel id="category-select-label">카테고리</InputLabel>
-                <Select
-                  labelId="category-select-label"
-                  id="category-select"
-                  value={category}
-                  label="Age"
-                  autoWidth
-                  onChange={handleDropdownCategoryChange}
-                >
-                  {categoryRows.map((row) => {
-                    return (
-                      <MenuItem key={row.category} value={row.category}>
-                        {row.category}
-                      </MenuItem>
-                    );
-                  })}
-                </Select>
-              </FormControl>
-            </span>
-            <div>
-              <ChartCanvas width={1000} height={500} ref={canvasRef} />
-            </div>
-          </>
-        )}
-      </TabPanel>
+      <ReportYearTabPanel
+        tabValue={tabValue}
+        yearlyOptions={yearlyOptions}
+        yearlyOption={yearlyOption}
+        handleCheckboxChange={handleCheckboxChange}
+        startMonth={startMonth}
+        setStartMonth={setStartMonth}
+        columns={columns}
+        rows={rows}
+        categoryRows={categoryRows}
+        category={category}
+        canvasRef={canvasRef}
+        handleDropdownCategoryChange={handleDropdownCategoryChange}
+      />
     </Grid>
   );
 }

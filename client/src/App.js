@@ -9,7 +9,7 @@ import RecoverInitiate from "./components/login/RecoverInitiate";
 import Calendar from "./components/main/Calendar";
 import styled from "styled-components";
 import Inout from "./components/main/Inout";
-import Report from "./components/main/Report";
+import Report from "./components/main/Report/Report";
 import Error from "./components/Error";
 import Layout from "./components/common/Layout";
 import Screen from "./components/common/Screen";
