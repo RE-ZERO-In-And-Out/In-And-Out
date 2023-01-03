@@ -17,47 +17,7 @@ import RadioButton from "../RadioButton";
 import DateHeader from "../../common/DateHeader";
 import DatePicker from "react-datepicker";
 import { ko } from "date-fns/esm/locale";
-import axios from "axios";
-
-const downloadToExcel = async (type, dataRows, startDt, endDt) => {
-  let url = "";
-  switch (type) {
-    case "income":
-    case "expense":
-      url = `${process.env.REACT_APP_API_URL}/api/excel/${type}?startDt=${startDt}&endDt=${endDt}`;
-      break;
-    case "year":
-      url = `${process.env.REACT_APP_API_URL}/api/excel/${type}?startDt=${startDt}`;
-      break;
-    default:
-      break;
-  }
-
-  try {
-    const obj = {
-      yearlyExcelDtoList: dataRows,
-    };
-    await axios(url, {
-      method: type === "year" ? "POST" : "GET",
-      data: type === "year" ? obj.yearlyExcelDtoList : {},
-      responseType: "blob", // important
-      withCredentials: true,
-    }).then((response) => {
-      console.log(response);
-      const url = window.URL.createObjectURL(
-        new Blob([response.data], { type: response.headers["content-type"] })
-      );
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", `${type}-report-${startDt}-${endDt}.xlsx`);
-      document.body.appendChild(link);
-      link.click();
-      return response;
-    });
-  } catch (err) {
-    console.log(err.response.data);
-  }
-};
+import * as reportUtil from "../../../utils/reportUtil";
 
 export default function ReportYearTabPanel({
   tabValue,
@@ -68,6 +28,7 @@ export default function ReportYearTabPanel({
   setStartMonth,
   columns,
   rows,
+  dateParams,
   categoryRows,
   category,
   canvasRef,
@@ -107,7 +68,16 @@ export default function ReportYearTabPanel({
         <div>
           <DataGrid columns={columns} rows={rows} height={500} />
           <Stack direction="row" spacing={2}>
-            <Button onClick={() => downloadToExcel("year")}>
+            <Button
+              onClick={() =>
+                reportUtil.downloadToExcel(
+                  "year",
+                  rows,
+                  dateParams.startDt,
+                  dateParams.endDt
+                )
+              }
+            >
               엑셀 다운로드 (연간 보고서)
             </Button>
           </Stack>

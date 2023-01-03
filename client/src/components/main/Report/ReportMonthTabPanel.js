@@ -3,47 +3,7 @@ import TabPanel from "../TabPanel";
 import RadioButton from "../RadioButton";
 import DateHeader from "../../common/DateHeader";
 import ChartCanvas from "../ChartCanvas";
-import axios from "axios";
-
-const downloadToExcel = async (type, dataRows, startDt, endDt) => {
-  let url = "";
-  switch (type) {
-    case "income":
-    case "expense":
-      url = `${process.env.REACT_APP_API_URL}/api/excel/${type}?startDt=${startDt}&endDt=${endDt}`;
-      break;
-    case "year":
-      url = `${process.env.REACT_APP_API_URL}/api/excel/${type}?startDt=${startDt}`;
-      break;
-    default:
-      break;
-  }
-
-  try {
-    const obj = {
-      yearlyExcelDtoList: dataRows,
-    };
-    await axios(url, {
-      method: type === "year" ? "POST" : "GET",
-      data: type === "year" ? obj.yearlyExcelDtoList : {},
-      responseType: "blob", // important
-      withCredentials: true,
-    }).then((response) => {
-      console.log(response);
-      const url = window.URL.createObjectURL(
-        new Blob([response.data], { type: response.headers["content-type"] })
-      );
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", `${type}-report-${startDt}-${endDt}.xlsx`);
-      document.body.appendChild(link);
-      link.click();
-      return response;
-    });
-  } catch (err) {
-    console.log(err.response.data);
-  }
-};
+import * as reportUtil from "../../../utils/reportUtil";
 
 export default function ReportMonthTabPanel({
   tabValue,
@@ -53,6 +13,8 @@ export default function ReportMonthTabPanel({
   costOption,
   handleCheckboxChange,
   currentMonth,
+  rows,
+  dateParams,
   prevMonth,
   nextMonth,
   canvasRef,
@@ -94,12 +56,30 @@ export default function ReportMonthTabPanel({
         }}
       >
         {costOption === "income" && (
-          <Button onClick={() => downloadToExcel("income")}>
+          <Button
+            onClick={() =>
+              reportUtil.downloadToExcel(
+                "income",
+                rows,
+                dateParams.startDt,
+                dateParams.endDt
+              )
+            }
+          >
             엑셀 다운로드 (수입)
           </Button>
         )}
         {costOption === "expense" && (
-          <Button onClick={() => downloadToExcel("expense")}>
+          <Button
+            onClick={() =>
+              reportUtil.downloadToExcel(
+                "expense",
+                rows,
+                dateParams.startDt,
+                dateParams.endDt
+              )
+            }
+          >
             엑셀 다운로드 (지출)
           </Button>
         )}
