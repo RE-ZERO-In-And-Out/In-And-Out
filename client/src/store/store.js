@@ -10,10 +10,16 @@ const useCategoryDropDownItemStore = create((set) => ({
 }));
 
 const useStore = create(
-  persist((set) => ({
-    profileImage: null,
-    setProfileImage: (input) => set({ profileImage: input }),
-  }))
+  persist(
+    (set) => ({
+      profileImage: null,
+      setProfileImage: (input) => set({ profileImage: input }),
+    }),
+    {
+      name: "image-storage", // name of the item in the storage (must be unique)
+      getStorage: () => localStorage, // (optional) by default, 'localStorage' is used
+    }
+  )
 );
 
 const useStore2 = create(
