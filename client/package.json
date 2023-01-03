@@ -40,12 +40,12 @@
     "react-spinners": "^0.13.6",
     "react-toastify": "^9.0.8",
     "redux": "^4.2.0",
-    "redux-persist": "^6.0.0",
     "redux-thunk": "^2.4.1",
     "styled-components": "^5.3.6",
     "web-vitals": "^2.1.4",
     "yup": "^0.32.11",
-    "zustand": "^4.1.2"
+    "zustand": "^4.1.2",
+    "zustand-persist": "^0.4.0"
   },
   "scripts": {
     "start": "react-scripts start",

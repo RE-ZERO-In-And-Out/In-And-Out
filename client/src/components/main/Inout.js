@@ -35,7 +35,6 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 import { useCategoryDropDownItemStore } from "../../store/store.js";
-import { isVisible } from "@testing-library/user-event/dist/utils";
 
 const INCOME_API_URL = `${process.env.REACT_APP_API_URL}/api/income`;
 const EXPENSE_API_URL = `${process.env.REACT_APP_API_URL}/api/expense`;
