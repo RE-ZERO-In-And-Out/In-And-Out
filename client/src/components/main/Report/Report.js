@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import "react-data-grid/lib/styles.css";
 import Grid from "@mui/material/Unstable_Grid2/Grid2";
 
@@ -12,28 +12,15 @@ import {
 } from "date-fns";
 
 import ReportTab from "./ReportTab";
-
 import axios from "axios";
-
 import { useQuery } from "react-query";
 import PacmanLoader from "react-spinners/PacmanLoader";
-
-import {
-  doughnutConfig,
-  barConfig,
-  lineConfig,
-} from "../../../utils/graphOptions";
+import { monthGraph, yearGraph } from "../../../utils/graphOptions";
 
 import ReportMonthTabPanel from "./ReportMonthTabPanel";
 import ReportYearTabPanel from "./ReportYearTabPanel";
-import {
-  drawChart,
-  columns,
-  months,
-  graphTypeOptions,
-  yearlyOptions,
-  costOptions,
-} from "../../../utils/reportUtil";
+import * as reportUtil from "../../../utils/reportUtil";
+import useCheckbox from "../../../hooks/useCheckbox";
 
 const TabSelected = Object.freeze({
   MONTH: 0,
@@ -41,36 +28,26 @@ const TabSelected = Object.freeze({
 });
 
 let currentMonth = new Date();
-let categoryRows = [];
-
-const setYearGraphDropdownCategoryData = (selectedCategory) => {
-  let newData = [];
-  categoryRows.forEach((row) => {
-    if (row.category === selectedCategory) {
-      newData = Object.entries(row)
-        .slice(1, 13)
-        .map((entry) => entry[1]);
-      lineConfig.data.datasets[0].data = newData;
-    }
-  });
-};
 
 export default function Report() {
   const canvasRef = useRef(null);
 
-  const [graphTypeOption, setgraphTypeOption] = useState("bar");
-  const [yearlyOption, setYearlyOption] = useState("chart");
-  const [costOption, setCostOption] = useState("income");
+  const { graphTypeOption, yearlyOption, costOption, setCheckboxMap } =
+    useCheckbox();
   const [tabValue, setTabValue] = useState(0);
 
   const [rows, setRows] = useState([]);
   const [category, setCategory] = useState("");
   const [startMonth, setStartMonth] = useState(new Date());
 
-  const handleDropdownCategoryChange = (event) => {
-    setYearGraphDropdownCategoryData(event.target.value);
+  const handleDropdownCategoryChange = useCallback((event) => {
+    reportUtil.setYearGraphDropdownCategoryData(
+      yearGraph.lineConfig,
+      reportUtil.categoryRows,
+      event.target.value
+    );
     setCategory(event.target.value);
-  };
+  }, []);
 
   const setParamAndRefetch = () => {
     setParam();
@@ -86,32 +63,19 @@ export default function Report() {
     setParamAndRefetch();
   };
 
-  const checkboxMap = {
-    monthly(e) {
-      setgraphTypeOption(e.target.value);
+  const handleCheckboxChange = useCallback(
+    (e) => {
+      if (e.target.checked) {
+        setCheckboxMap[e.target.name](e);
+      }
     },
-    yearly(e) {
-      setYearlyOption(e.target.value);
-    },
-    cost(e) {
-      setCostOption(e.target.value);
-    },
-  };
-
-  const handleCheckbox = (checkboxType, e) => {
-    checkboxMap[checkboxType](e);
-  };
-
-  const handleCheckboxChange = (e) => {
-    if (e.target.checked) {
-      handleCheckbox(e.target.name, e);
-    }
-  };
+    [setCheckboxMap]
+  );
 
   const getMonthlyData = (fetchedData) => {
     const newData = [];
     const newLabel = [];
-    console.log(fetchedData);
+
     fetchedData.sort((a, b) => b.categorySum - a.categorySum);
     fetchedData.forEach((element, idx) => {
       newData[idx] = Math.round(element.categoryRatio * 100);
@@ -167,7 +131,7 @@ export default function Report() {
 
   const createMainRows = (categoryTitle) => {
     let obj = {};
-    columns.forEach((column) => {
+    reportUtil.columns.forEach((column) => {
       if (column.key === "category") obj[column.key] = categoryTitle;
       else obj[column.key] = 0;
     });
@@ -175,120 +139,16 @@ export default function Report() {
     return obj;
   };
 
-  const renderTotalYearReportOnTableAndGraph = (data) => {
-    console.log(data);
-
-    const yearlyIncomeMonthSums = data.incomeReportList.map(
-      (data) => data.monthlySum
-    );
-
-    const yearlyExpenseMonthSums = data.expenseReportList.map(
-      (data) => data.monthlySum
-    );
-
-    const yearlyTotalMonthSums = yearlyIncomeMonthSums.map(
-      (x, y) => x - yearlyExpenseMonthSums[y]
-    );
-
-    lineConfig.data.datasets[0].data = yearlyTotalMonthSums;
-
-    let incomeCategories = {};
-    let expenseCategories = {};
-    const tempRows = [];
-
-    tempRows.push(createMainRows("수입지출합계"));
-    tempRows.push(createMainRows("수입합계"));
-
-    const yearlyIncomeReport = data.incomeReportList.map((data) =>
-      data.incomeReport ? data.incomeReport : 0
-    );
-
-    yearlyIncomeReport.forEach((report, idx) => {
-      if (report.length !== 0) {
-        for (let i = 0; i < report.length; i++) {
-          if (!incomeCategories[report[i].category])
-            incomeCategories[report[i].category] = new Array(14).fill(0);
-          incomeCategories[report[i].category][idx + 1] = report[i].categorySum;
-        }
-      }
-    });
-
-    for (let key in incomeCategories) {
-      let idx = 1;
-      let sum = 0;
-      const row = {};
-      for (let item of columns) {
-        if (item.key === "category") row[item.key] = key;
-        else if (item.key === "sum") {
-          row[item.key] = sum;
-          tempRows[1][item.key] += row[item.key];
-        } else {
-          row[item.key] = incomeCategories[key][idx++];
-          tempRows[1][item.key] += row[item.key];
-          sum += row[item.key];
-        }
-      }
-      tempRows.push(row);
-    }
-
-    tempRows.push(createMainRows("지출합계"));
-    let expenseSumRowPos = tempRows.length - 1;
-
-    const yearlyExpenseReport = data.expenseReportList.map((data) =>
-      data.expenseReport ? data.expenseReport : 0
-    );
-
-    yearlyExpenseReport.forEach((report, idx) => {
-      if (report.length !== 0) {
-        for (let i = 0; i < report.length; i++) {
-          if (!expenseCategories[report[i].category])
-            expenseCategories[report[i].category] = new Array(14).fill(0);
-          expenseCategories[report[i].category][idx + 1] =
-            report[i].categorySum;
-        }
-      }
-    });
-
-    for (let key in expenseCategories) {
-      let idx = 1;
-      let sum = 0;
-      const row = {};
-      for (let item of columns) {
-        if (item.key === "category") row[item.key] = key;
-        else if (item.key === "sum") {
-          row[item.key] = sum;
-          tempRows[expenseSumRowPos][item.key] += row[item.key];
-        } else {
-          row[item.key] = expenseCategories[key][idx++];
-          tempRows[expenseSumRowPos][item.key] += row[item.key];
-          sum += row[item.key];
-        }
-      }
-      tempRows.push(row);
-    }
-
-    const obj = {};
-    for (const property in tempRows[1]) {
-      obj[property] =
-        tempRows[1][property] - tempRows[expenseSumRowPos][property];
-    }
-    obj.category = "수입지출합계";
-    tempRows[0] = obj;
-    console.log(tempRows);
-    categoryRows = tempRows.slice();
-    setRows(tempRows);
-  };
-
   const setReportDataWith = (data) => {
     switch (tabValue) {
       case TabSelected.MONTH:
         const [newData, newLabel] = getMonthlyData(data);
-        console.log(newData, newLabel);
-        doughnutConfig.data.labels = newLabel;
-        doughnutConfig.data.datasets[0].data = newData;
-        console.log(newData);
-        barConfig.data.labels = newLabel;
-        barConfig.data.datasets[0].data = newData;
+
+        Object.keys(monthGraph).forEach((item) => {
+          monthGraph[item].data.labels = newLabel;
+          monthGraph[item].data.datasets[0].data = newData;
+        });
+
         break;
       case TabSelected.YEAR:
         const yearLabel = [];
@@ -297,14 +157,17 @@ export default function Report() {
           const curMonth = month.getMonth();
           yearLabel.push(curMonth + 1);
 
-          columns[i].key = months[curMonth];
-          columns[i].name = `${curMonth + 1}월`;
+          reportUtil.columns[i].key = reportUtil.months[curMonth];
+          reportUtil.columns[i].name = `${curMonth + 1}월`;
           month = addMonths(month, 1);
         }
 
-        lineConfig.data.labels = yearLabel;
+        Object.keys(yearGraph).forEach((item) => {
+          yearGraph[item].data.labels = yearLabel;
+        });
 
-        renderTotalYearReportOnTableAndGraph(data);
+        const totalYearData = reportUtil.getTotalYearReportData(data);
+        setRows(totalYearData);
 
         break;
       default:
@@ -312,20 +175,20 @@ export default function Report() {
     }
   };
 
-  const handleTabChange = (event, newValue) => {
+  const handleTabChange = useCallback((event, newValue) => {
     setTabValue(newValue);
-  };
+  }, []);
 
   useEffect(() => {
     let charId;
     if (canvasRef.current) {
-      charId = drawChart(
+      charId = reportUtil.drawChart(
         canvasRef.current,
         tabValue === TabSelected.MONTH
           ? graphTypeOption === "bar"
-            ? barConfig
-            : doughnutConfig
-          : lineConfig
+            ? monthGraph.barConfig
+            : monthGraph.doughnutConfig
+          : yearGraph.lineConfig
       );
 
       canvasRef.current.onclick = function (evt) {
@@ -397,12 +260,14 @@ export default function Report() {
       <ReportTab tabValue={tabValue} handleTabChange={handleTabChange} />
       <ReportMonthTabPanel
         tabValue={tabValue}
-        graphTypeOptions={graphTypeOptions}
+        graphTypeOptions={reportUtil.graphTypeOptions}
         graphTypeOption={graphTypeOption}
-        costOptions={costOptions}
+        costOptions={reportUtil.costOptions}
         costOption={costOption}
         handleCheckboxChange={handleCheckboxChange}
         currentMonth={currentMonth}
+        rows={rows}
+        dateParams={params}
         prevMonth={prevMonth}
         nextMonth={nextMonth}
         canvasRef={canvasRef}
@@ -410,14 +275,14 @@ export default function Report() {
 
       <ReportYearTabPanel
         tabValue={tabValue}
-        yearlyOptions={yearlyOptions}
+        yearlyOptions={reportUtil.yearlyOptions}
         yearlyOption={yearlyOption}
         handleCheckboxChange={handleCheckboxChange}
         startMonth={startMonth}
         setStartMonth={setStartMonth}
-        columns={columns}
+        columns={reportUtil.columns}
         rows={rows}
-        categoryRows={categoryRows}
+        categoryRows={reportUtil.categoryRows}
         category={category}
         canvasRef={canvasRef}
         handleDropdownCategoryChange={handleDropdownCategoryChange}

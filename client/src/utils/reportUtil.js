@@ -15,6 +15,10 @@ import {
 } from "chart.js";
 import ChartDataLabels from "chartjs-plugin-datalabels";
 
+import axios from "axios";
+
+import { monthGraph, yearGraph } from "./graphOptions";
+
 Chart.register(
   BarElement,
   BarController,
@@ -80,6 +84,178 @@ const drawChart = (ctx, config) => {
   return new Chart(ctx, config);
 };
 
+const downloadToExcel = async (type, dataRows, startDt, endDt) => {
+  let url = "";
+  switch (type) {
+    case "income":
+    case "expense":
+      url = `${process.env.REACT_APP_API_URL}/api/excel/${type}?startDt=${startDt}&endDt=${endDt}`;
+      break;
+    case "year":
+      url = `${process.env.REACT_APP_API_URL}/api/excel/${type}?startDt=${startDt}`;
+      break;
+    default:
+      break;
+  }
+
+  try {
+    const obj = {
+      yearlyExcelDtoList: dataRows,
+    };
+    await axios(url, {
+      method: type === "year" ? "POST" : "GET",
+      data: type === "year" ? obj.yearlyExcelDtoList : {},
+      responseType: "blob", // important
+      withCredentials: true,
+    }).then((response) => {
+      console.log(response);
+      const url = window.URL.createObjectURL(
+        new Blob([response.data], { type: response.headers["content-type"] })
+      );
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `${type}-report-${startDt}-${endDt}.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      return response;
+    });
+  } catch (err) {
+    console.log(err.response.data);
+  }
+};
+
+let categoryRows = [];
+
+const createMainRows = (categoryTitle) => {
+  let obj = {};
+  columns.forEach((column) => {
+    if (column.key === "category") obj[column.key] = categoryTitle;
+    else obj[column.key] = 0;
+  });
+
+  return obj;
+};
+
+const setYearGraphDropdownCategoryData = (
+  graphConfig,
+  categoryRows,
+  selectedCategory
+) => {
+  let newData = [];
+  categoryRows.forEach((row) => {
+    if (row.category === selectedCategory) {
+      newData = Object.entries(row)
+        .slice(1, 13)
+        .map((entry) => entry[1]);
+      graphConfig.data.datasets[0].data = newData;
+    }
+  });
+};
+
+const getTotalYearReportData = (data) => {
+  console.log(data);
+
+  const yearlyIncomeMonthSums = data.incomeReportList.map(
+    (data) => data.monthlySum
+  );
+
+  const yearlyExpenseMonthSums = data.expenseReportList.map(
+    (data) => data.monthlySum
+  );
+
+  const yearlyTotalMonthSums = yearlyIncomeMonthSums.map(
+    (x, y) => x - yearlyExpenseMonthSums[y]
+  );
+
+  yearGraph.lineConfig.data.datasets[0].data = yearlyTotalMonthSums;
+
+  let incomeCategories = {};
+  let expenseCategories = {};
+  const tempRows = [];
+
+  tempRows.push(createMainRows("수입지출합계"));
+  tempRows.push(createMainRows("수입합계"));
+
+  const yearlyIncomeReport = data.incomeReportList.map((data) =>
+    data.incomeReport ? data.incomeReport : 0
+  );
+
+  yearlyIncomeReport.forEach((report, idx) => {
+    if (report.length !== 0) {
+      for (let i = 0; i < report.length; i++) {
+        if (!incomeCategories[report[i].category])
+          incomeCategories[report[i].category] = new Array(14).fill(0);
+        incomeCategories[report[i].category][idx + 1] = report[i].categorySum;
+      }
+    }
+  });
+
+  for (let key in incomeCategories) {
+    let idx = 1;
+    let sum = 0;
+    const row = {};
+    for (let item of columns) {
+      if (item.key === "category") row[item.key] = key;
+      else if (item.key === "sum") {
+        row[item.key] = sum;
+        tempRows[1][item.key] += row[item.key];
+      } else {
+        row[item.key] = incomeCategories[key][idx++];
+        tempRows[1][item.key] += row[item.key];
+        sum += row[item.key];
+      }
+    }
+    tempRows.push(row);
+  }
+
+  tempRows.push(createMainRows("지출합계"));
+  let expenseSumRowPos = tempRows.length - 1;
+
+  const yearlyExpenseReport = data.expenseReportList.map((data) =>
+    data.expenseReport ? data.expenseReport : 0
+  );
+
+  yearlyExpenseReport.forEach((report, idx) => {
+    if (report.length !== 0) {
+      for (let i = 0; i < report.length; i++) {
+        if (!expenseCategories[report[i].category])
+          expenseCategories[report[i].category] = new Array(14).fill(0);
+        expenseCategories[report[i].category][idx + 1] = report[i].categorySum;
+      }
+    }
+  });
+
+  for (let key in expenseCategories) {
+    let idx = 1;
+    let sum = 0;
+    const row = {};
+    for (let item of columns) {
+      if (item.key === "category") row[item.key] = key;
+      else if (item.key === "sum") {
+        row[item.key] = sum;
+        tempRows[expenseSumRowPos][item.key] += row[item.key];
+      } else {
+        row[item.key] = expenseCategories[key][idx++];
+        tempRows[expenseSumRowPos][item.key] += row[item.key];
+        sum += row[item.key];
+      }
+    }
+    tempRows.push(row);
+  }
+
+  const obj = {};
+  for (const property in tempRows[1]) {
+    obj[property] =
+      tempRows[1][property] - tempRows[expenseSumRowPos][property];
+  }
+  obj.category = "수입지출합계";
+  tempRows[0] = obj;
+  console.log(tempRows);
+  categoryRows = tempRows.slice();
+
+  return tempRows;
+};
+
 export {
   drawChart,
   columns,
@@ -87,4 +263,8 @@ export {
   graphTypeOptions,
   yearlyOptions,
   costOptions,
+  downloadToExcel,
+  setYearGraphDropdownCategoryData,
+  categoryRows,
+  getTotalYearReportData,
 };
