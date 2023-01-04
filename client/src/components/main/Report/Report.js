@@ -12,7 +12,6 @@ import {
 } from "date-fns";
 
 import ReportTab from "./ReportTab";
-import axios from "axios";
 import { useQuery } from "react-query";
 import PacmanLoader from "react-spinners/PacmanLoader";
 import { monthGraph, yearGraph } from "../../../utils/graphOptions";
@@ -28,6 +27,7 @@ const TabSelected = Object.freeze({
 });
 
 let currentMonth = new Date();
+const params = {};
 
 export default function Report() {
   const canvasRef = useRef(null);
@@ -176,7 +176,7 @@ export default function Report() {
     tabValue === TabSelected.MONTH
       ? `${process.env.REACT_APP_API_URL}/api/report/month/${costOption}`
       : `${process.env.REACT_APP_API_URL}/api/report/year`;
-  const params = {};
+
   setParam();
 
   const handleReportData = async (url, params) => {
@@ -194,7 +194,11 @@ export default function Report() {
       yearlyOption,
     ],
     () => handleReportData(API_URL, params),
-    { staleTime: 0, cacheTime: 0, refetchOnWindowFocus: false }
+    {
+      staleTime: 5 * (60 * 1000),
+      // cacheTime: 1 * (60 * 1000),
+      refetchOnWindowFocus: false,
+    }
   );
 
   if (isLoading)

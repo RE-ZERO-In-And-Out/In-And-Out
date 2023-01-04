@@ -16,6 +16,7 @@ import Screen from "./components/common/Screen";
 import SignupCheck from "./components/login/SignupCheck";
 
 import { QueryClientProvider, QueryClient } from "react-query";
+import { ReactQueryDevtools } from "react-query/devtools";
 
 import PublicRoute from "./components/route/publicRoute";
 import PrivateRoute from "./components/route/privateRoute";
@@ -141,6 +142,7 @@ function App() {
           </Routes>
         </BrowserRouter>
       </Font>
+      <ReactQueryDevtools initialIsOpen={false} position="bottom-right" />
     </QueryClientProvider>
   );
 }
