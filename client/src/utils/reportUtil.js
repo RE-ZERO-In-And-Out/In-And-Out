@@ -256,6 +256,19 @@ const getTotalYearReportData = (data) => {
   return tempRows;
 };
 
+const getMonthlyData = (fetchedData) => {
+  const newData = [];
+  const newLabel = [];
+
+  fetchedData.sort((a, b) => b.categorySum - a.categorySum);
+  fetchedData.forEach((element, idx) => {
+    newData[idx] = Math.round(element.categoryRatio * 100);
+    newLabel[idx] = `${element.category} - ${element.categorySum}`;
+  });
+
+  return [newData, newLabel];
+};
+
 export {
   drawChart,
   columns,
@@ -267,4 +280,5 @@ export {
   setYearGraphDropdownCategoryData,
   categoryRows,
   getTotalYearReportData,
+  getMonthlyData,
 };

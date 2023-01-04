@@ -129,20 +129,10 @@ export default function Report() {
     }
   };
 
-  const createMainRows = (categoryTitle) => {
-    let obj = {};
-    reportUtil.columns.forEach((column) => {
-      if (column.key === "category") obj[column.key] = categoryTitle;
-      else obj[column.key] = 0;
-    });
-
-    return obj;
-  };
-
   const setReportDataWith = (data) => {
     switch (tabValue) {
       case TabSelected.MONTH:
-        const [newData, newLabel] = getMonthlyData(data);
+        const [newData, newLabel] = reportUtil.getMonthlyData(data);
 
         Object.keys(monthGraph).forEach((item) => {
           monthGraph[item].data.labels = newLabel;
