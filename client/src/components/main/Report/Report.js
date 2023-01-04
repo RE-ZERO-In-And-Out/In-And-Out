@@ -72,19 +72,6 @@ export default function Report() {
     [setCheckboxMap]
   );
 
-  const getMonthlyData = (fetchedData) => {
-    const newData = [];
-    const newLabel = [];
-
-    fetchedData.sort((a, b) => b.categorySum - a.categorySum);
-    fetchedData.forEach((element, idx) => {
-      newData[idx] = Math.round(element.categoryRatio * 100);
-      newLabel[idx] = `${element.category} - ${element.categorySum}`;
-    });
-
-    return [newData, newLabel];
-  };
-
   const formatDate = (date) => {
     return `${date.getFullYear()}-${(date.getMonth() + 1)
       .toString()
@@ -111,21 +98,6 @@ export default function Report() {
         break;
       default:
         break;
-    }
-  };
-
-  const getReportDataFrom = async (url, params) => {
-    try {
-      const res = await axios(
-        `${url}?endDt=${params.endDt}&startDt=${params.startDt}`,
-        {
-          withCredentials: true,
-        }
-      );
-      console.log(res);
-      return res.data;
-    } catch (err) {
-      console.log(err);
     }
   };
 
@@ -214,7 +186,7 @@ export default function Report() {
   setParam();
 
   const handleReportData = async (url, params) => {
-    const fetchedData = await getReportDataFrom(url, params);
+    const fetchedData = await reportUtil.getReportDataFrom(url, params);
 
     setReportDataWith(fetchedData);
   };

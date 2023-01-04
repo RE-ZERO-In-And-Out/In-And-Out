@@ -269,6 +269,21 @@ const getMonthlyData = (fetchedData) => {
   return [newData, newLabel];
 };
 
+const getReportDataFrom = async (url, params) => {
+  try {
+    const res = await axios(
+      `${url}?endDt=${params.endDt}&startDt=${params.startDt}`,
+      {
+        withCredentials: true,
+      }
+    );
+    console.log(res);
+    return res.data;
+  } catch (err) {
+    console.log(err);
+  }
+};
+
 export {
   drawChart,
   columns,
@@ -281,4 +296,5 @@ export {
   categoryRows,
   getTotalYearReportData,
   getMonthlyData,
+  getReportDataFrom,
 };
