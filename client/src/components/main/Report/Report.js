@@ -72,17 +72,11 @@ export default function Report() {
     [setCheckboxMap]
   );
 
-  const formatDate = (date) => {
-    return `${date.getFullYear()}-${(date.getMonth() + 1)
-      .toString()
-      .padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")}`;
-  };
-
   const setParam = () => {
     switch (tabValue) {
       case TabSelected.MONTH:
-        params.startDt = formatDate(startOfMonth(currentMonth));
-        params.endDt = formatDate(endOfMonth(currentMonth));
+        params.startDt = reportUtil.formatDate(startOfMonth(currentMonth));
+        params.endDt = reportUtil.formatDate(endOfMonth(currentMonth));
         break;
       case TabSelected.YEAR:
         const startYear = format(startMonth, "yyyy");
