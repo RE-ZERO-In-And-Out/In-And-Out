@@ -290,6 +290,11 @@ const formatDate = (date) => {
     .padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")}`;
 };
 
+const TabSelected = Object.freeze({
+  MONTH: 0,
+  YEAR: 1,
+});
+
 export {
   drawChart,
   columns,
@@ -304,4 +309,5 @@ export {
   getMonthlyData,
   getReportDataFrom,
   formatDate,
+  TabSelected,
 };
