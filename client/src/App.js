@@ -9,13 +9,14 @@ import RecoverInitiate from "./components/login/RecoverInitiate";
 import Calendar from "./components/main/Calendar";
 import styled from "styled-components";
 import Inout from "./components/main/Inout";
-import Report from "./components/main/Report";
+import Report from "./components/main/Report/Report";
 import Error from "./components/Error";
 import Layout from "./components/common/Layout";
 import Screen from "./components/common/Screen";
 import SignupCheck from "./components/login/SignupCheck";
 
 import { QueryClientProvider, QueryClient } from "react-query";
+import { ReactQueryDevtools } from "react-query/devtools";
 
 import PublicRoute from "./components/route/publicRoute";
 import PrivateRoute from "./components/route/privateRoute";
@@ -141,6 +142,7 @@ function App() {
           </Routes>
         </BrowserRouter>
       </Font>
+      <ReactQueryDevtools initialIsOpen={false} position="bottom-right" />
     </QueryClientProvider>
   );
 }

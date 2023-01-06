@@ -1,4 +1,4 @@
-const doughnutOption = {
+let doughnutOption = {
   responsive: false,
   tooltips: {
     callbacks: {
@@ -110,7 +110,7 @@ const lineOption = {
   },
 };
 
-const doughnutConfig = {
+let doughnutConfig = {
   type: "doughnut",
   data: {
     datasets: [
@@ -182,7 +182,7 @@ const doughnutConfig = {
   options: doughnutOption,
 };
 
-const barConfig = {
+let barConfig = {
   type: "bar",
   data: {
     labels: [],
@@ -257,7 +257,7 @@ const barConfig = {
   options: barOption,
 };
 
-const lineConfig = {
+let lineConfig = {
   type: "line",
   data: {
     labels: [],
@@ -273,5 +273,7 @@ const lineConfig = {
   },
   options: lineOption,
 };
+const monthGraph = { doughnutConfig, barConfig };
+const yearGraph = { lineConfig };
 
-export { doughnutConfig, barConfig, lineConfig };
+export { monthGraph, yearGraph };
