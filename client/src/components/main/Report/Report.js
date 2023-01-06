@@ -134,6 +134,7 @@ export default function Report() {
         setStartMonth={setStartMonth}
         columns={reportUtil.columns}
         rows={rows}
+        dateParams={params}
         categoryRows={reportUtil.categoryRows}
         category={category}
         canvasRef={canvasRef}

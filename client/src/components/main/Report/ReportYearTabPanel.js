@@ -87,7 +87,12 @@ export default function ReportYearTabPanel({
         <>
           <span>
             <FormControl sx={{ ml: 70, minWidth: 120 }}>
-              <InputLabel id="category-select-label">카테고리</InputLabel>
+              <InputLabel
+                data-testid="year-category-select-label"
+                id="category-select-label"
+              >
+                카테고리
+              </InputLabel>
               <Select
                 labelId="category-select-label"
                 id="category-select"

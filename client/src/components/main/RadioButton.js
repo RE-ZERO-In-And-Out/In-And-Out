@@ -18,6 +18,7 @@ export default function RadioButton({
       <RadioGroup aria-label="position">
         {buttonOptions.map((option, idx) => (
           <FormControlLabel
+            data-testid={option.value}
             key={idx}
             checked={checkedOption === option.value}
             value={option.value}
